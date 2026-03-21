@@ -1,0 +1,72 @@
+import { ArrowLeft } from 'lucide-react'
+import { SettingsRow } from './SettingsRow'
+import { SectionLabel, Divider } from './SettingsHelpers'
+import { NotificationSettings } from './NotificationSettings'
+import { DataSettingsSection } from './DataSettingsSection'
+
+interface SettingsPageProps {
+  onBack: () => void
+  onGoRecurring: () => void
+  onGoFixedExpenses: () => void
+  onGoFinancial: () => void
+  onGoCategories: () => void
+}
+
+
+export function SettingsPage({ onBack, onGoRecurring, onGoFixedExpenses, onGoFinancial, onGoCategories }: SettingsPageProps) {
+  return (
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <header className="flex items-center gap-3 px-4 py-3 safe-top">
+        <button
+          type="button"
+          onClick={onBack}
+          className="bg-surface active:bg-surface2 flex size-8 items-center justify-center rounded-full transition-colors"
+          aria-label="Quay lại"
+        >
+          <ArrowLeft className="size-4" />
+        </button>
+        <h1 className="flex-1 text-center text-base font-semibold">Cài đặt</h1>
+        <div className="size-8" /> {/* spacer */}
+      </header>
+
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto pb-8">
+        {/* Khoản lặp lại */}
+        <SectionLabel>Khoản lặp lại</SectionLabel>
+        <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">
+          <SettingsRow
+            icon="↻"
+            label="Quản lý recurring"
+            sublabel="Ăn trưa, cafe, xăng xe..."
+            onTap={onGoRecurring}
+          />
+        </div>
+
+        {/* Tài chính */}
+        <SectionLabel>Tài chính (tuỳ chọn)</SectionLabel>
+        <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">
+          <SettingsRow icon="💰" label="Thu nhập hằng tháng" sublabel="Lương + tiết kiệm" onTap={onGoFinancial} />
+          <Divider />
+          <SettingsRow icon="🎯" label="Mục tiêu tiết kiệm" sublabel="Cài cùng thu nhập" onTap={onGoFinancial} />
+          <Divider />
+          <SettingsRow icon="🏠" label="Chi phí cố định" sublabel="Tiền nhà, điện nước..." onTap={onGoFixedExpenses} />
+        </div>
+
+        {/* Danh mục */}
+        <SectionLabel>Danh mục</SectionLabel>
+        <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">
+          <SettingsRow icon="◫" label="Quản lý danh mục" onTap={onGoCategories} />
+        </div>
+
+        {/* Thông báo — live component with permission flow */}
+        <SectionLabel>Thông báo</SectionLabel>
+        <NotificationSettings />
+
+        {/* Dữ liệu */}
+        <SectionLabel>Dữ liệu</SectionLabel>
+        <DataSettingsSection />
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,184 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Colors from design system ── */
+  --color-bg: #F0EDE8;       /* page background — warm gray, noticeably distinct from white */
+  --color-surface: #F2F0EC;
+  --color-surface2: #E8E6E0;
+  --color-text: #1A1A18;
+  --color-text-muted: #88887A;
+  --color-text-hint: #B8B8A8;
+  --color-accent: #E8A020;
+  --color-accent-bg: #FFF4E0;
+  --color-accent-dark: #B87B10;
+  --color-danger: #D63E3E;
+  --color-danger-bg: #FFF0F0;
+  --color-success: #2A9D6E;
+  --color-success-bg: #EDFAF4;
+  --color-border: #E2E0D8;
+  --color-border2: #D0CEC4;
+
+  /* ── Fonts ── */
+  --font-num: 'JetBrains Mono', monospace;
+  --font-ui: 'Geist', sans-serif;
+
+  /* ── Radii ── */
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 6px;
+}
+
+/* ── Base styles ── */
+html, body {
+  height: 100dvh;
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;         /* prevent iOS rubber-band bounce on body */
+}
+
+#root {
+  height: 100dvh;
+  background-color: var(--color-bg);
+  overflow: hidden;
+}
+
+/* Prevent tap highlight flash on all interactive elements (native feel) */
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;        /* no callout menu on long-press */
+}
+
+/* Smooth momentum scrolling on iOS for scrollable containers */
+.overflow-y-auto, .overflow-x-auto, [class*="overflow"] {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Slide-up keyframe for InstallBanner */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Dev mobile shell ──────────────────────────────────────────
+   Active only in dev builds (body.dev-shell class toggled in main.tsx).
+   Creates a centered phone-sized stage so local dev looks like mobile.
+   In production / standalone PWA: body never gets this class → full screen.
+─────────────────────────────────────────────────────────────── */
+body.dev-shell {
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+body.dev-shell #root {
+  width: 390px;
+  height: 844px;
+  max-height: 100dvh;
+  border-radius: 40px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 10px #2a2a2a,
+    0 0 0 11px #3a3a3a,
+    0 40px 80px rgba(0, 0, 0, 0.7);
+  position: relative;
+}
+
+/* Fake notch */
+body.dev-shell #root::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 30px;
+  background: #111;
+  border-radius: 0 0 20px 20px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* ── Safe area padding for bottom nav ── */
+.safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 34px);
+}
+
+/* ── Number display utility ── */
+.font-num {
+  font-family: var(--font-num);
+  letter-spacing: -0.02em;
+}
+
+/* shadcn/ui CSS variables — these will be overridden when we customize later */
+
+/* ── Safe area padding for top ── */
+.safe-top {
+  padding-top: max(env(safe-area-inset-top, 0px), 16px);
+}
+
+/* ── Toggle switch — global override for [role="switch"] ──────
+   Fixes the Radix UI Switch to look native mobile-like.
+   Applies to any shadcn Switch, our custom buttons share the same pattern.
+───────────────────────────────────────────────────────────── */
+[role="switch"] {
+  width: 46px !important;
+  height: 26px !important;
+  min-width: 46px;
+  border-radius: 99px;
+  position: relative;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+  background: var(--color-surface2);
+}
+
+[role="switch"][data-state="checked"] {
+  background: var(--color-accent);
+}
+
+[role="switch"] > span {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.20);
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.2s ease;
+  pointer-events: none;
+}
+
+[role="switch"][data-state="checked"] > span {
+  transform: translateX(20px);
+}
+
+/* ── Utilities ── */
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ── emoji-mart overrides ── */
+em-emoji-picker {
+  --border-radius: 12px;
+  --category-icon-size: 18px;
+  --font-family: inherit;
+  --rgb-background: 250, 250, 248;
+  --rgb-input: 255, 255, 255;
+  --rgb-color: 26, 26, 24;
+  --color-border: #E2E0D8;
+  --shadow: none;
+  width: 100% !important;
+  border: none !important;
+}
