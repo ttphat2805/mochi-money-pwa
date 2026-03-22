@@ -201,11 +201,27 @@ export function BudgetTab() {
             return (
               <div
                 key={cat.id}
-                className="mx-4 mb-3 p-4 bg-white rounded-2xl border border-border"
-                style={{ boxShadow: "0 1px 8px rgba(0,0,0,0.04)" }}
+                className="mx-4 mb-4 p-4 bg-white rounded-[22px] relative overflow-hidden"
+                style={{
+                  boxShadow: `
+                    0 10px 25px -5px rgba(0,0,0,0.08),
+                    0 4px 10px -2px rgba(0,0,0,0.04),
+                    0 1px 0 rgba(255,255,255,1) inset
+                  `,
+                  border: "1px solid rgba(232, 230, 224, 0.6)",
+                }}
               >
+                {/* Soft Glass Shine */}
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(255,255,255,0.8) 0%, transparent 45%)",
+                  }}
+                />
+
                 {/* Header */}
-                <div className="flex bg-accent-bg rounded-xl p-3 items-center gap-3">
+                <div className="relative flex bg-[#F8F7F4] rounded-[16px] p-3 items-center gap-3 shadow-sm border border-white">
                   <div
                     className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-xl shrink-0"
                     style={{ background: color + "15" }}
@@ -229,19 +245,23 @@ export function BudgetTab() {
                   </div>
                 </div>
 
-                {/* Progress bar */}
-                <div className="h-2.5 bg-bg rounded-full overflow-hidden mb-2">
+                {/* 3D Progress bar groove */}
+                <div
+                  className="relative mt-2 h-3.5 bg-[#F0EDE8] rounded-full overflow-hidden mb-3"
+                  style={{ boxShadow: "0 2px 6px rgba(0,0,0,0.08) inset" }}
+                >
                   <div
                     className="h-full rounded-full transition-all duration-700"
                     style={{
                       width: Math.min(100, cat.pct) + "%",
-                      background: `linear-gradient(90deg, ${color}BB, ${color})`,
+                      background: `linear-gradient(90deg, ${color}CC, ${color})`,
+                      boxShadow: `0 0 10px ${color}66`, // glowing line
                     }}
                   />
                 </div>
 
                 {/* Stats row */}
-                <div className="flex justify-between text-[11.5px]">
+                <div className="relative flex justify-between text-[12px] px-1">
                   <span className="text-text-muted font-num">
                     Đã chi {formatVND(cat.spent)}đ
                   </span>
@@ -267,7 +287,16 @@ export function BudgetTab() {
           <p className="text-[10px] font-semibold uppercase tracking-[1.2px] text-text-hint mb-2">
             Chưa đặt giới hạn
           </p>
-          <div className="bg-white rounded-2xl border border-border overflow-hidden">
+          <div
+            className="bg-white rounded-[22px] relative overflow-hidden"
+            style={{
+              boxShadow: `
+              0 8px 20px -6px rgba(0,0,0,0.06),
+              0 1px 0 rgba(255,255,255,1) inset
+            `,
+              border: "1px solid rgba(232, 230, 224, 0.6)",
+            }}
+          >
             {catsWithoutLimit.map((cat, i) => {
               const isSettingThis = budget.settingLimitFor === cat.id;
               return (

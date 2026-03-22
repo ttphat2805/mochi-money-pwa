@@ -19,6 +19,7 @@ export interface HomeData {
 
   // Financials
   todaySpent: number
+  yesterdaySpent: number
   monthSpent: number
   settings: FinancialSettings | null
   remainingBudget: number | null
@@ -71,6 +72,23 @@ export function useHomeData(): HomeData {
       .toArray()
     return txs.reduce((sum, tx) => sum + tx.amount, 0)
   }, [today]) ?? 0
+
+  const yesterdayString = useMemo(() => {
+    const d = new Date()
+    d.setDate(d.getDate() - 1)
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  }, [])
+
+  const yesterdaySpent = useLiveQuery(async () => {
+    const txs = await db.transactions
+      .where('date').equals(yesterdayString)
+      .filter((tx) => !tx.deletedAt)
+      .toArray()
+    return txs.reduce((sum, tx) => sum + tx.amount, 0)
+  }, [yesterdayString]) ?? 0
 
   const monthTxs = useLiveQuery(
     () =>
@@ -221,6 +239,7 @@ export function useHomeData(): HomeData {
   return {
     isLoading,
     todaySpent,
+    yesterdaySpent,
     monthSpent,
     settings: settings as FinancialSettings | null,
     remainingBudget,

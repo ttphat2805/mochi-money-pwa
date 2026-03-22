@@ -50,7 +50,7 @@ export function BottomNav({ active, onTab }: BottomNavProps) {
             type="button"
             onClick={() => openQuickAdd()}
             aria-label="Thêm chi tiêu"
-            className="flex size-14 items-center justify-center bg-accent shadow-lg shadow-amber-100 rounded-full transition-transform duration-300 active:scale-95 text-white"
+            className="flex size-14 items-center justify-center bg-accent shadow-lg shadow- rounded-full transition-transform duration-300 active:scale-95 text-white"
           >
             <Plus size={28} strokeWidth={2.5} />
           </button>
@@ -60,20 +60,6 @@ export function BottomNav({ active, onTab }: BottomNavProps) {
         <div className="absolute inset-x-0 bottom-0 h-[64px] flex items-end">
           {/* Left part */}
           <div className="h-full flex-1 bg-white rounded-l-[30px]" />
-
-          {/* Center Notch: Mathematically aligned bowl */}
-          <div className="relative h-[64px] w-[110px] shrink-0 -mx-px">
-            <svg
-              viewBox="0 0 110 64"
-              fill="none"
-              className="h-full w-full pointer-events-none"
-            >
-              <path
-                d="M 0 0 C 24 0, 24 46, 55 46 C 86 46, 86 0, 110 0 L 110 64 L 0 64 Z"
-                fill="white"
-              />
-            </svg>
-          </div>
 
           {/* Right part */}
           <div className="h-full flex-1 bg-white rounded-r-[30px]" />
@@ -96,7 +82,7 @@ export function BottomNav({ active, onTab }: BottomNavProps) {
           />
 
           {/* Center Spacer for FAB */}
-          <div className="w-[110px] shrink-0 pointer-events-none" />
+          <div className="w-[60px] shrink-0 pointer-events-none" />
 
           {/* Right 2 */}
           <NavItem

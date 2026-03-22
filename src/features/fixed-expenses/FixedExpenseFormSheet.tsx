@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
@@ -105,9 +105,14 @@ export function FixedExpenseFormSheet({
 
   const clearAmount = () => form.clearAmount();
 
-  // Reset form each time sheet opens
+  // Reset form each time sheet opens programmatically
+  useEffect(() => {
+    if (open) {
+      form.reset();
+    }
+  }, [open, editExpense, form.reset]);
+
   const handleOpenChange = (o: boolean) => {
-    if (o) form.reset();
     if (!o) onClose();
   };
 
@@ -137,16 +142,11 @@ export function FixedExpenseFormSheet({
       <SheetContent
         side="bottom"
         showCloseButton={false}
+        className="bg-bg rounded-t-2xl p-0 flex flex-col overflow-hidden"
         style={{
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          WebkitOverflowScrolling: 'touch',
-          padding: 0,
-          borderRadius: '24px 24px 0 0',
-          background: '#FFFFFF',
+          maxHeight: '95dvh',
         }}
       >
-        <div style={{ padding: '0 0px 48px' }}>
         {/* Drag handle */}
         <div className="flex shrink-0 justify-center pt-2.5 pb-1">
           <div className="bg-border2 h-1 w-10 rounded-full" />
@@ -159,8 +159,8 @@ export function FixedExpenseFormSheet({
           Nhập thông tin chi phí lặp lại hằng tháng
         </SheetDescription>
 
-        {/* All form content */}
-        <div>
+        {/* Scrollable Fields */}
+        <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
           {/* Amount display */}
           <div className="px-4 pt-1">
             <AmountDisplay
@@ -245,14 +245,15 @@ export function FixedExpenseFormSheet({
           </div>
         </div>
 
-        {/* Numpad with save button */}
-        <Numpad
-          onDigit={form.appendDigit}
-          onDelete={form.deleteDigit}
-          onConfirm={handleSave}
-          canConfirm={form.canSave}
-          isSaving={isSaving}
-        />
+        {/* Fixed Numpad at the bottom */}
+        <div className="shrink-0 bg-bg pb-safe">
+          <Numpad
+            onDigit={form.appendDigit}
+            onDelete={form.deleteDigit}
+            onConfirm={handleSave}
+            canConfirm={form.canSave}
+            isSaving={isSaving}
+          />
         </div>
       </SheetContent>
     </Sheet>

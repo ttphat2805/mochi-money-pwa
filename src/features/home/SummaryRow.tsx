@@ -4,6 +4,7 @@ import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 interface SummaryRowProps {
   todaySpent: number;
+  yesterdaySpent?: number;
   monthSpent: number;
   remainingBudget: number | null;
   lastMonthSpent?: number;
@@ -45,18 +46,27 @@ function AnimatedNumber({
 
 export function SummaryRow({
   todaySpent,
+  yesterdaySpent = 0,
   monthSpent,
   remainingBudget,
   lastMonthSpent = 0,
 }: SummaryRowProps) {
-  const isUp = monthSpent > lastMonthSpent;
+  const isUpToday = todaySpent > yesterdaySpent;
+  const isUpMonth = monthSpent > lastMonthSpent;
 
   const stats = [
     {
       label: "HÔM NAY",
       value: todaySpent,
       color: "#D63E3E",
-      icon: null,
+      icon:
+        todaySpent > 0 ? (
+          isUpToday ? (
+            <ArrowUpRight size={10} className="text-danger" />
+          ) : (
+            <ArrowDownRight size={10} className="text-success" />
+          )
+        ) : null,
     },
     {
       label: "THÁNG NÀY",
@@ -64,7 +74,7 @@ export function SummaryRow({
       color: "#C07010",
       icon:
         monthSpent > 0 ? (
-          isUp ? (
+          isUpMonth ? (
             <ArrowUpRight size={10} className="text-danger" />
           ) : (
             <ArrowDownRight size={10} className="text-success" />

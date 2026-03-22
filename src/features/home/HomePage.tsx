@@ -48,6 +48,7 @@ export function HomePage({ onNavigate, onSettings }: HomePageProps) {
             <div className="animate-slide-up delay-2">
               <SummaryRow
                 todaySpent={home.todaySpent}
+                yesterdaySpent={home.yesterdaySpent}
                 monthSpent={home.monthSpent}
                 remainingBudget={home.remainingBudget}
                 lastMonthSpent={home.lastMonthTotal}

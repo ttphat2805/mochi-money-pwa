@@ -53,8 +53,10 @@ export function RecurringFormSheet({ open, onClose, onSave, editTemplate }: Recu
       <SheetContent
         side="bottom"
         showCloseButton={false}
-        className="bg-bg rounded-t-2xl p-0 flex flex-col"
-        style={{ maxHeight: '95dvh' }}
+        className="bg-bg rounded-t-2xl p-0 flex flex-col overflow-hidden"
+        style={{
+          maxHeight: '95dvh',
+        }}
       >
         {/* Drag handle */}
         <div className="flex shrink-0 justify-center pt-2.5 pb-1">
@@ -68,8 +70,8 @@ export function RecurringFormSheet({ open, onClose, onSave, editTemplate }: Recu
           Nhập thông tin khoản chi lặp lại
         </SheetDescription>
 
-        {/* Scrollable fields */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Scrollable Fields */}
+        <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
           {/* Amount section */}
           <div className="px-4 pt-1">
             <AmountDisplay display={form.amountDisplay} hasValue={form.amount > 0} />
@@ -98,8 +100,9 @@ export function RecurringFormSheet({ open, onClose, onSave, editTemplate }: Recu
               </span>
               <CategoryGrid
                 categories={categories}
-                selectedId={form.state.categoryId}
-                onSelect={form.selectCategory}
+                selectedId={form.state.categoryId ?? null}
+                onSelect={(id) => form.selectCategory(id)}
+                scrollable={false}
               />
             </div>
 
@@ -128,14 +131,16 @@ export function RecurringFormSheet({ open, onClose, onSave, editTemplate }: Recu
           </div>
         </div>
 
-        {/* Numpad — Lưu button IS the save button */}
-        <Numpad
-          onDigit={form.appendDigit}
-          onDelete={form.deleteDigit}
-          onConfirm={handleSave}
-          canConfirm={form.canSave}
-          isSaving={isSaving}
-        />
+        {/* Fixed Numpad at the bottom */}
+        <div className="shrink-0 bg-bg pb-safe">
+          <Numpad
+            onDigit={form.appendDigit}
+            onDelete={form.deleteDigit}
+            onConfirm={handleSave}
+            canConfirm={form.canSave}
+            isSaving={isSaving}
+          />
+        </div>
       </SheetContent>
     </Sheet>
   )
