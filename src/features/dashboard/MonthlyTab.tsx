@@ -208,7 +208,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
               color: '#1A1A18',
               fontFamily: 'JetBrains Mono, monospace',
               offsetY: 4,
-              formatter: (val: string) => `${formatShort(parseInt(val))}đ`,
+              formatter: (val: string) => formatShort(parseInt(val)),
             },
             total: {
               show: true,
@@ -220,7 +220,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               formatter: (w: any) => {
                 const total = (w.globals.seriesTotals as number[]).reduce((a, b) => a + b, 0)
-                return `${formatShort(total)}đ`
+                return formatShort(total)
               },
             },
           },
@@ -357,7 +357,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                           {pct}%
                         </span>
                         <span className="font-num text-[11px] text-text-hint w-14 text-right shrink-0">
-                          {formatShort(item.value)}đ
+                          {formatShort(item.value)}
                         </span>
                       </div>
                     )

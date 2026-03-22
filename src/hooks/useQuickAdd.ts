@@ -98,7 +98,7 @@ const EMPTY_RESULT: SaveResult = {
 }
 
 export function useQuickAdd(): UseQuickAddReturn {
-  const { quickAddOpen, closeQuickAdd, quickAddInitialDate } = useAppStore()
+  const { quickAddOpen, closeQuickAdd, quickAddInitialDate, quickAddInitialCategoryId } = useAppStore()
   const [amountDigits, setAmountDigits] = useState('')
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
   const [selectedDate, setSelectedDate] = useState(getTodayString)
@@ -141,14 +141,16 @@ export function useQuickAdd(): UseQuickAddReturn {
 
   // ── Actions ──
 
-  const resetState = useCallback((date?: string | null) => {
+  const resetState = useCallback((date?: string | null, categoryId?: number | null) => {
     const lastUsedId = getLastUsedCategoryId()
-    const validId = lastUsedId && categories.find(c => c.id === lastUsedId) 
+    const validUsedId = lastUsedId && categories.find(c => c.id === lastUsedId) 
       ? lastUsedId 
       : categories.length > 0 ? categories[0].id! : null
 
+    const finalCategoryId = categoryId ?? validUsedId
+
     setAmountDigits('')
-    setSelectedCategoryId(validId)
+    setSelectedCategoryId(finalCategoryId)
     setSelectedDate(date ? date : getTodayString())
     setNote('')
     setBudgetWarning(null)
@@ -167,9 +169,9 @@ export function useQuickAdd(): UseQuickAddReturn {
   // Watch for global open state and propagate initial date
   useEffect(() => {
     if (quickAddOpen) {
-      resetState(quickAddInitialDate)
+      resetState(quickAddInitialDate, quickAddInitialCategoryId)
     }
-  }, [quickAddOpen, quickAddInitialDate, resetState])
+  }, [quickAddOpen, quickAddInitialDate, quickAddInitialCategoryId, resetState])
 
   const appendDigit = useCallback((digit: number) => {
     setAmountDigits((prev) => {

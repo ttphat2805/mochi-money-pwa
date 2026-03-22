@@ -32,7 +32,7 @@ export function DonutChart({ data }: DonutChartProps) {
               color: '#1A1A18',
               fontFamily: 'JetBrains Mono, monospace',
               offsetY: 4,
-              formatter: (val: string) => `${formatShort(parseInt(val))}đ`,
+              formatter: (val: string) => formatShort(parseInt(val)),
             },
             total: {
               show: true,
@@ -43,7 +43,7 @@ export function DonutChart({ data }: DonutChartProps) {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               formatter: (w: any) => {
                 const sum = (w.globals.seriesTotals as number[]).reduce((a, b) => a + b, 0)
-                return `${formatShort(sum)}đ`
+                return formatShort(sum)
               },
             },
           },

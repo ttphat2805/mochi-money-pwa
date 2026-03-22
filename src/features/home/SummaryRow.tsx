@@ -130,12 +130,6 @@ export function SummaryRow({
                     value={Math.abs(stat.value)}
                     formatFn={formatShort}
                   />
-                  <span
-                    className="font-normal ml-0.5"
-                    style={{ fontSize: 10, color: "#88887A" }}
-                  >
-                    đ
-                  </span>
             </p>
           </div>
         </div>

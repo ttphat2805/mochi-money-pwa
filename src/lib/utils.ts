@@ -86,14 +86,14 @@ export function getVietnameseDay(): string {
  * Compact amount for small spaces: 95000→"95k", 1500000→"1.5tr"
  */
 export function formatShort(amount: number): string {
-  if (amount <= 0) return ''
+  if (amount <= 0) return '0đ'
   if (amount >= 1_000_000) {
     const val = amount / 1_000_000
     const str = val % 1 === 0 ? String(val) : val.toFixed(1)
     return `${str}tr`
   }
   if (amount >= 1_000) return `${Math.round(amount / 1_000)}k`
-  return String(amount)
+  return `${amount}đ`
 }
 
 /**

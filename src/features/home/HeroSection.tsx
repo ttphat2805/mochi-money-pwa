@@ -78,7 +78,7 @@ export function HeroSection({
               >
                 <span className="text-[9px] font-black text-text-hint uppercase tracking-tighter mb-1 opacity-70">HÔM NAY CÒN</span>
                 <span className="font-num text-[17px] font-black text-accent tracking-tight">
-                  {formatShort(Math.round(dailyAllowance))}đ
+                  {formatShort(Math.round(dailyAllowance))}
                 </span>
               </div>
             </div>

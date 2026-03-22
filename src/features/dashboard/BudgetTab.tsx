@@ -2,6 +2,7 @@ import { useBudget } from "@/hooks/useBudget";
 import { formatBudgetPct, formatShort, formatVND } from "@/lib/utils";
 import { Settings2 } from "lucide-react";
 import { lazy, Suspense } from "react";
+import { useAppStore } from "@/stores/appStore";
 
 const ReactApexChart = lazy(() => import("react-apexcharts"));
 
@@ -21,6 +22,7 @@ function getStatusColor(status: string, fallback: string) {
 
 export function BudgetTab() {
   const budget = useBudget();
+  const openQuickAdd = useAppStore(s => s.openQuickAdd);
 
   // ── Radial gauge options ──────────────────────────────────────
   const radialOptions: ApexCharts.ApexOptions = {
@@ -179,7 +181,7 @@ export function BudgetTab() {
           <span>
             Còn {budget.daysLeft} ngày ·{" "}
             <span className="font-num font-semibold text-accent">
-              ~{formatShort(budget.dailyAllowance)}đ/ngày
+              ~{formatShort(budget.dailyAllowance)}/ngày
             </span>
           </span>
         </div>
@@ -209,7 +211,8 @@ export function BudgetTab() {
             return (
               <div
                 key={cat.id}
-                className={`mb-4 p-5 bg-white/90 rounded-[32px] shadow-premium border transition-all active-scale ${
+                onClick={() => openQuickAdd(undefined, cat.id)}
+                className={`mb-4 p-5 bg-white/90 rounded-[32px] shadow-premium border transition-all active-scale cursor-pointer ${
                   isOver ? "border-danger/40 shadow-danger/10" : isFull ? "border-accent/40 shadow-accent" : "border-white/60"
                 }`}
               >

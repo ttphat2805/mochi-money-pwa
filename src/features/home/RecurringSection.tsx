@@ -28,7 +28,7 @@ export function RecurringSection({ items, onToggle }: RecurringSectionProps) {
               <>
                 {' '}·{' '}
                 <span className="text-success font-semibold">
-                  −{formatShort(doneTotal)}đ
+                  −{formatShort(doneTotal)}
                 </span>
               </>
             )}
