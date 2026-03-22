@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, X, Plus, Trash2 } from 'lucide-react'
+import { X, Plus, Trash2 } from 'lucide-react'
+import { BackButton } from '@/components/BackButton'
 import {
   Dialog,
   DialogContent,
@@ -163,18 +164,6 @@ function ExtraIncomeSection({
   onDelete: (id: number) => void
 }) {
   const [addOpen, setAddOpen] = useState(false)
-  const [name, setName] = useState('')
-  const [rawAmount, setRawAmount] = useState('')
-
-  const amount = parseInt(rawAmount.replace(/\D/g, '') || '0', 10)
-
-  const handleAdd = () => {
-    if (!name.trim() || amount === 0) return
-    onAdd(name.trim(), amount)
-    setName('')
-    setRawAmount('')
-    setAddOpen(false)
-  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -218,41 +207,276 @@ function ExtraIncomeSection({
       )}
 
       {/* Add extra income inline dialog */}
-      <Dialog open={addOpen} onOpenChange={(o) => !o && setAddOpen(false)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Thêm thu nhập phụ</DialogTitle>
-            <DialogDescription>Thu nhập ngoài lương tháng này</DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-3 py-2">
+      <ExtraIncomeDialog
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onSave={(name, amount) => {
+          onAdd(name, amount)
+          setAddOpen(false)
+        }}
+      />
+    </div>
+  )
+}
+
+function ExtraIncomeDialog({
+  open,
+  onClose,
+  onSave,
+}: {
+  open: boolean
+  onClose: () => void
+  onSave: (name: string, amount: number) => void
+}) {
+  const [name, setName] = useState('')
+  const [amount, setAmount] = useState(0)
+  const [display, setDisplay] = useState('')
+
+  useEffect(() => {
+    if (open) {
+      setName('')
+      setAmount(0)
+      setDisplay('')
+    }
+  }, [open])
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, '')
+    const num = parseInt(digits || '0', 10)
+    setAmount(num)
+    setDisplay(num === 0 ? '' : new Intl.NumberFormat('vi-VN').format(num))
+  }
+
+  const handleSave = () => {
+    if (!name.trim() || amount === 0) return
+    onSave(name.trim(), amount)
+  }
+
+  const canSave = name.trim().length > 0 && amount > 0
+
+  return (
+    <Dialog open={open} onOpenChange={v => !v && onClose()}>
+      <DialogContent
+        style={{
+          background: '#FFFFFF',
+          borderRadius: 20,
+          padding: 0,
+          maxWidth: 320,
+          width: 'calc(100vw - 48px)',
+          border: 'none',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.14)',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Header */}
+        <div style={{
+          padding: '20px 20px 0',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+        }}>
+          <div>
+            <h3 style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: '#1A1A18',
+              margin: 0,
+            }}>
+              Thêm thu nhập phụ
+            </h3>
+            <p style={{
+              fontSize: 12,
+              color: '#88887A',
+              margin: '3px 0 0',
+            }}>
+              Thu nhập ngoài lương tháng này
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              width: 28, height: 28,
+              borderRadius: '50%',
+              background: '#F2F0EC',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              marginLeft: 8,
+            }}
+          >
+            <X size={14} color="#88887A" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <div style={{ padding: '16px 20px' }}>
+          {/* Name input */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={{
+              fontSize: 11,
+              fontWeight: 500,
+              color: '#88887A',
+              textTransform: 'uppercase',
+              letterSpacing: '0.6px',
+              display: 'block',
+              marginBottom: 6,
+            }}>
+              Tên khoản
+            </label>
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={e => setName(e.target.value)}
               placeholder="VD: Freelance tháng 3..."
-              className="border-border rounded-xl border px-4 py-3 text-[14px] outline-none focus:border-accent transition-colors"
+              autoFocus
+              style={{
+                width: '100%',
+                height: 44,
+                borderRadius: 12,
+                border: '1.5px solid #E2E0D8',
+                background: '#F5F3F0',
+                padding: '0 14px',
+                fontSize: 16,           // prevents iOS zoom
+                color: '#1A1A18',
+                outline: 'none',
+                fontFamily: 'inherit',
+                transition: 'border-color 0.15s',
+              }}
+              onFocus={e => e.target.style.borderColor = '#E8A020'}
+              onBlur={e => e.target.style.borderColor = '#E2E0D8'}
             />
-            <div className="border-border flex items-center rounded-xl border px-4 py-3 gap-2 focus-within:border-accent transition-colors">
+          </div>
+
+          {/* Amount input */}
+          <div style={{ marginBottom: 4 }}>
+            <label style={{
+              fontSize: 11,
+              fontWeight: 500,
+              color: '#88887A',
+              textTransform: 'uppercase',
+              letterSpacing: '0.6px',
+              display: 'block',
+              marginBottom: 6,
+            }}>
+              Số tiền
+            </label>
+            <div style={{ position: 'relative' }}>
               <input
-                inputMode="numeric"
                 type="text"
-                value={rawAmount ? formatVND(parseInt(rawAmount.replace(/\D/g, '') || '0', 10)) : ''}
-                onChange={(e) => setRawAmount(e.target.value.replace(/\D/g, ''))}
-                placeholder="Số tiền"
-                className="font-num flex-1 text-[18px] bg-transparent outline-none placeholder:text-text-hint"
+                inputMode="numeric"
+                value={display}
+                onChange={handleAmountChange}
+                placeholder="0"
+                style={{
+                  width: '100%',
+                  height: 52,
+                  borderRadius: 12,
+                  border: '1.5px solid #E2E0D8',
+                  background: amount > 0 ? '#FFF8EE' : '#F5F3F0',
+                  padding: '0 40px 0 14px',
+                  fontSize: 20,          // large mono font, also prevents zoom
+                  fontWeight: 700,
+                  fontFamily: 'JetBrains Mono, monospace',
+                  color: amount > 0 ? '#E8A020' : '#B8B8A8',
+                  outline: 'none',
+                  transition: 'background-color 0.15s, border-color 0.15s',
+                  borderColor: amount > 0 ? '#F5D080' : '#E2E0D8',
+                }}
+                onFocus={e => e.target.style.borderColor = amount > 0 ? '#F5D080' : '#E8A020'}
+                onBlur={e => {
+                  e.target.style.borderColor = amount > 0 ? '#F5D080' : '#E2E0D8'
+                }}
               />
-              <span className="text-text-muted shrink-0">đ</span>
+              {/* đ suffix */}
+              <span style={{
+                position: 'absolute',
+                right: 14,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: 14,
+                color: '#B8B8A8',
+                pointerEvents: 'none',
+              }}>đ</span>
+              {/* Clear button */}
+              {amount > 0 && (
+                <button
+                  onClick={() => { setAmount(0); setDisplay('') }}
+                  style={{
+                    position: 'absolute',
+                    right: 36,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: 20, height: 20,
+                    borderRadius: '50%',
+                    background: '#C0BEB4',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <X size={10} color="white" />
+                </button>
+              )}
             </div>
           </div>
-          <DialogFooter className="flex-row gap-2">
-            <Button variant="ghost" className="flex-1" onClick={() => setAddOpen(false)}>Huỷ</Button>
-            <Button className="flex-1 bg-accent text-white" onClick={handleAdd} disabled={!name.trim() || amount === 0}>
-              Thêm
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: '0.5px', background: '#F0EDE8' }} />
+
+        {/* Action buttons */}
+        <div style={{
+          display: 'flex',
+          padding: '12px 16px 16px',
+          gap: 10,
+        }}>
+          <button
+            onClick={onClose}
+            style={{
+              flex: 1,
+              height: 44,
+              borderRadius: 12,
+              background: '#F2F0EC',
+              border: 'none',
+              fontSize: 14,
+              fontWeight: 500,
+              color: '#88887A',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'background 0.15s',
+            }}
+            onTouchStart={e => e.currentTarget.style.background = '#E8E6E0'}
+            onTouchEnd={e => e.currentTarget.style.background = '#F2F0EC'}
+          >
+            Huỷ
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!canSave}
+            style={{
+              flex: 2,
+              height: 44,
+              borderRadius: 12,
+              background: canSave ? '#E8A020' : '#F2F0EC',
+              border: 'none',
+              fontSize: 14,
+              fontWeight: 600,
+              color: canSave ? '#fff' : '#C0BEB4',
+              cursor: canSave ? 'pointer' : 'default',
+              fontFamily: 'inherit',
+              transition: 'all 0.2s',
+            }}
+          >
+            Thêm
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -300,14 +524,7 @@ export function FinancialSettingsPage({ onBack }: FinancialSettingsPageProps) {
       <div className="flex h-full flex-col">
         {/* Header */}
         <header className="flex items-center gap-3 px-4 py-3 safe-top">
-          <button
-            type="button"
-            onClick={onBack}
-            className="bg-surface active:bg-surface2 flex size-8 items-center justify-center rounded-full transition-colors"
-            aria-label="Quay lại"
-          >
-            <ArrowLeft className="size-4" />
-          </button>
+          <BackButton onBack={onBack} />
           <h1 className="flex-1 text-center text-base font-semibold">Tài chính</h1>
           <div className="size-8" />
         </header>

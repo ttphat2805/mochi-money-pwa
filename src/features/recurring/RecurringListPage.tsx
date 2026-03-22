@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { ArrowLeft, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import { BackButton } from '@/components/BackButton'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   Dialog,
@@ -60,14 +61,7 @@ export function RecurringListPage({ onBack }: RecurringListPageProps) {
     <div className="flex h-full flex-col">
       {/* Header */}
       <header className="flex items-center gap-3 px-4 py-3 safe-top">
-        <button
-          type="button"
-          onClick={onBack}
-          className="bg-surface active:bg-surface2 flex size-8 items-center justify-center rounded-full transition-colors"
-          aria-label="Quay lại"
-        >
-          <ArrowLeft className="size-4" />
-        </button>
+        <BackButton onBack={onBack} />
         <h1 className="flex-1 text-center text-base font-semibold">Khoản lặp lại</h1>
         <button
           type="button"

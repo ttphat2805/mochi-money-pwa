@@ -1,5 +1,6 @@
 import { useState, useEffect, memo, useCallback } from 'react'
-import { ArrowLeft, Plus, GripVertical, ChevronRight } from 'lucide-react'
+import { Plus, GripVertical, ChevronRight } from 'lucide-react'
+import { BackButton } from '@/components/BackButton'
 import {
   DndContext,
   DragOverlay,
@@ -202,14 +203,7 @@ export function CategoryListPage({ onBack }: CategoryListPageProps) {
       <div className="flex h-full flex-col">
         {/* Header */}
         <header className="flex items-center gap-3 px-4 py-3 safe-top">
-          <button
-            type="button"
-            onClick={onBack}
-            className="bg-surface active:bg-surface2 flex size-8 items-center justify-center rounded-full transition-colors"
-            aria-label="Quay lại"
-          >
-            <ArrowLeft className="size-4" />
-          </button>
+          <BackButton onBack={onBack} />
           <h1 className="flex-1 text-center text-base font-semibold">Quản lý danh mục</h1>
           <button
             type="button"

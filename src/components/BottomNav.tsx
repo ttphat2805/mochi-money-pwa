@@ -50,11 +50,7 @@ export function BottomNav({ active, onTab }: BottomNavProps) {
             type="button"
             onClick={() => openQuickAdd()}
             aria-label="Thêm chi tiêu"
-            className="flex size-14 items-center justify-center rounded-full transition-transform duration-300 active:scale-95 text-white"
-            style={{
-              backgroundColor: "#E8A020",
-              boxShadow: "0 8px 20px rgba(232, 160, 32, 0.45)",
-            }}
+            className="flex size-14 items-center justify-center bg-accent shadow-lg shadow-amber-100 rounded-full transition-transform duration-300 active:scale-95 text-white"
           >
             <Plus size={28} strokeWidth={2.5} />
           </button>

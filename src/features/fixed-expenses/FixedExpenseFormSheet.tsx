@@ -137,9 +137,16 @@ export function FixedExpenseFormSheet({
       <SheetContent
         side="bottom"
         showCloseButton={false}
-        className="bg-bg rounded-t-2xl p-0 flex flex-col"
-        style={{ maxHeight: "95dvh" }}
+        style={{
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          padding: 0,
+          borderRadius: '24px 24px 0 0',
+          background: '#FFFFFF',
+        }}
       >
+        <div style={{ padding: '0 0px 48px' }}>
         {/* Drag handle */}
         <div className="flex shrink-0 justify-center pt-2.5 pb-1">
           <div className="bg-border2 h-1 w-10 rounded-full" />
@@ -152,8 +159,8 @@ export function FixedExpenseFormSheet({
           Nhập thông tin chi phí lặp lại hằng tháng
         </SheetDescription>
 
-        {/* Scrollable fields */}
-        <div className="flex-1 overflow-y-auto">
+        {/* All form content */}
+        <div>
           {/* Amount display */}
           <div className="px-4 pt-1">
             <AmountDisplay
@@ -200,6 +207,7 @@ export function FixedExpenseFormSheet({
                 selectedId={form.categoryId ?? null}
                 onSelect={(id) => form.setCategoryId(id)}
                 showAdd
+                scrollable={false}
               />
             </div>
 
@@ -245,6 +253,7 @@ export function FixedExpenseFormSheet({
           canConfirm={form.canSave}
           isSaving={isSaving}
         />
+        </div>
       </SheetContent>
     </Sheet>
   );

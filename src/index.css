@@ -50,6 +50,19 @@ html, body {
   -webkit-touch-callout: none;        /* no callout menu on long-press */
 }
 
+/* Prevent zoom on input focus (iOS Safari + Chrome) */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="tel"],
+input[type="search"],
+input[type="password"],
+textarea,
+select {
+  font-size: 16px !important;
+  touch-action: manipulation;
+}
+
 /* Smooth momentum scrolling on iOS for scrollable containers */
 .overflow-y-auto, .overflow-x-auto, [class*="overflow"] {
   -webkit-overflow-scrolling: touch;

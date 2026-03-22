@@ -10,6 +10,7 @@ interface CategoryGridProps {
   selectedId: number | null;
   onSelect: (id: number) => void;
   showAdd?: boolean;
+  scrollable?: boolean;
   className?: string;
 }
 
@@ -18,6 +19,7 @@ export function CategoryGrid({
   selectedId,
   onSelect,
   showAdd,
+  scrollable = true,
   className,
 }: CategoryGridProps) {
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
@@ -30,8 +32,22 @@ export function CategoryGrid({
   }
 
   return (
-    <div className={`${className} max-h-[160px] overflow-y-auto`}>
-      <div className="grid gap-1.5" style={{ gridTemplateColumns: "1fr 1fr" }}>
+    <div
+      className={className}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: 6,
+        ...(scrollable ? {
+          maxHeight: 160,
+          overflowY: 'auto',
+          scrollbarWidth: 'none',
+        } : {
+          maxHeight: 'none',
+          overflow: 'visible',
+        }),
+      }}
+    >
         {categories.map((category) => {
           const isSelected = category.id === selectedId;
           return (
@@ -70,7 +86,7 @@ export function CategoryGrid({
             Thêm mục
           </button>
         )}
-      </div>
+
 
       {/* Add new category sheet */}
       <CategoryFormSheet
