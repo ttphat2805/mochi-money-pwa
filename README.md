@@ -41,7 +41,7 @@
 ### 1. Clone repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/ttphat2805/mochi-money-pwa.git
 cd pwa-money-app
 ```
 
@@ -73,15 +73,6 @@ Dự án đã được cấu hình sẵn để deploy mượt mà lên các nề
 
 - **Build command**: `npm run build`
 - **Output directory**: `dist`
-
----
-
-## 📝 Lưu ý về hình ảnh
-
-Để hiển thị hình ảnh trong README, hãy tạo thư mục `/screenshots/` ở thư mục gốc và lưu 2 file ảnh:
-
-- `home.png`: Ảnh chụp màn hình trang chủ.
-- `budget.png`: Ảnh chụp màn hình trang ngân sách.
 
 ---
 
