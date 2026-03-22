@@ -1,73 +1,89 @@
-# React + TypeScript + Vite
+# Mochi 🍡 — Personal Money Tracker (PWA)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Mochi** là một ứng dụng Web Progressive (PWA) cao cấp dành cho việc quản lý chi tiêu cá nhân. Với ngôn ngữ thiết kế **3D Neumorphic** và **Glassmorphism**, Mochi mang lại trải nghiệm phần mềm tài chính hiện đại, mượt mà và trực quan ngay trên trình duyệt và thiết bị di động của bạn.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 📸 Giao diện
 
-## React Compiler
+<div align="center">
+  <img src="./screenshots/home.png" width="320" alt="Home Screen">
+  <img src="./screenshots/budget.png" width="320" alt="Budget Screen">
+  <p><i>Giao diện Home Comparison (Trái) và Budget 3D Distribution (Phải)</i></p>
+</div>
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## ✨ Tính năng nổi bật
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Thiết kế 3D đẳng cấp**: Sử dụng hiệu ứng đổ bóng layer, kính mờ (glassmorphism) và các khối nổi neumorphic mang lại chiều sâu cho ứng dụng.
+- **Theo dõi chi tiêu thời gian thực**: So sánh chi tiêu hôm nay với hôm qua bằng các icon mũi tên chỉ báo xu hướng.
+- **Biểu đồ Budget 3D**: Biểu đồ hình tròn (Radial Chart) với hiệu ứng Neon và Category cards dạng nổi 3D đẹp mắt.
+- **Quản lý khoản lặp lại**: Tự động nhắc nhở và quản lý các khoản chi cố định hàng tháng hoặc hàng ngày.
+- **Hỗ trợ Offline (PWA)**: Hoạt động mượt mà ngay cả khi không có mạng nhờ Service Worker và cơ sở dữ liệu IndexedDB (Dexie).
+- **Trải nghiệm Mobile-first**: Tối ưu hóa hoàn hảo cho màn hình cảm ứng di động với khung hình chuẩn 480px.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🛠 Công nghệ sử dụng
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Frontend**: [React 19](https://react.dev/), [Vite](https://vitejs.dev/)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
+- **Database**: [Dexie.js](https://dexie.org/) (IndexedDB wrapper)
+- **Charts**: [ApexCharts](https://apexcharts.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **PWA**: [Vite PWA Plugin](https://vite-pwa-org.netlify.app/)
+
+---
+
+## 🚀 Cài đặt và Phát triển
+
+### 1. Clone repository
+
+```bash
+git clone <your-repo-url>
+cd pwa-money-app
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Cài đặt dependency
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
+
+### 3. Chạy môi trường Local
+
+```bash
+npm run dev
+```
+
+Sau khi chạy, ứng dụng sẽ có mặt tại `http://localhost:5173`.
+
+### 4. Build bản Production
+
+```bash
+npm run build
+```
+
+---
+
+## 📦 Deploy lên Vercel/Netlify
+
+Dự án đã được cấu hình sẵn để deploy mượt mà lên các nền tảng Static Hosting.
+
+- **Build command**: `npm run build`
+- **Output directory**: `dist`
+
+---
+
+## 📝 Lưu ý về hình ảnh
+
+Để hiển thị hình ảnh trong README, hãy tạo thư mục `/screenshots/` ở thư mục gốc và lưu 2 file ảnh:
+
+- `home.png`: Ảnh chụp màn hình trang chủ.
+- `budget.png`: Ảnh chụp màn hình trang ngân sách.
+
+---
+
+Developed with ❤️ for personal financial freedom.
+Developed by **fat.tran**
