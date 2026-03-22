@@ -126,10 +126,6 @@ export function SummaryRow({
               className="font-num font-bold leading-tight"
               style={{ fontSize: 13, color: "#1A1A18" }}
             >
-              {stat.hide ? (
-                <span style={{ opacity: 0.35 }}>—</span>
-              ) : (
-                <>
                   <AnimatedNumber
                     value={Math.abs(stat.value)}
                     formatFn={formatShort}
@@ -140,8 +136,6 @@ export function SummaryRow({
                   >
                     đ
                   </span>
-                </>
-              )}
             </p>
           </div>
         </div>

@@ -282,7 +282,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
               <span className="text-[11px] text-text-hint">Thu nhập</span>
             </div>
             <p className="font-num text-[17px] font-bold text-text leading-none mt-1">
-              {settings?.income ? `${formatVND(settings.income)}đ` : '—'}
+              {settings?.income ? `${formatVND(settings.income)}đ` : '0đ'}
             </p>
           </div>
         </div>
