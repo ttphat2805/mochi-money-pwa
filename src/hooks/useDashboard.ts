@@ -5,6 +5,20 @@ import { getCurrentMonthString, getLast6Months, getMonthLabel } from '@/lib/util
 import { useCategoryStore } from '@/stores/categoryStore'
 import type { BudgetCategory, FinancialSettings } from '@/types'
 
+function getPrevMonthKey(monthKey: string): string {
+  const [y, m] = monthKey.split('-').map(Number)
+  if (m === 1) return `${y - 1}-12`
+  return `${y}-${String(m - 1).padStart(2, '0')}`
+}
+
+function getLast4Months(currentMonthKey: string): string[] {
+  const months: string[] = [currentMonthKey]
+  for (let i = 0; i < 3; i++) {
+    months.unshift(getPrevMonthKey(months[0]))
+  }
+  return months
+}
+
 // ── Chart-ready types ─────────────────────────────────────────
 
 export interface DonutSlice {
@@ -13,10 +27,12 @@ export interface DonutSlice {
 export interface BarMonthDatum {
   monthLabel: string; monthKey: string; total: number
 }
+export interface Bar4MonthDatum {
+  monthLabel: string; monthKey: string; amount: number; isCurrentMonth: boolean
+}
 export interface TopCategoryItem {
   category: BudgetCategory; total: number; pct: number
 }
-export interface DailyDatum { day: number; amount: number }
 
 // ── Hook ──────────────────────────────────────────────────────
 
@@ -57,19 +73,7 @@ export function useDashboard() {
     [categoryTotals],
   )
 
-  const daysInMonth = useMemo(() => {
-    const [y, m] = currentMonthKey.split('-').map(Number)
-    return new Date(y, m, 0).getDate()
-  }, [currentMonthKey])
 
-  const dailyData = useMemo<DailyDatum[]>(() => {
-    const acc: Record<number, number> = {}
-    for (const tx of monthTxs) {
-      const d = parseInt(tx.date.slice(8, 10), 10)
-      acc[d] = (acc[d] ?? 0) + tx.amount
-    }
-    return Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, amount: acc[i + 1] ?? 0 }))
-  }, [monthTxs, daysInMonth])
 
   const donutData = useMemo<DonutSlice[]>(
     () =>
@@ -110,19 +114,42 @@ export function useDashboard() {
     [sixMonthKeys],
   ) ?? []
 
-  // Daily budget from settings
-  const dailyBudget = useMemo(() => {
-    if (!settings?.income) return undefined
-    const fixed = 0 // simplified — no fixed expenses here
-    const flex = settings.income - (settings.savingTarget ?? 0) - fixed
-    const days = daysInMonth
-    return Math.round(flex / days)
-  }, [settings, daysInMonth])
+  // Last 4 months bar data (prev 3 + current)
+  const last4MonthKeys = useMemo(() => getLast4Months(currentMonthKey), [currentMonthKey])
+
+  const last4MonthsBar = useLiveQuery<Bar4MonthDatum[]>(
+    async () => {
+      const results = await Promise.all(
+        last4MonthKeys.map(async (monthKey) => {
+          const txs = await db.transactions
+            .where('date').between(monthKey + '-01', monthKey + '-32', true, false)
+            .filter((tx) => !tx.deletedAt).toArray()
+          const amount = txs.reduce((s, t) => s + t.amount, 0)
+          return {
+            monthLabel: getMonthLabel(monthKey),
+            monthKey,
+            amount,
+            isCurrentMonth: monthKey === currentMonthKey,
+          }
+        }),
+      )
+      return results
+    },
+    [last4MonthKeys, currentMonthKey],
+  ) ?? []
+
+  const lastMonthTotal = useMemo(() => {
+    if (!last4MonthsBar.length) return 0
+    const prev = last4MonthsBar.find(d => d.monthKey === getPrevMonthKey(currentMonthKey))
+    return prev?.amount ?? 0
+  }, [last4MonthsBar, currentMonthKey])
+
 
   return {
     currentMonthKey, monthTotal, settings: settings ?? null,
-    categoryTotals, dailyData, donutData, topCategories,
-    barData, dailyBudget, selectedTrendCatIds, setSelectedTrendCatIds,
-    isLoading: false, // In a real app with more complex loading logic, this might be dynamic. LiveQuery defaults to undefined initially.
+    categoryTotals, donutData, topCategories,
+    barData, last4MonthsBar, lastMonthTotal,
+    selectedTrendCatIds, setSelectedTrendCatIds,
+    isLoading: false,
   }
 }

@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import { Switch } from '@/components/ui/switch'
 import { formatVND } from '@/lib/utils'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '@/lib/db'
 import type { FixedExpense } from '@/types'
 
 interface FixedExpenseRowProps {
@@ -17,6 +19,11 @@ export function FixedExpenseRow({ expense, onEdit, onToggleActive, onDelete }: F
   const [offsetX, setOffsetX] = useState(0)
   const touchStartX = useRef(0)
   const isDragging = useRef(false)
+
+  const categories = useLiveQuery(() => db.categories.toArray())
+  const category = categories?.find((c) => c.id === expense.categoryId)
+  const displayIcon = category?.icon ?? '📦'
+  const displayColor = category?.color ?? '#E8A020'
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
@@ -69,15 +76,18 @@ export function FixedExpenseRow({ expense, onEdit, onToggleActive, onDelete }: F
         className="bg-white flex min-h-[56px] cursor-pointer items-center gap-3 px-4 py-3 active:bg-surface"
       >
         {/* Icon */}
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-surface text-lg leading-none">
-          {expense.icon}
+        <div 
+          className="flex size-10 shrink-0 items-center justify-center rounded-xl text-xl leading-none"
+          style={{ background: displayColor + '15' }}
+        >
+          {displayIcon}
         </div>
 
         {/* Name + schedule */}
         <div className="min-w-0 flex-1">
           <p className="truncate text-[14px] font-medium">{expense.name}</p>
           <p className="font-num text-text-muted text-[11px]">
-            Ngày {expense.payDay} hằng tháng · {formatVND(expense.amount)}đ
+            Ngày {expense.payDay} hằng tháng {category ? `· ${category.name}` : ''}
           </p>
         </div>
 

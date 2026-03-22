@@ -1,48 +1,65 @@
-import data from '@emoji-mart/data'
-import Picker from '@emoji-mart/react'
-import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet'
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 
 interface EmojiPickerSheetProps {
-  open: boolean
-  onClose: () => void
-  onSelect: (emoji: string) => void
-  currentEmoji?: string
+  open: boolean;
+  onClose: () => void;
+  onSelect: (emoji: string) => void;
+  currentEmoji?: string;
 }
 
-export function EmojiPickerSheet({ open, onClose, onSelect, currentEmoji }: EmojiPickerSheetProps) {
+export function EmojiPickerSheet({
+  open,
+  onClose,
+  onSelect,
+}: EmojiPickerSheetProps) {
+  const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 375;
+  const perLine = Math.floor(windowWidth / 50);
+
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent
         side="bottom"
         showCloseButton={false}
         className="p-0 rounded-t-3xl bg-[#FAFAF8]"
-        style={{ maxHeight: '80dvh' }}
+        style={{ maxHeight: "80dvh", width: "100%" }}
       >
         <SheetTitle className="sr-only">Chọn biểu tượng</SheetTitle>
-        <SheetDescription className="sr-only">Chọn emoji cho danh mục</SheetDescription>
+        <SheetDescription className="sr-only">
+          Chọn emoji cho danh mục
+        </SheetDescription>
 
         {/* Handle */}
-        <div className="flex justify-center pt-3 pb-1">
+        <div className="flex justify-center pt-3 pb-1 bg-white">
           <div className="w-9 h-1 rounded-full bg-surface2" />
         </div>
 
-        {/* Title + current preview */}
-        <div className="flex items-center justify-between px-4 pb-3">
-          <p className="text-[14px] font-semibold text-text">Chọn biểu tượng</p>
-          {currentEmoji && (
-            <div className="size-10 rounded-2xl bg-accent-bg flex items-center justify-center text-2xl leading-none">
-              {currentEmoji}
-            </div>
-          )}
-        </div>
+        {/* Title */}
+        <p className="text-center text-sm font-semibold text-text py-3 bg-white">
+          Chọn biểu tượng
+        </p>
 
-        {/* Picker */}
-        <div className="overflow-hidden">
+        {/* Picker — no padding, full bleed */}
+        <div className="w-full">
+          <style>{`
+            em-emoji-picker {
+              width: 100vw !important;
+              max-width: 100vw !important;
+              min-width: 100vw !important;
+              display: block;
+            }
+          `}</style>
           <Picker
             data={data}
             onEmojiSelect={(emoji: { native: string }) => {
-              onSelect(emoji.native)
-              onClose()
+              onSelect(emoji.native);
+              onClose();
             }}
             locale="vi"
             theme="light"
@@ -51,19 +68,20 @@ export function EmojiPickerSheet({ open, onClose, onSelect, currentEmoji }: Emoj
             previewPosition="none"
             searchPosition="sticky"
             navPosition="top"
-            perLine={8}
+            perLine={perLine}
             emojiSize={28}
-            emojiButtonSize={40}
+            emojiButtonSize={50}
             maxFrequentRows={2}
             style={
               {
-                '--em-rgb-background': '250, 250, 248',
-                '--em-rgb-input': '255, 255, 255',
-                '--em-rgb-color': '26, 26, 24',
-                '--em-color-border': '#E2E0D8',
-                '--em-font-family': 'inherit',
-                width: '100%',
-                border: 'none',
+                "--em-rgb-background": "255, 255, 255",
+                "--em-rgb-input": "255, 255, 255",
+                "--em-rgb-color": "26, 26, 24",
+                "--em-color-border": "#E2E0D8",
+                "--em-font-family": "inherit",
+                width: "100%",
+                maxWidth: "100%",
+                border: "none",
                 borderRadius: 0,
               } as React.CSSProperties
             }
@@ -71,5 +89,5 @@ export function EmojiPickerSheet({ open, onClose, onSelect, currentEmoji }: Emoj
         </div>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

@@ -1,14 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { BottomNav, type TabKey } from "@/components/BottomNav";
+import { QuickAddSheet } from "@/features/quick-add/QuickAddSheet";
+import { useQuickAdd } from "@/hooks/useQuickAdd";
 import { seedDefaultCategories } from "@/lib/seed";
 import { useCategoryStore } from "@/stores/categoryStore";
 import { HomePage } from "@/features/home/HomePage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { RecurringListPage } from "@/features/recurring/RecurringListPage";
-import { CalendarPage } from "@/features/calendar/CalendarPage";
-import { DashboardPage } from "@/features/dashboard/DashboardPage";
+
+// Lazy-loaded heavy screens
+const CalendarPage = lazy(() => import("@/features/calendar/CalendarPage").then(m => ({ default: m.CalendarPage })));
+const DashboardPage = lazy(() => import("@/features/dashboard/DashboardPage").then(m => ({ default: m.DashboardPage })));
+const BudgetPage = lazy(() => import("@/features/dashboard/BudgetPage").then(m => ({ default: m.BudgetPage })));
+
 import { FixedExpenseListPage } from "@/features/fixed-expenses/FixedExpenseListPage";
 import { FinancialSettingsPage } from "@/features/settings/FinancialSettingsPage";
 import { CategoryListPage } from "@/features/settings/CategoryListPage";
@@ -27,24 +33,17 @@ type Screen =
   | { id: "financialSettings" }
   | { id: "categories" };
 
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-2">
-      <p className="text-2xl">🚧</p>
-      <p className="text-text-muted text-sm">{title} — đang phát triển</p>
-    </div>
-  );
-}
-
 // ── App ───────────────────────────────────────────────────────
 
 function App() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
-  const [history, setHistory] = useState<Screen[]>([
-    { id: "main", tab: "home" },
-  ]);
+  const [history, setHistory] = useState<Screen[]>(() => {
+    const saved = localStorage.getItem('active-tab') as TabKey;
+    return [{ id: "main", tab: saved ?? "home" }];
+  });
   const { loadCategories } = useCategoryStore();
+  const quickAdd = useQuickAdd();
 
   // ── Service worker update detection ──
   const {
@@ -64,18 +63,34 @@ function App() {
     }
   }, [needRefresh, updateServiceWorker]);
 
-  const current = history[history.length - 1];
-  const push = (screen: Screen) => setHistory((prev) => [...prev, screen]);
-  const pop = () =>
-    setHistory((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
+  useEffect(() => {
+    const handlePopState = () => {
+      setHistory((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
-  const setTab = (tab: TabKey) =>
+  const current = history[history.length - 1];
+  const push = (screen: Screen) => {
+    window.history.pushState({}, "");
+    setHistory((prev) => [...prev, screen]);
+  };
+  const pop = () => {
+    if (history.length > 1) {
+      window.history.back();
+    }
+  };
+
+  const setTab = (tab: TabKey) => {
+    localStorage.setItem('active-tab', tab);
     setHistory((prev) => {
       const last = prev[prev.length - 1];
       if (last.id === "main")
         return [...prev.slice(0, -1), { id: "main", tab }];
       return [{ id: "main", tab }]; // reset stack when switching tabs from a deep screen
     });
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -144,18 +159,30 @@ function App() {
                   if (tab === "overview") {
                     push({ id: "settings" });
                   } else {
-                    setTab(tab);
+                    setTab(tab as any);
                   }
                 }}
                 onSettings={() => push({ id: "settings" })}
               />
             );
-          case "today":
-            return <PlaceholderPage title="Lặp lại hôm nay" />;
+          case "budget":
+            return (
+              <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-text-muted">Đang tải...</div>}>
+                <BudgetPage onSettings={() => push({ id: "settings" })} />
+              </Suspense>
+            );
           case "calendar":
-            return <CalendarPage />;
+            return (
+              <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-text-muted">Đang tải...</div>}>
+                <CalendarPage />
+              </Suspense>
+            );
           case "overview":
-            return <DashboardPage />;
+            return (
+              <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-text-muted">Đang tải...</div>}>
+                <DashboardPage />
+              </Suspense>
+            );
         }
     }
   };
@@ -163,10 +190,13 @@ function App() {
   return (
     <div className="flex h-full flex-col">
       <OfflineIndicator />
-      <div className="flex min-h-0 flex-1 flex-col">{renderScreen()}</div>
+      <div className={`flex min-h-0 flex-1 flex-col ${showBottomNav ? 'pb-24' : ''}`}>
+        {renderScreen()}
+      </div>
 
       {showBottomNav && <BottomNav active={activeTab} onTab={setTab} />}
 
+      <QuickAddSheet quickAdd={quickAdd} />
       <InstallBanner />
       <Toaster position="top-center" />
     </div>

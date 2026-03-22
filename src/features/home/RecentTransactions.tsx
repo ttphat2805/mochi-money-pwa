@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { ChevronRight } from 'lucide-react'
+import { useState, useCallback } from 'react'
 import { formatVND, getVietnameseDateLabel } from '@/lib/utils'
 import { TransactionDetailSheet } from '@/features/transactions/TransactionDetailSheet'
 import type { HomeData } from '@/hooks/useHomeData'
@@ -13,76 +12,57 @@ interface RecentTransactionsProps {
 export function RecentTransactions({ transactions, onViewAll }: RecentTransactionsProps) {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null)
 
-  if (transactions.length === 0) {
-    return (
-      <div className="px-5">
-        <div className="px-0 pb-1.5">
-          <span className="text-text-hint text-[10px] font-medium uppercase tracking-[1.2px]">
-            Gần đây
-          </span>
-        </div>
-        <p className="text-text-muted text-[13px]">Chưa có giao dịch nào</p>
-      </div>
-    )
-  }
+  const handleSelect = useCallback((tx: Transaction) => {
+    setSelectedTx(tx)
+  }, [])
 
   return (
     <>
-      <div>
-        <div className="flex items-center justify-between px-5 pb-1.5">
-          <span className="text-text-hint text-[10px] font-medium uppercase tracking-[1.2px]">
+      <div className="px-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[10px] font-bold tracking-widest text-text-hint uppercase">
             Gần đây
-          </span>
-          <button
-            type="button"
-            onClick={onViewAll}
-            className="text-accent text-[12px] font-medium"
-          >
-            Xem tất cả →
-          </button>
-        </div>
-
-        <div className="mx-2 flex flex-col">
-          {transactions.map((tx) => (
+          </p>
+          {transactions.length > 0 && (
             <button
-              key={tx.id}
               type="button"
-              onClick={() => setSelectedTx(tx)}
-              className="flex min-h-[48px] items-center gap-3 rounded-xl px-3 py-2.5 active:bg-surface transition-colors text-left w-full"
+              onClick={onViewAll}
+              className="text-[12px] text-accent font-medium"
             >
-              {/* Category icon */}
-              <span className="text-xl leading-none">{tx.category?.icon ?? '📦'}</span>
-
-              {/* Name + date */}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-medium">
-                  {tx.category?.name ?? 'Không rõ'}
-                </p>
-                <p className="font-num text-[11px] text-text-muted">
-                  {getVietnameseDateLabel(tx.date)}
-                  {tx.note ? ` · ${tx.note}` : ''}
-                </p>
-              </div>
-
-              {/* Amount */}
-              <div className="flex shrink-0 items-center gap-0.5">
-                <span className="text-text-muted text-[12px]">−</span>
-                <span className="font-num text-[14px] font-semibold">
-                  {formatVND(tx.amount)}đ
-                </span>
-              </div>
+              Xem tất cả →
             </button>
-          ))}
+          )}
         </div>
 
-        <button
-          type="button"
-          onClick={onViewAll}
-          className="mt-1 flex w-full items-center justify-center gap-1 py-3 text-[13px] font-medium text-text-muted active:text-text"
-        >
-          Xem lịch sử đầy đủ
-          <ChevronRight className="size-4" />
-        </button>
+        {transactions.length === 0 ? (
+          <div
+            className="bg-white rounded-2xl py-8 flex flex-col items-center"
+            style={{
+              border: '1px solid #E8E6E0',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+            }}
+          >
+            <p className="text-2xl mb-2">🧾</p>
+            <p className="text-[13px] text-text-muted">Chưa có giao dịch nào</p>
+          </div>
+        ) : (
+          <div
+            className="bg-white rounded-2xl overflow-hidden"
+            style={{
+              border: '1px solid #E8E6E0',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+            }}
+          >
+            {transactions.map((tx, i) => (
+              <TransactionRow
+                key={tx.id}
+                tx={tx}
+                isLast={i === transactions.length - 1}
+                onSelect={handleSelect}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <TransactionDetailSheet
@@ -93,5 +73,57 @@ export function RecentTransactions({ transactions, onViewAll }: RecentTransactio
         onDeleted={() => setSelectedTx(null)}
       />
     </>
+  )
+}
+
+function TransactionRow({
+  tx,
+  isLast,
+  onSelect,
+}: {
+  tx: HomeData['recentTransactions'][0]
+  isLast: boolean
+  onSelect: (tx: Transaction) => void
+}) {
+  const catColor = tx.category?.color ?? '#E8A020'
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(tx)}
+      className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-surface transition-colors"
+      style={{
+        borderBottom: isLast ? 'none' : '0.5px solid #F0EDE8',
+      }}
+    >
+      {/* Category icon  */}
+      <div
+        className="shrink-0 flex items-center justify-center rounded-xl text-xl leading-none"
+        style={{
+          width: 40,
+          height: 40,
+          background: catColor + '18',
+        }}
+      >
+        {tx.category?.icon ?? '📦'}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <p className="truncate text-[13.5px] font-medium text-text">
+          {tx.category?.name ?? 'Không rõ'}
+        </p>
+        <p className="font-num text-[11px] text-text-muted mt-0.5">
+          {getVietnameseDateLabel(tx.date)}
+          {tx.note ? ` · ${tx.note}` : ''}
+        </p>
+      </div>
+
+      <div className="shrink-0 flex items-baseline gap-0.5">
+        <span className="text-text-muted text-[12px]">−</span>
+        <span className="font-num text-[14px] font-semibold text-text">
+          {formatVND(tx.amount)}đ
+        </span>
+      </div>
+    </button>
   )
 }

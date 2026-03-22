@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { toast } from 'sonner'
 import { db } from '@/lib/db'
@@ -24,8 +24,11 @@ export interface HomeData {
   remainingBudget: number | null
   dailyAllowance: number | null
   spentPct: number | null           // 0–1, for progress bar
+  daysLeft: number
+  lastMonthTotal: number
 
   // Content
+  categoryWarnings: { category: BudgetCategory; spent: number; pct: number }[]
   recurringItems: RecurringItem[]
   recentTransactions: (Transaction & { category: BudgetCategory | undefined })[]
 
@@ -61,6 +64,14 @@ export function useHomeData(): HomeData {
     [today],
   ) ?? []
 
+  const todaySpent = useLiveQuery(async () => {
+    const txs = await db.transactions
+      .where('date').equals(today)
+      .filter((tx) => !tx.deletedAt)
+      .toArray()
+    return txs.reduce((sum, tx) => sum + tx.amount, 0)
+  }, [today]) ?? 0
+
   const monthTxs = useLiveQuery(
     () =>
       db.transactions
@@ -81,15 +92,29 @@ export function useHomeData(): HomeData {
     [],
   ) ?? null
 
-  const fixedExpenses = useLiveQuery(
-    () => db.fixedExpenses.filter((e) => e.active).toArray(),
-    [],
-  ) ?? []
+  const lastMonthKey = useMemo(() => {
+    const [y, m] = monthKey.split('-').map(Number)
+    const prevM = m === 1 ? 12 : m - 1
+    const prevY = m === 1 ? y - 1 : y
+    return `${prevY}-${String(prevM).padStart(2, '0')}`
+  }, [monthKey])
+
+  const lastMonthTotal = useLiveQuery(
+    async () => {
+      const txs = await db.transactions
+        .where('date')
+        .between(lastMonthKey + '-01', lastMonthKey + '-31', true, true)
+        .filter((tx) => !tx.deletedAt)
+        .toArray()
+      return txs.reduce((sum, tx) => sum + tx.amount, 0)
+    },
+    [lastMonthKey],
+  ) ?? 0
 
   const recentRaw = useLiveQuery(
     () =>
       db.transactions
-        .orderBy('id') // 'id' is the primary key — always indexed, auto-increment = insertion order
+        .orderBy('id')
         .reverse()
         .filter((tx) => !tx.deletedAt)
         .limit(5)
@@ -107,38 +132,24 @@ export function useHomeData(): HomeData {
     return m
   }, [categories])
 
-  const todaySpent = useMemo(
-    () => todayTxs.reduce((sum, tx) => sum + tx.amount, 0),
-    [todayTxs],
-  )
-
   const monthSpent = useMemo(
     () => monthTxs.reduce((sum, tx) => sum + tx.amount, 0),
     [monthTxs],
   )
 
-  // Budget math (only when income is set)
   const { remainingBudget, dailyAllowance, spentPct } = useMemo(() => {
     if (!settings?.income) return { remainingBudget: null, dailyAllowance: null, spentPct: null }
-
-    const totalFixed = fixedExpenses.reduce((s, e) => s + e.amount, 0)
     const savingTarget = settings.savingTarget ?? 0
-    const flexAmount = settings.income - savingTarget - totalFixed
+    const flexAmount = settings.income - savingTarget
     const remaining = flexAmount - monthSpent
     const daysLeft = getDaysLeftInMonth()
     const daily = Math.max(0, remaining / daysLeft)
     const pct = flexAmount > 0 ? Math.min(1, monthSpent / flexAmount) : 0
+    return { remainingBudget: remaining, dailyAllowance: daily, spentPct: pct }
+  }, [settings, monthSpent])
 
-    return {
-      remainingBudget: remaining,
-      dailyAllowance: daily,
-      spentPct: pct,
-    }
-  }, [settings, fixedExpenses, monthSpent])
-
-  // Today's recurring transactions keyed by recurringId
   const todayRecurringMap = useMemo(() => {
-    const m = new Map<number, number>() // recurringId → transactionId
+    const m = new Map<number, number>()
     for (const tx of todayTxs) {
       if (tx.type === 'recurring' && tx.recurringId != null && tx.id != null) {
         m.set(tx.recurringId, tx.id)
@@ -163,39 +174,35 @@ export function useHomeData(): HomeData {
     [recentRaw, catMap],
   )
 
-  // ── Actions ──
+  const categoryWarnings = useMemo(() => {
+    const spentByCat = new Map<number, number>()
+    for (const tx of monthTxs) {
+      if (tx.categoryId != null) {
+        spentByCat.set(tx.categoryId, (spentByCat.get(tx.categoryId) || 0) + tx.amount)
+      }
+    }
+    const warnings: { category: BudgetCategory; spent: number; pct: number }[] = []
+    for (const cat of categories) {
+      if (cat.limitPerMonth && cat.id != null) {
+        const spent = spentByCat.get(cat.id) || 0
+        const pct = spent / cat.limitPerMonth
+        if (pct >= 0.8) {
+          warnings.push({ category: cat, spent, pct })
+        }
+      }
+    }
+    return warnings.sort((a, b) => b.pct - a.pct).slice(0, 3)
+  }, [categories, monthTxs])
 
-  const toggleRecurring = async (item: RecurringItem) => {
+  const toggleRecurring = useCallback(async (item: RecurringItem) => {
     const { template, isDone, transactionId } = item
-
     if (isDone) {
-      // Untick → soft delete the transaction
       if (transactionId != null) {
         await db.transactions.update(transactionId, { deletedAt: new Date().toISOString() })
-        const catName = item.category?.name ?? ''
-        toast.success(`Đã hoàn ${formatVND(template.amount)}đ · ${catName}`)
+        toast.success(`Đã hoàn ${formatVND(template.amount)}đ · ${item.category?.name ?? ''}`)
       }
       return
     }
-
-    // Tick → check budget limit, then create transaction
-    const category = item.category
-    if (category?.limitPerMonth != null && template.categoryId != null) {
-      const spent = await db.transactions
-        .where('date')
-        .between(monthKey + '-01', monthKey + '-31', true, true)
-        .filter(
-          (tx) => !tx.deletedAt && tx.categoryId === template.categoryId,
-        )
-        .toArray()
-        .then((txs) => txs.reduce((s, t) => s + t.amount, 0))
-
-      if (spent + template.amount > category.limitPerMonth) {
-        // Over budget — still allow (recurring is expected, just warn via toast)
-        toast.warning(`Vượt hạn mức ${category.name} — vẫn đã ghi`)
-      }
-    }
-
     await db.transactions.add({
       amount: template.amount,
       categoryId: template.categoryId,
@@ -205,18 +212,11 @@ export function useHomeData(): HomeData {
       createdAt: new Date().toISOString(),
       deletedAt: null,
     })
-
-    // Haptic feedback
     navigator.vibrate?.(10)
+    toast.success(`Đã ghi −${formatVND(template.amount)}đ · ${item.category?.name ?? ''}`)
+  }, [today])
 
-    const catName = item.category?.name ?? ''
-    toast.success(`Đã ghi −${formatVND(template.amount)}đ · ${catName}`)
-  }
-
-  const isLoading =
-    categories == null ||
-    todayTxs == null ||
-    monthTxs == null
+  const isLoading = categories == null || todayTxs == null || monthTxs == null
 
   return {
     isLoading,
@@ -226,6 +226,9 @@ export function useHomeData(): HomeData {
     remainingBudget,
     dailyAllowance,
     spentPct,
+    daysLeft: getDaysLeftInMonth(),
+    lastMonthTotal,
+    categoryWarnings,
     recurringItems: recurringItems ?? EMPTY,
     recentTransactions: recentTransactions ?? EMPTY_TXS,
     toggleRecurring,

@@ -1,19 +1,29 @@
+import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCalendar } from '@/hooks/useCalendar'
-import { useQuickAdd } from '@/hooks/useQuickAdd'
+import { useAppStore } from '@/stores/appStore'
 import { CalendarGrid } from './CalendarGrid'
 import { MonthSummary } from './MonthSummary'
 import { DayDetailPanel } from './DayDetailPanel'
-import { QuickAddSheet } from '@/features/quick-add/QuickAddSheet'
 
 export function CalendarPage() {
   const cal = useCalendar()
-  const quickAdd = useQuickAdd()
+  const { openQuickAdd } = useAppStore()
+  const [slideDir, setSlideDir] = useState<'left' | 'right' | null>(null)
 
   const handleAddForDay = () => {
     if (!cal.selectedDay) return
-    quickAdd.setDate(cal.selectedDay)
-    quickAdd.open()
+    openQuickAdd(cal.selectedDay)
+  }
+
+  const goNext = () => {
+    setSlideDir('left')
+    cal.goToNextMonth()
+  }
+
+  const goPrev = () => {
+    setSlideDir('right')
+    cal.goToPrevMonth()
   }
 
   return (
@@ -30,7 +40,7 @@ export function CalendarPage() {
         <div className="flex items-center justify-between px-5 pb-2">
           <button
             type="button"
-            onClick={cal.goToPrevMonth}
+            onClick={goPrev}
             className="bg-surface active:bg-surface2 flex size-8 items-center justify-center rounded-full transition-colors"
             aria-label="Tháng trước"
           >
@@ -41,7 +51,7 @@ export function CalendarPage() {
 
           <button
             type="button"
-            onClick={cal.goToNextMonth}
+            onClick={goNext}
             disabled={!cal.canGoNext}
             className="bg-surface active:bg-surface2 flex size-8 items-center justify-center rounded-full transition-colors disabled:opacity-30"
             aria-label="Tháng sau"
@@ -57,12 +67,18 @@ export function CalendarPage() {
           maxDailyAmount={cal.maxDailyAmount}
           selectedDay={cal.selectedDay}
           onSelectDay={cal.setSelectedDay}
-          onSwipeLeft={cal.goToNextMonth}
-          onSwipeRight={cal.goToPrevMonth}
+          onSwipeLeft={goNext}
+          onSwipeRight={goPrev}
+          monthKey={cal.viewMonthKey}
+          slideDir={slideDir}
         />
 
-        {/* Month summary strip */}
-        <div className="mt-3">
+        {/* Month summary strip — fade transition on month change */}
+        <div
+          key={cal.viewMonthKey}
+          className="mt-3"
+          style={{ animation: 'fadeIn 250ms ease-out' }}
+        >
           <MonthSummary stats={cal.monthStats} />
         </div>
 
@@ -75,8 +91,12 @@ export function CalendarPage() {
         />
       </div>
 
-      {/* QuickAdd sheet — pre-filled with selected day's date */}
-      <QuickAddSheet quickAdd={quickAdd} />
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+      `}</style>
     </div>
   )
 }

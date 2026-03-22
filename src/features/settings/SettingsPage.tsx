@@ -1,6 +1,6 @@
 import { ArrowLeft } from 'lucide-react'
 import { SettingsRow } from './SettingsRow'
-import { SectionLabel, Divider } from './SettingsHelpers'
+import { SectionLabel } from './SettingsHelpers'
 import { NotificationSettings } from './NotificationSettings'
 import { DataSettingsSection } from './DataSettingsSection'
 
@@ -44,13 +44,9 @@ export function SettingsPage({ onBack, onGoRecurring, onGoFixedExpenses, onGoFin
         </div>
 
         {/* Tài chính */}
-        <SectionLabel>Tài chính (tuỳ chọn)</SectionLabel>
+        <SectionLabel>Tài chính</SectionLabel>
         <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">
-          <SettingsRow icon="💰" label="Thu nhập hằng tháng" sublabel="Lương + tiết kiệm" onTap={onGoFinancial} />
-          <Divider />
-          <SettingsRow icon="🎯" label="Mục tiêu tiết kiệm" sublabel="Cài cùng thu nhập" onTap={onGoFinancial} />
-          <Divider />
-          <SettingsRow icon="🏠" label="Chi phí cố định" sublabel="Tiền nhà, điện nước..." onTap={onGoFixedExpenses} />
+          <SettingsRow icon="💰" label="Tài chính & Tiết kiệm" sublabel="Thu nhập, mục tiêu..." onTap={onGoFinancial} />
         </div>
 
         {/* Danh mục */}
@@ -58,6 +54,14 @@ export function SettingsPage({ onBack, onGoRecurring, onGoFixedExpenses, onGoFin
         <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">
           <SettingsRow icon="◫" label="Quản lý danh mục" onTap={onGoCategories} />
         </div>
+
+        {/* Chi phí cố định */}
+        <SectionLabel>Chi phí cố định</SectionLabel>
+        <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">
+          <SettingsRow icon="🏠" label="Chi phí cố định" sublabel="Tiền nhà, điện nước..." onTap={onGoFixedExpenses} />
+        </div>
+
+
 
         {/* Thông báo — live component with permission flow */}
         <SectionLabel>Thông báo</SectionLabel>

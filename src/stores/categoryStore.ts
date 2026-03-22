@@ -2,6 +2,12 @@ import { create } from 'zustand'
 import { db } from '@/lib/db'
 import type { BudgetCategory } from '@/types'
 
+export const CATEGORY_COLORS = [
+  '#E8A020','#2A9D6E','#D63E3E','#378ADD',
+  '#7C3AED','#D97706','#0891B2','#DB2777',
+  '#65A30D','#6B7280','#F59E0B','#10B981',
+]
+
 interface CategoryState {
   categories: BudgetCategory[]
   isLoading: boolean
@@ -11,7 +17,7 @@ interface CategoryState {
   loadCategories: () => Promise<void>
 
   /** Add a new category */
-  addCategory: (category: Omit<BudgetCategory, 'id'>) => Promise<void>
+  addCategory: (category: Omit<BudgetCategory, 'id'>) => Promise<number>
 
   /** Update an existing category */
   updateCategory: (id: number, updates: Partial<BudgetCategory>) => Promise<void>
@@ -53,6 +59,15 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
         await db.categories.bulkDelete(dupeIds)
       }
 
+      // Backfill missing colors
+      for (const [i, cat] of unique.entries()) {
+        if (!cat.color && cat.id != null) {
+          const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length]
+          await db.categories.update(cat.id, { color })
+          cat.color = color
+        }
+      }
+
       set({ categories: unique, isLoading: false })
     } catch (e) {
       set({ error: (e as Error).message, isLoading: false })
@@ -61,10 +76,14 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
 
   addCategory: async (category) => {
     try {
-      await db.categories.add(category)
+      const count = await db.categories.count()
+      const color = CATEGORY_COLORS[count % CATEGORY_COLORS.length]
+      const id = await db.categories.add({ ...category, sortOrder: count, color })
       await get().loadCategories()
+      return id as number
     } catch (e) {
       set({ error: (e as Error).message })
+      throw e
     }
   },
 

@@ -1,6 +1,8 @@
-import { useState, useCallback, useMemo } from 'react'
-import { useCategoryStore } from '@/stores/categoryStore'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useTransactionStore } from '@/stores/transactionStore'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '@/lib/db'
+import { useAppStore } from '@/stores/appStore'
 import { getTodayString, getCurrentMonthString, formatVND } from '@/lib/utils'
 import type { BudgetCategory } from '@/types'
 
@@ -96,7 +98,7 @@ const EMPTY_RESULT: SaveResult = {
 }
 
 export function useQuickAdd(): UseQuickAddReturn {
-  const [isOpen, setIsOpen] = useState(false)
+  const { quickAddOpen, closeQuickAdd, quickAddInitialDate } = useAppStore()
   const [amountDigits, setAmountDigits] = useState('')
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
   const [selectedDate, setSelectedDate] = useState(getTodayString)
@@ -104,7 +106,7 @@ export function useQuickAdd(): UseQuickAddReturn {
   const [isSaving, setIsSaving] = useState(false)
   const [budgetWarning, setBudgetWarning] = useState<BudgetWarning | null>(null)
 
-  const { categories } = useCategoryStore()
+  const categories = useLiveQuery(() => db.categories.orderBy('sortOrder').toArray(), []) ?? []
   const { addTransaction, getSpentByCategory } = useTransactionStore()
 
   // Derived amount from digit string
@@ -118,16 +120,15 @@ export function useQuickAdd(): UseQuickAddReturn {
     return formatVND(amount)
   }, [amount])
 
-  // Sort categories: last used first
-  const sortedCategories = useMemo(() => {
-    const lastUsedId = getLastUsedCategoryId()
-    if (!lastUsedId) return categories
+  // Categories are already sorted by sortOrder from DB, no need to restruct
+  const sortedCategories = categories
 
-    const lastUsed = categories.find((c) => c.id === lastUsedId)
-    if (!lastUsed) return categories
-
-    return [lastUsed, ...categories.filter((c) => c.id !== lastUsedId)]
-  }, [categories])
+  // Select first category by default if none selected
+  useMemo(() => {
+    if (selectedCategoryId === null && sortedCategories.length > 0) {
+      setSelectedCategoryId(sortedCategories[0].id ?? null)
+    }
+  }, [sortedCategories, selectedCategoryId])
 
   const selectedCategory = useMemo(
     () => categories.find((c) => c.id === selectedCategoryId),
@@ -140,30 +141,44 @@ export function useQuickAdd(): UseQuickAddReturn {
 
   // ── Actions ──
 
-  const resetState = useCallback(() => {
+  const resetState = useCallback((date?: string | null) => {
+    const lastUsedId = getLastUsedCategoryId()
+    const validId = lastUsedId && categories.find(c => c.id === lastUsedId) 
+      ? lastUsedId 
+      : categories.length > 0 ? categories[0].id! : null
+
     setAmountDigits('')
-    setSelectedCategoryId(null)
-    setSelectedDate(getTodayString())
+    setSelectedCategoryId(validId)
+    setSelectedDate(date ? date : getTodayString())
     setNote('')
     setBudgetWarning(null)
-  }, [])
+  }, [categories])
 
   const open = useCallback(() => {
     resetState()
-    setIsOpen(true)
+    useAppStore.getState().openQuickAdd()
   }, [resetState])
 
   const close = useCallback(() => {
-    setIsOpen(false)
+    closeQuickAdd()
     resetState()
-  }, [resetState])
+  }, [closeQuickAdd, resetState])
+
+  // Watch for global open state and propagate initial date
+  useEffect(() => {
+    if (quickAddOpen) {
+      resetState(quickAddInitialDate)
+    }
+  }, [quickAddOpen, quickAddInitialDate, resetState])
 
   const appendDigit = useCallback((digit: number) => {
     setAmountDigits((prev) => {
+      if (prev === '0' && digit !== 0) return String(digit)
+      if (prev === '0' && digit === 0) return prev
+      if (prev === '' && digit === 0) return '0'
       const next = prev + String(digit)
       if (next.length > MAX_DIGITS) return prev
-      const cleaned = next.replace(/^0+/, '') || ''
-      return cleaned
+      return next
     })
   }, [])
 
@@ -258,7 +273,7 @@ export function useQuickAdd(): UseQuickAddReturn {
     selectedCategoryId,
     selectedDate,
     note,
-    isOpen,
+    isOpen: quickAddOpen,
     isSaving,
     budgetWarning,
     sortedCategories,

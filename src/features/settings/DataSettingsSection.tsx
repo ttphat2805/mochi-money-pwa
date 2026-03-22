@@ -1,16 +1,26 @@
 import { useState, useRef } from 'react'
-import { toast } from 'sonner'
 import { SettingsRow } from './SettingsRow'
 import { Divider } from './SettingsHelpers'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
-import { handleExport, importFromJSON, clearAllTransactions } from '@/lib/data-export'
+import { ImportPreviewSheet } from './ImportPreviewSheet'
+import { useBackup } from '@/hooks/useBackup'
+import { toast } from 'sonner'
 
 export function DataSettingsSection() {
-  const [importing, setImporting] = useState(false)
-  const [importConfirmOpen, setImportConfirmOpen] = useState(false)
-  const [clearConfirmOpen, setClearConfirmOpen] = useState(false)
-  const [pendingFile, setPendingFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false)
+
+  const {
+    isExporting,
+    isRestoring,
+    importPreviewOpen,
+    setImportPreviewOpen,
+    importSummary,
+    handleExport,
+    handleImportFile,
+    handleRestore,
+    handleClearAll,
+  } = useBackup()
 
   const handleImportClick = () => {
     fileInputRef.current?.click()
@@ -18,39 +28,13 @@ export function DataSettingsSection() {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    e.target.value = '' // reset so same file can be re-selected
     if (!file) return
     if (!file.name.endsWith('.json')) {
       toast.error('Chỉ hỗ trợ file .json')
       return
     }
-    setPendingFile(file)
-    setImportConfirmOpen(true)
-    e.target.value = '' // reset so same file can be re-selected
-  }
-
-  const handleImportConfirm = async () => {
-    if (!pendingFile) return
-    setImporting(true)
-    try {
-      await importFromJSON(pendingFile)
-      toast.success('Đã nhập dữ liệu thành công')
-      setTimeout(() => window.location.reload(), 400)
-    } catch {
-      toast.error('Nhập thất bại · File không hợp lệ')
-    } finally {
-      setImporting(false)
-      setPendingFile(null)
-      setImportConfirmOpen(false)
-    }
-  }
-
-  const handleClearAll = async () => {
-    try {
-      await clearAllTransactions()
-      toast.success('Đã xoá toàn bộ giao dịch')
-    } catch {
-      toast.error('Xoá thất bại')
-    }
+    void handleImportFile(file)
   }
 
   return (
@@ -59,7 +43,7 @@ export function DataSettingsSection() {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".json"
+        accept=".json,application/json"
         className="hidden"
         onChange={handleFileSelect}
       />
@@ -67,48 +51,48 @@ export function DataSettingsSection() {
       <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">
         <SettingsRow
           icon="📤"
-          label="Xuất dữ liệu"
-          sublabel="Lưu backup file .json"
+          label="Xuất dữ liệu (Export)"
+          sublabel="Chia sẻ hoặc lưu file backup .json"
           onTap={() => void handleExport()}
+          loading={isExporting}
         />
         <Divider />
         <SettingsRow
           icon="📥"
-          label="Nhập dữ liệu"
-          sublabel="Khôi phục từ file .json"
+          label="Nhập dữ liệu (Import)"
+          sublabel="Khôi phục từ file backup"
           onTap={handleImportClick}
+          loading={isRestoring}
         />
         <Divider />
         <SettingsRow
           icon="🗑"
-          label="Xoá toàn bộ giao dịch"
-          sublabel="Giữ lại danh mục và cài đặt"
+          label="Xoá toàn bộ dữ liệu"
+          sublabel="Đặt lại về danh mục mặc định"
           onTap={() => setClearConfirmOpen(true)}
           danger
         />
       </div>
 
-      {/* Import overwrite confirm */}
-      <ConfirmDialog
-        open={importConfirmOpen}
-        onClose={() => { setImportConfirmOpen(false); setPendingFile(null) }}
-        onConfirm={handleImportConfirm}
-        variant="warning"
-        title="Nhập dữ liệu?"
-        description="Toàn bộ dữ liệu hiện tại sẽ bị xoá và thay thế bằng file backup."
-        confirmLabel={importing ? 'Đang nhập...' : 'Nhập'}
-        loading={importing}
+      {/* Import preview sheet — shows summary before restoring */}
+      <ImportPreviewSheet
+        open={importPreviewOpen}
+        summary={importSummary}
+        isRestoring={isRestoring}
+        onClose={() => setImportPreviewOpen(false)}
+        onMerge={() => void handleRestore('merge')}
+        onReplace={() => void handleRestore('replace')}
       />
 
       {/* Clear all confirm */}
       <ConfirmDialog
         open={clearConfirmOpen}
         onClose={() => setClearConfirmOpen(false)}
-        onConfirm={handleClearAll}
+        onConfirm={() => { setClearConfirmOpen(false); void handleClearAll() }}
         variant="delete"
-        title="Xoá toàn bộ giao dịch?"
-        description="Danh mục và cài đặt sẽ được giữ lại. Không thể hoàn tác."
-        confirmLabel="Xoá hết"
+        title="Xoá toàn bộ dữ liệu?"
+        description="Tất cả giao dịch, danh mục và cài đặt sẽ bị xoá. Danh mục mặc định sẽ được khôi phục."
+        confirmLabel="Xoá tất cả"
       />
     </>
   )

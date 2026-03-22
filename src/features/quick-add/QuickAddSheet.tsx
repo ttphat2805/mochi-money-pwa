@@ -1,27 +1,27 @@
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { formatVND } from '@/lib/utils'
-import { useQuickAdd } from '@/hooks/useQuickAdd'
+import { useState } from "react";
+import { toast } from "sonner";
+import { formatVND } from "@/lib/utils";
+import { useQuickAdd } from "@/hooks/useQuickAdd";
 import {
   Sheet,
   SheetContent,
   SheetTitle,
   SheetDescription,
-} from '@/components/ui/sheet'
-import { AmountDisplay } from './AmountDisplay'
-import { Numpad } from './Numpad'
-import { CategoryGrid } from './CategoryGrid'
-import { NoteInput } from './NoteInput'
-import { DateSelector } from './DateSelector'
-import { DatePickerSheet } from './DatePickerSheet'
-import { BudgetWarningDialog } from './BudgetWarningDialog'
+} from "@/components/ui/sheet";
+import { AmountDisplay } from "./AmountDisplay";
+import { Numpad } from "./Numpad";
+import { CategoryGrid } from "./CategoryGrid";
+import { NoteInput } from "./NoteInput";
+import { DateSelector } from "./DateSelector";
+import { DatePickerSheet } from "./DatePickerSheet";
+import { BudgetWarningDialog } from "./BudgetWarningDialog";
 
 interface QuickAddSheetProps {
-  quickAdd: ReturnType<typeof useQuickAdd>
+  quickAdd: ReturnType<typeof useQuickAdd>;
 }
 
 export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
-  const [datePickerOpen, setDatePickerOpen] = useState(false)
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const {
     amount,
@@ -36,6 +36,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
     close,
     appendDigit,
     deleteDigit,
+    clearAmount,
     selectCategory,
     setDate,
     setNote,
@@ -44,31 +45,35 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
     dismissBudgetWarning,
     canSave,
     dateLabel,
-  } = quickAdd
+  } = quickAdd;
 
   const handleSave = async () => {
-    const result = await save()
+    const result = await save();
     if (result.success) {
-      toast.success(`Đã ghi −${formatVND(result.amount)}đ · ${result.categoryName}`)
+      toast.success(
+        `Đã ghi −${formatVND(result.amount)}đ · ${result.categoryName}`,
+      );
     }
-  }
+  };
 
   const handleConfirmOverBudget = async () => {
-    const result = await confirmOverBudget()
+    const result = await confirmOverBudget();
     if (result.success) {
-      toast.success(`Đã ghi −${formatVND(result.amount)}đ · ${result.categoryName}`)
+      toast.success(
+        `Đã ghi −${formatVND(result.amount)}đ · ${result.categoryName}`,
+      );
     }
-  }
+  };
 
   const handleDateConfirm = (date: string) => {
-    setDate(date)          // update date in Quick Add
+    setDate(date); // update date in Quick Add
     // Delay closing by a tick so Radix UI event bubbling finishes evaluating datePickerOpen
-    setTimeout(() => setDatePickerOpen(false), 50)
-  }
+    setTimeout(() => setDatePickerOpen(false), 50);
+  };
 
   const handleDatePickerClose = () => {
-    setTimeout(() => setDatePickerOpen(false), 50)
-  }
+    setTimeout(() => setDatePickerOpen(false), 50);
+  };
 
   return (
     <>
@@ -77,13 +82,13 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
           side="bottom"
           showCloseButton={false}
           onPointerDownOutside={(e) => {
-            if (datePickerOpen) e.preventDefault()
+            if (datePickerOpen) e.preventDefault();
           }}
           onInteractOutside={(e) => {
-            if (datePickerOpen) e.preventDefault()
+            if (datePickerOpen) e.preventDefault();
           }}
           onFocusOutside={(e) => {
-            if (datePickerOpen) e.preventDefault()
+            if (datePickerOpen) e.preventDefault();
           }}
           className="bg-bg rounded-t-2xl p-0"
         >
@@ -100,7 +105,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
 
             {/* 2. Amount display */}
             <div className="px-4">
-              <AmountDisplay display={amountDisplay} hasValue={amount > 0} />
+              <AmountDisplay display={amountDisplay} hasValue={amount > 0} onClear={clearAmount} />
             </div>
 
             {/* 3. Category grid */}
@@ -110,10 +115,13 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                   Danh mục
                 </span>
               </div>
+
               <CategoryGrid
                 categories={sortedCategories}
                 selectedId={selectedCategoryId}
                 onSelect={selectCategory}
+                showAdd
+                className="px-4"
               />
             </div>
 
@@ -156,5 +164,5 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
         onCancel={dismissBudgetWarning}
       />
     </>
-  )
+  );
 }

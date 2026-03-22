@@ -23,7 +23,7 @@ export async function seedDefaultCategories(): Promise<void> {
     const categories = DEFAULT_CATEGORIES.map((cat, index) => ({
       name: cat.name,
       icon: cat.icon,
-      color: CATEGORY_COLORS[index % CATEGORY_COLORS.length],
+      color: (cat as any).color ?? CATEGORY_COLORS[index % CATEGORY_COLORS.length],
       limitPerMonth: null,
       sortOrder: index,
     }))

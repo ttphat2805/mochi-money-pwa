@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo, useCallback } from 'react'
 import { ArrowLeft, Plus, GripVertical, ChevronRight } from 'lucide-react'
 import {
   DndContext,
@@ -19,7 +19,6 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { formatVND } from '@/lib/utils'
-import { BudgetProgressBar } from '@/components/BudgetProgressBar'
 import { useBudgetCategories, type CategoryWithBudget } from '@/hooks/useBudgetCategories'
 import { CategoryFormSheet } from './CategoryFormSheet'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -29,17 +28,13 @@ interface CategoryListPageProps {
   onBack: () => void
 }
 
-// ── Pure display row ──────────────────────────────────────────
+// ── Pure display row (used in DragOverlay only) ─────────────────
 
-function CategoryRowContent({
+export const CategoryRowContent = memo(function CategoryRowContent({
   category,
-  dragHandleProps,
-  onEdit,
   isDragOverlay = false,
 }: {
   category: CategoryWithBudget
-  dragHandleProps?: React.HTMLAttributes<HTMLDivElement>
-  onEdit?: () => void
   isDragOverlay?: boolean
 }) {
   return (
@@ -51,16 +46,10 @@ function CategoryRowContent({
         borderRadius: isDragOverlay ? 14 : undefined,
       }}
     >
-      {/* Drag handle */}
-      {dragHandleProps && (
-        <div
-          {...dragHandleProps}
-          className="shrink-0 flex items-center justify-center p-1 -ml-1 text-[#C0BEB4] touch-none cursor-grab active:cursor-grabbing"
-          style={{ touchAction: 'none' }}
-        >
-          <GripVertical size={16} />
-        </div>
-      )}
+      {/* Drag handle placeholder (no props — overlay can't drag) */}
+      <div className="shrink-0 flex items-center justify-center p-1 -ml-1 text-[#C0BEB4]">
+        <GripVertical size={16} />
+      </div>
 
       {/* Icon */}
       <div className="size-9 shrink-0 flex items-center justify-center rounded-xl bg-surface text-xl leading-none">
@@ -70,49 +59,24 @@ function CategoryRowContent({
       {/* Name + budget */}
       <div className="flex-1 min-w-0">
         <p className="text-[14px] font-medium text-text truncate">{category.name}</p>
-        {category.limitPerMonth ? (
-          <div className="mt-1">
-            <BudgetProgressBar
-              spent={category.spent}
-              limit={category.limitPerMonth}
-              showLabel
-              height={3}
-            />
-          </div>
-        ) : (
-          <p className="text-[11px] text-text-hint mt-0.5">Không giới hạn</p>
-        )}
+        <p className="text-[11px] text-text-muted mt-0.5 font-mono">
+          {category.limitPerMonth ? `Giới hạn ${formatVND(category.limitPerMonth)}đ` : 'Không giới hạn'}
+        </p>
       </div>
 
-      {/* Limit amount */}
-      {category.limitPerMonth && (
-        <span className="font-num text-[12px] text-text-muted shrink-0">
-          {formatVND(category.limitPerMonth)}đ
-        </span>
-      )}
-
-      {/* Edit button */}
-      {onEdit && (
-        <button
-          type="button"
-          onClick={onEdit}
-          className="shrink-0 size-8 flex items-center justify-center rounded-full transition-colors active:bg-surface"
-        >
-          <ChevronRight size={16} className="text-text-hint" />
-        </button>
-      )}
+      <ChevronRight size={16} className="text-text-hint shrink-0" />
     </div>
   )
-}
+})
 
 // ── Sortable row wrapper ──────────────────────────────────────
 
-function SortableCategoryRow({
+export const SortableCategoryRow = memo(function SortableCategoryRow({
   category,
   onEdit,
 }: {
   category: CategoryWithBudget
-  onEdit: () => void
+  onEdit: (cat: BudgetCategory) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: category.id! })
@@ -126,14 +90,43 @@ function SortableCategoryRow({
         opacity: isDragging ? 0 : 1,
       }}
     >
-      <CategoryRowContent
-        category={category}
-        dragHandleProps={{ ...attributes, ...listeners }}
-        onEdit={onEdit}
-      />
+      {/* The full row is a tappable button that opens edit */}
+      <button
+        type="button"
+        onClick={() => onEdit(category)}
+        className="flex items-center gap-3 bg-white px-4 py-3 w-full text-left transition-colors active:bg-surface"
+      >
+        {/* Drag handle — stopPropagation so dragging doesn't trigger edit */}
+        <div
+          {...attributes}
+          {...listeners}
+          onClick={(e) => e.stopPropagation()}
+          className="shrink-0 flex items-center justify-center p-1 -ml-1 text-[#C0BEB4] touch-none cursor-grab active:cursor-grabbing"
+          style={{ touchAction: 'none' }}
+        >
+          <GripVertical size={16} />
+        </div>
+
+        {/* Icon */}
+        <div className="size-9 shrink-0 flex items-center justify-center rounded-xl bg-surface text-xl leading-none">
+          {category.icon}
+        </div>
+
+        {/* Name + subtitle */}
+        <div className="flex-1 min-w-0">
+          <p className="text-[14px] font-medium text-text truncate">{category.name}</p>
+          <p className="text-[11px] text-text-muted mt-0.5 font-mono">
+            {category.limitPerMonth
+              ? `Giới hạn ${formatVND(category.limitPerMonth)}đ`
+              : 'Không giới hạn'}
+          </p>
+        </div>
+
+        <ChevronRight size={16} className="text-text-hint shrink-0" />
+      </button>
     </div>
   )
-}
+})
 
 // ── Main page ─────────────────────────────────────────────────
 
@@ -179,10 +172,10 @@ export function CategoryListPage({ onBack }: CategoryListPageProps) {
 
   const activeCategory = items.find((c) => c.id === activeId)
 
-  const handleEdit = (cat: BudgetCategory) => {
+  const handleEdit = useCallback((cat: BudgetCategory) => {
     setEditTarget(cat)
     setFormOpen(true)
-  }
+  }, [])
 
   const handleAdd = () => {
     setEditTarget(undefined)
@@ -253,7 +246,7 @@ export function CategoryListPage({ onBack }: CategoryListPageProps) {
                       {idx > 0 && <div className="border-border mx-4 border-t" />}
                       <SortableCategoryRow
                         category={cat}
-                        onEdit={() => handleEdit(cat)}
+                        onEdit={handleEdit}
                       />
                     </div>
                   ))}

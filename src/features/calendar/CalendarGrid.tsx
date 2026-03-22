@@ -1,3 +1,4 @@
+import React, { useRef } from 'react'
 import { formatShort } from '@/lib/utils'
 import type { CalendarDayCell } from '@/hooks/useCalendar'
 import { getHeatLevel, HEAT_BG, HEAT_TEXT } from '@/hooks/useCalendar'
@@ -12,7 +13,97 @@ interface CalendarGridProps {
   onSelectDay: (date: string) => void
   onSwipeLeft: () => void
   onSwipeRight: () => void
+  // key changes when month changes — triggers slide animation
+  monthKey: string
+  slideDir: 'left' | 'right' | null
 }
+
+// Memoized day cell for perf
+const DayCell = React.memo(function DayCell({
+  cell,
+  isSelected,
+  amount,
+  heat,
+  onSelect,
+}: {
+  cell: Extract<CalendarDayCell, { type: 'day' }>
+  isSelected: boolean
+  amount: number
+  heat: 0 | 1 | 2 | 3 | 4
+  onSelect: (date: string) => void
+}) {
+  const { date, day, isToday, isFuture } = cell
+
+  return (
+    <button
+      type="button"
+      disabled={isFuture}
+      onClick={() => onSelect(date)}
+      style={{
+        minHeight: 52,
+        backgroundColor: isSelected ? '#E8A020' : HEAT_BG[heat],
+        border: isSelected
+          ? '2px solid #E8A020'
+          : isToday
+            ? '2px solid #F5C043'
+            : '2px solid transparent',
+        transform: isSelected ? 'scale(1.06)' : 'scale(1)',
+        boxShadow: isSelected ? '0 3px 10px rgba(232,160,32,0.35)' : 'none',
+        opacity: isFuture ? 0.35 : 1,
+        transition: 'transform 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease',
+        borderRadius: 10,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 2,
+        padding: '4px 2px',
+        width: '100%',
+      }}
+    >
+      <span
+        style={{
+          fontSize: 13,
+          fontWeight: isToday ? 700 : isSelected ? 700 : 500,
+          lineHeight: 1,
+          color: isSelected
+            ? '#FFFFFF'
+            : isToday
+              ? '#E8A020'
+              : amount > 0
+                ? HEAT_TEXT[heat]
+                : 'var(--color-text-muted)',
+        }}
+      >
+        {day}
+      </span>
+      {amount > 0 && (
+        <span
+          style={{
+            fontSize: 9,
+            lineHeight: 1,
+            fontWeight: 600,
+            color: isSelected ? 'rgba(255,255,255,0.85)' : HEAT_TEXT[heat],
+          }}
+        >
+          {formatShort(amount)}
+        </span>
+      )}
+      {/* Today dot when not selected */}
+      {isToday && !isSelected && (
+        <span
+          style={{
+            width: 4,
+            height: 4,
+            borderRadius: '50%',
+            backgroundColor: '#E8A020',
+            marginTop: 1,
+          }}
+        />
+      )}
+    </button>
+  )
+})
 
 export function CalendarGrid({
   days,
@@ -22,19 +113,28 @@ export function CalendarGrid({
   onSelectDay,
   onSwipeLeft,
   onSwipeRight,
+  monthKey,
+  slideDir,
 }: CalendarGridProps) {
-  let touchStartX = 0
+  const touchStartX = useRef(0)
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX = e.touches[0].clientX
+    touchStartX.current = e.touches[0].clientX
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    const diff = touchStartX - e.changedTouches[0].clientX
+    const diff = touchStartX.current - e.changedTouches[0].clientX
     if (Math.abs(diff) > 50) {
       diff > 0 ? onSwipeLeft() : onSwipeRight()
     }
   }
+
+  // Slide animation on month change
+  const slideStyle: React.CSSProperties = slideDir === 'left'
+    ? { animation: 'slideInFromRight 250ms ease-out' }
+    : slideDir === 'right'
+      ? { animation: 'slideInFromLeft 250ms ease-out' }
+      : {}
 
   return (
     <div
@@ -43,11 +143,11 @@ export function CalendarGrid({
       onTouchEnd={handleTouchEnd}
     >
       {/* Weekday headers */}
-      <div className="mb-1 grid grid-cols-7">
+      <div className="mb-1.5 grid grid-cols-7">
         {WEEKDAY_HEADERS.map((h, i) => (
           <div
             key={h}
-            className={`text-center text-[10px] font-medium uppercase tracking-wide ${
+            className={`text-center text-[10px] font-semibold uppercase tracking-wide ${
               i >= 5 ? 'text-accent' : 'text-text-hint'
             }`}
           >
@@ -56,54 +156,43 @@ export function CalendarGrid({
         ))}
       </div>
 
-      {/* Day cells */}
-      <div className="grid grid-cols-7 gap-0.5">
+      {/* Day cells with slide animation */}
+      <div
+        key={monthKey}
+        className="grid grid-cols-7 gap-0.5"
+        style={slideStyle}
+      >
         {days.map((cell) => {
           if (cell.type === 'empty') return <div key={cell.key} />
 
-          const { date, day, isToday, isFuture } = cell
-          const amount = dailyTotals[date] ?? 0
+          const amount = dailyTotals[cell.date] ?? 0
           const heat = getHeatLevel(amount, maxDailyAmount)
-          const isSelected = date === selectedDay
+          const isSelected = cell.date === selectedDay
 
           return (
-            <button
-              key={date}
-              type="button"
-              disabled={isFuture}
-              onClick={() => onSelectDay(date)}
-              className="flex flex-col items-center justify-between overflow-hidden rounded-lg py-1 transition-transform"
-              style={{
-                minHeight: 52,
-                backgroundColor: HEAT_BG[heat],
-                border: isSelected
-                  ? '1.5px solid #E8A020'
-                  : isToday
-                    ? '1.5px solid #F5C043'
-                    : '1.5px solid transparent',
-                transform: isSelected ? 'scale(1.05)' : 'scale(1)',
-                boxShadow: isSelected ? '0 2px 8px rgba(232,160,32,0.3)' : 'none',
-                opacity: isFuture ? 0.35 : 1,
-              }}
-            >
-              <span
-                className="text-[12px] font-medium leading-none"
-                style={{ color: amount > 0 ? HEAT_TEXT[heat] : 'var(--color-text-muted)' }}
-              >
-                {day}
-              </span>
-              {amount > 0 && (
-                <span
-                  className="font-num mt-0.5 text-[9px] leading-none"
-                  style={{ color: HEAT_TEXT[heat] }}
-                >
-                  {formatShort(amount)}
-                </span>
-              )}
-            </button>
+            <DayCell
+              key={cell.date}
+              cell={cell}
+              isSelected={isSelected}
+              amount={amount}
+              heat={heat}
+              onSelect={onSelectDay}
+            />
           )
         })}
       </div>
+
+      {/* Keyframe definitions via inline style tag */}
+      <style>{`
+        @keyframes slideInFromRight {
+          from { opacity: 0; transform: translateX(40px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInFromLeft {
+          from { opacity: 0; transform: translateX(-40px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+      `}</style>
     </div>
   )
 }

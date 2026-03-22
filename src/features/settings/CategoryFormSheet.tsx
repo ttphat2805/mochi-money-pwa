@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import {
   Sheet,
@@ -7,9 +7,10 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
-import { EmojiPickerSheet } from '@/components/EmojiPickerSheet'
 import { formatVND } from '@/lib/utils'
 import type { BudgetCategory } from '@/types'
+
+const EmojiPickerSheet = lazy(() => import('@/components/EmojiPickerSheet').then((m) => ({ default: m.EmojiPickerSheet })))
 
 interface CategoryFormSheetProps {
   open: boolean
@@ -200,12 +201,15 @@ export function CategoryFormSheet({
       </Sheet>
 
       {/* Emoji picker — separate sheet on top */}
-      <EmojiPickerSheet
-        open={emojiPickerOpen}
-        onClose={() => setEmojiPickerOpen(false)}
-        onSelect={setIcon}
-        currentEmoji={icon}
-      />
+      {emojiPickerOpen && (
+        <Suspense fallback={null}>
+          <EmojiPickerSheet
+            open={emojiPickerOpen}
+            onClose={() => setEmojiPickerOpen(false)}
+            onSelect={setIcon}
+          />
+        </Suspense>
+      )}
     </>
   )
 }

@@ -28,7 +28,7 @@ export type BudgetStatus = 'ok' | 'warning' | 'danger' | 'over'
 export function getBudgetStatus(spent: number, limit: number | null): BudgetStatus {
   if (!limit) return 'ok'
   const pct = spent / limit
-  if (pct >= 1.0) return 'over'
+  if (pct > 1.0) return 'over'
   if (pct >= 0.8) return 'danger'
   if (pct >= 0.6) return 'warning'
   return 'ok'
@@ -49,11 +49,10 @@ export interface FixedExpense {
   amount: number
   /** Day of month (1–31). Clamped to last day for short months. */
   payDay: number
-  icon: string
   note: string
   active: boolean
-  /** Optional link to a BudgetCategory */
-  categoryId?: number
+  /** Link to a BudgetCategory, required for fixed expenses */
+  categoryId: number
 }
 
 /** Spending category with optional monthly limit */

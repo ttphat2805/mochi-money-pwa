@@ -1,5 +1,5 @@
 import { Trash2, AlertTriangle } from 'lucide-react'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 
 interface ConfirmDialogProps {
   open: boolean
@@ -54,11 +54,13 @@ export function ConfirmDialog({
 
           {/* Text */}
           <div className="text-center">
-            <p className="text-[16px] font-semibold text-text leading-snug">{title}</p>
-            {description && (
-              <p className="mt-1.5 text-[13px] text-text-muted leading-relaxed">
+            <DialogTitle className="text-[16px] font-semibold text-text leading-snug">{title}</DialogTitle>
+            {description ? (
+              <DialogDescription className="mt-1.5 text-[13px] text-text-muted leading-relaxed">
                 {description}
-              </p>
+              </DialogDescription>
+            ) : (
+              <DialogDescription className="sr-only">Xác nhận hành động này</DialogDescription>
             )}
           </div>
 

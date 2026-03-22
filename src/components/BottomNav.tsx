@@ -1,117 +1,122 @@
-import { Home, RefreshCw, CalendarDays, BarChart2, Plus } from 'lucide-react'
-import { useQuickAddStore } from '@/stores/quickAddStore'
+import { Home, Wallet, CalendarDays, BarChart2, Plus } from "lucide-react";
+import { useAppStore } from "@/stores/appStore";
 
-export type TabKey = 'home' | 'today' | 'calendar' | 'overview'
+export type TabKey = "home" | "budget" | "calendar" | "overview";
 
 interface BottomNavProps {
-  active: TabKey
-  onTab: (tab: TabKey) => void
+  active: TabKey;
+  onTab: (tab: TabKey) => void;
 }
 
 interface NavItemProps {
-  icon: React.ReactNode
-  label: string
-  active: boolean
-  onClick: () => void
+  icon: any;
+  label: string;
+  active: boolean;
+  onClick: () => void;
 }
 
-function NavItem({ icon, label, active, onClick }: NavItemProps) {
+function NavItem({ icon: Icon, label, active, onClick }: NavItemProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5 transition-colors"
+      className={`relative flex flex-1 h-full flex-col items-center justify-center gap-0.5 transition-all duration-300 pointer-events-auto ${
+        active ? "text-accent" : "text-text-hint hover:text-[#A0A09A]"
+      }`}
     >
-      <span style={{ color: active ? '#E8A020' : '#B8B8A8' }}>{icon}</span>
-      <span
-        className="text-[10px] font-medium leading-none"
-        style={{ color: active ? '#E8A020' : '#B8B8A8' }}
+      <div
+        className={`transition-transform duration-300 flex items-center justify-center ${active ? "scale-110" : "scale-100"}`}
       >
-        {label}
-      </span>
+        <Icon size={22} strokeWidth={active ? 2.5 : 2} />
+      </div>
+      <span className="text-[10px] font-medium leading-none">{label}</span>
     </button>
-  )
+  );
 }
 
 export function BottomNav({ active, onTab }: BottomNavProps) {
-  const openQuickAdd = useQuickAddStore((s) => s.open)
+  const { openQuickAdd } = useAppStore();
 
   return (
-    <div className="relative" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      {/* ── Floating center FAB ─────────────────────────── */}
-      <div className="absolute left-1/2 -translate-x-1/2 z-20" style={{ top: '-28px' }}>
-        <button
-          type="button"
-          onClick={openQuickAdd}
-          aria-label="Thêm chi tiêu"
-          className="flex size-14 items-center justify-center rounded-full transition-transform active:scale-95"
-          style={{
-            backgroundColor: '#E8A020',
-            boxShadow: '0 4px 20px rgba(232, 160, 32, 0.45)',
-          }}
-        >
-          <Plus size={26} color="white" strokeWidth={2.5} />
-        </button>
-      </div>
+    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none pb-[calc(1rem+env(safe-area-inset-bottom))] px-4">
+      {/* Container must be pointer-events-auto for clicks */}
+      <div
+        className="relative mx-auto flex h-[64px] w-full max-w-md items-end pointer-events-auto"
+        style={{ filter: "drop-shadow(0 10px 24px rgba(0,0,0,0.08))" }}
+      >
+        {/* Floating Center FAB */}
+        <div className="absolute left-1/2 -top-5 -translate-x-1/2 z-20">
+          <button
+            type="button"
+            onClick={() => openQuickAdd()}
+            aria-label="Thêm chi tiêu"
+            className="flex size-14 items-center justify-center rounded-full transition-transform duration-300 active:scale-95 text-white"
+            style={{
+              backgroundColor: "#E8A020",
+              boxShadow: "0 8px 20px rgba(232, 160, 32, 0.45)",
+            }}
+          >
+            <Plus size={28} strokeWidth={2.5} />
+          </button>
+        </div>
 
-      {/* ── Nav surface with SVG cutout top-border ──── */}
-      <div className="relative bg-white" style={{ height: 60 }}>
-        {/* SVG cutout: white fill + border line with arch at center */}
-        <svg
-          className="absolute inset-0 w-full pointer-events-none"
-          height="60"
-          preserveAspectRatio="none"
-          viewBox="0 0 375 60"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* White fill with arch cutout */}
-          <path
-            d="M0,0 L153,0 C163,0 167,2 171,7 C175,13 176,22 187.5,28 C199,22 200,13 204,7 C208,2 212,0 222,0 L375,0 L375,60 L0,60 Z"
-            fill="white"
-          />
-          {/* Top border line with matching arch */}
-          <path
-            d="M0,0.5 L153,0.5 C163,0.5 167,2.5 171,7.5 C175,13.5 176,22.5 187.5,28.5 C199,22.5 200,13.5 204,7.5 C208,2.5 212,0.5 222,0.5 L375,0.5"
-            fill="none"
-            stroke="#E2E0D8"
-            strokeWidth="1"
-          />
-        </svg>
+        {/* ── Background Layer with Notch ── */}
+        <div className="absolute inset-x-0 bottom-0 h-[64px] flex items-end">
+          {/* Left part */}
+          <div className="h-full flex-1 bg-white rounded-l-[30px]" />
 
-        {/* Nav items */}
-        <div className="relative z-10 flex h-full w-full items-center">
+          {/* Center Notch: Mathematically aligned bowl */}
+          <div className="relative h-[64px] w-[110px] shrink-0 -mx-px">
+            <svg
+              viewBox="0 0 110 64"
+              fill="none"
+              className="h-full w-full pointer-events-none"
+            >
+              <path
+                d="M 0 0 C 24 0, 24 46, 55 46 C 86 46, 86 0, 110 0 L 110 64 L 0 64 Z"
+                fill="white"
+              />
+            </svg>
+          </div>
+
+          {/* Right part */}
+          <div className="h-full flex-1 bg-white rounded-r-[30px]" />
+        </div>
+
+        {/* ── Icons Overlay ── */}
+        <div className="absolute inset-0 z-10 flex h-full items-center px-1">
           {/* Left 2 */}
           <NavItem
-            icon={<Home size={22} />}
+            icon={Home}
             label="Trang chủ"
-            active={active === 'home'}
-            onClick={() => onTab('home')}
+            active={active === "home"}
+            onClick={() => onTab("home")}
           />
           <NavItem
-            icon={<RefreshCw size={22} />}
-            label="Hôm nay"
-            active={active === 'today'}
-            onClick={() => onTab('today')}
+            icon={Wallet}
+            label="Ngân sách"
+            active={active === "budget"}
+            onClick={() => onTab("budget")}
           />
 
-          {/* Center spacer — matches FAB width */}
-          <div className="w-14 shrink-0" />
+          {/* Center Spacer for FAB */}
+          <div className="w-[110px] shrink-0 pointer-events-none" />
 
           {/* Right 2 */}
           <NavItem
-            icon={<CalendarDays size={22} />}
+            icon={CalendarDays}
             label="Lịch"
-            active={active === 'calendar'}
-            onClick={() => onTab('calendar')}
+            active={active === "calendar"}
+            onClick={() => onTab("calendar")}
           />
           <NavItem
-            icon={<BarChart2 size={22} />}
+            icon={BarChart2}
             label="Tổng quan"
-            active={active === 'overview'}
-            onClick={() => onTab('overview')}
+            active={active === "overview"}
+            onClick={() => onTab("overview")}
           />
         </div>
       </div>
     </div>
-  )
+  );
 }
