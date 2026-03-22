@@ -79,10 +79,28 @@ export function NotificationSettings() {
           <>
             <Divider />
             <div className="flex items-center gap-3 px-4 py-3">
-              <span className="text-lg leading-none">⏰</span>
-              <div className="flex-1">
+              <span className="text-lg leading-none shrink-0">⏰</span>
+              <div className="flex-1 min-w-0">
                 <p className="text-[14px] font-medium mb-2">Giờ nhắc</p>
                 <HourPicker value={hour} onChange={setHour} />
+                
+                <button
+                  type="button"
+                  onClick={() => {
+                    if ('serviceWorker' in navigator) {
+                      navigator.serviceWorker.ready.then(reg => {
+                        reg.showNotification('Mochi 🍡 Test', {
+                          body: 'Thông báo đẩy của bạn đang hoạt động tốt!',
+                          icon: '/icon-192.png',
+                          badge: '/icon-192.png',
+                        })
+                      })
+                    }
+                  }}
+                  className="mt-3 w-full bg-surface hover:bg-surface2 active:bg-surface2 text-text text-[12px] font-medium h-9 rounded-xl transition-colors flex items-center justify-center"
+                >
+                  Gửi thông báo thử nghiệm
+                </button>
               </div>
             </div>
           </>
