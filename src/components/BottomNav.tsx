@@ -38,7 +38,7 @@ export function BottomNav({ active, onTab }: BottomNavProps) {
   const { openQuickAdd } = useAppStore();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none pb-[calc(1rem+env(safe-area-inset-bottom))] px-4">
+    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none pb-[calc(0.5rem+env(safe-area-inset-bottom))] px-4">
       {/* Container must be pointer-events-auto for clicks */}
       <div
         className="relative mx-auto flex h-[64px] w-full max-w-md items-end pointer-events-auto"

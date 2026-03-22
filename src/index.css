@@ -147,7 +147,7 @@ body.dev-shell #root::before {
 
 /* ── Safe area padding for bottom nav ── */
 .safe-bottom {
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 32px);
 }
 
 /* ── Number display utility ── */
