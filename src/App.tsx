@@ -1,6 +1,7 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { BottomNav, type TabKey } from "@/components/BottomNav";
 import { QuickAddSheet } from "@/features/quick-add/QuickAddSheet";
 import { useQuickAdd } from "@/hooks/useQuickAdd";
@@ -231,6 +232,7 @@ function App() {
       <QuickAddSheet quickAdd={quickAdd} />
       <InstallBanner />
       <Toaster position="top-center" />
+      <SpeedInsights />
     </div>
   );
 }
