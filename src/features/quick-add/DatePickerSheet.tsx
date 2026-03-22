@@ -117,23 +117,25 @@ export function DatePickerSheet({
 
         <div className="flex flex-col gap-3 px-4">
           {/* Quick shortcut chips */}
-          <div className="-mx-4 px-4 pb-1">
-            <div className="flex gap-2 w-full overflow-x-auto pb-0.5 scrollbar-hide snap-x touch-pan-x">
-              {SHORTCUTS.map((s) => (
-                <button
-                  key={s.key}
-                  type="button"
-                  onClick={() => picker.selectShortcut(s.key)}
-                  className={`snap-center shrink-0 h-9 rounded-full border-[1.5px] px-4 text-[13px] font-medium transition-all ${
-                    picker.activeShortcut === s.key
-                      ? "border-accent bg-accent text-white"
-                      : "border-border bg-white text-text-muted active:bg-surface"
-                  }`}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
+          <div 
+            className="flex gap-2 overflow-x-auto pb-1.5 pt-1 -mx-4 px-4 scrollbar-hide touch-pan-x snap-x"
+            onTouchMove={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            {SHORTCUTS.map((s) => (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => picker.selectShortcut(s.key)}
+                className={`snap-center shrink-0 h-9 rounded-full border-[1.5px] px-4 text-[13px] font-medium transition-all ${
+                  picker.activeShortcut === s.key
+                    ? "border-accent bg-accent text-white"
+                    : "border-border bg-white text-text-muted active:bg-surface"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
           </div>
 
           {/* Selected date display box */}
