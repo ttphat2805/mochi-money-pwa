@@ -11,9 +11,21 @@ import { SettingsPage } from "@/features/settings/SettingsPage";
 import { RecurringListPage } from "@/features/recurring/RecurringListPage";
 
 // Lazy-loaded heavy screens
-const CalendarPage = lazy(() => import("@/features/calendar/CalendarPage").then(m => ({ default: m.CalendarPage })));
-const DashboardPage = lazy(() => import("@/features/dashboard/DashboardPage").then(m => ({ default: m.DashboardPage })));
-const BudgetPage = lazy(() => import("@/features/dashboard/BudgetPage").then(m => ({ default: m.BudgetPage })));
+const CalendarPage = lazy(() =>
+  import("@/features/calendar/CalendarPage").then((m) => ({
+    default: m.CalendarPage,
+  })),
+);
+const DashboardPage = lazy(() =>
+  import("@/features/dashboard/DashboardPage").then((m) => ({
+    default: m.DashboardPage,
+  })),
+);
+const BudgetPage = lazy(() =>
+  import("@/features/dashboard/BudgetPage").then((m) => ({
+    default: m.BudgetPage,
+  })),
+);
 
 import { FixedExpenseListPage } from "@/features/fixed-expenses/FixedExpenseListPage";
 import { FinancialSettingsPage } from "@/features/settings/FinancialSettingsPage";
@@ -39,7 +51,7 @@ function App() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const [history, setHistory] = useState<Screen[]>(() => {
-    const saved = localStorage.getItem('active-tab') as TabKey;
+    const saved = localStorage.getItem("active-tab") as TabKey;
     return [{ id: "main", tab: saved ?? "home" }];
   });
   const { loadCategories } = useCategoryStore();
@@ -53,9 +65,9 @@ function App() {
 
   useEffect(() => {
     if (needRefresh) {
-      toast('Có bản cập nhật mới', {
+      toast("Có bản cập nhật mới", {
         action: {
-          label: 'Cập nhật',
+          label: "Cập nhật",
           onClick: () => updateServiceWorker(true),
         },
         duration: Infinity,
@@ -83,7 +95,7 @@ function App() {
   };
 
   const setTab = (tab: TabKey) => {
-    localStorage.setItem('active-tab', tab);
+    localStorage.setItem("active-tab", tab);
     setHistory((prev) => {
       const last = prev[prev.length - 1];
       if (last.id === "main")
@@ -167,19 +179,37 @@ function App() {
             );
           case "budget":
             return (
-              <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-text-muted">Đang tải...</div>}>
+              <Suspense
+                fallback={
+                  <div className="flex h-full items-center justify-center text-sm text-text-muted">
+                    Đang tải...
+                  </div>
+                }
+              >
                 <BudgetPage onSettings={() => push({ id: "settings" })} />
               </Suspense>
             );
           case "calendar":
             return (
-              <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-text-muted">Đang tải...</div>}>
+              <Suspense
+                fallback={
+                  <div className="flex h-full items-center justify-center text-sm text-text-muted">
+                    Đang tải...
+                  </div>
+                }
+              >
                 <CalendarPage />
               </Suspense>
             );
           case "overview":
             return (
-              <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-text-muted">Đang tải...</div>}>
+              <Suspense
+                fallback={
+                  <div className="flex h-full items-center justify-center text-sm text-text-muted">
+                    Đang tải...
+                  </div>
+                }
+              >
                 <DashboardPage />
               </Suspense>
             );
@@ -190,7 +220,9 @@ function App() {
   return (
     <div className="flex h-full flex-col">
       <OfflineIndicator />
-      <div className={`flex min-h-0 flex-1 flex-col ${showBottomNav ? 'pb-24' : ''}`}>
+      <div
+        className={`flex min-h-0 flex-1 flex-col ${showBottomNav ? "pb-24" : ""}`}
+      >
         {renderScreen()}
       </div>
 

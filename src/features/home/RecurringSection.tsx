@@ -5,10 +5,11 @@ import type { RecurringItem } from '@/hooks/useHomeData'
 interface RecurringSectionProps {
   items: RecurringItem[]
   onToggle: (item: RecurringItem) => void
-  onGoToSettings: () => void
 }
 
-export function RecurringSection({ items, onToggle, onGoToSettings }: RecurringSectionProps) {
+export function RecurringSection({ items, onToggle }: RecurringSectionProps) {
+  if (items.length === 0) return null
+
   const doneCount = items.filter((i) => i.isDone).length
   const doneTotal = items
     .filter((i) => i.isDone)
@@ -42,28 +43,14 @@ export function RecurringSection({ items, onToggle, onGoToSettings }: RecurringS
           boxShadow: '0 2px 12px rgba(0,0,0,0.04), 0 1px 0 rgba(255,255,255,0.8) inset',
         }}
       >
-        {items.length === 0 ? (
-          <div className="py-8 flex flex-col items-center">
-            <p className="text-2xl mb-2">🔁</p>
-            <p className="text-[13px] text-text-muted mb-2">Chưa có khoản lặp lại hôm nay</p>
-            <button
-              type="button"
-              onClick={onGoToSettings}
-              className="text-[12px] text-accent font-medium"
-            >
-              Thêm trong Cài đặt →
-            </button>
-          </div>
-        ) : (
-          items.map((item, i) => (
-            <RecurringRow
-              key={item.template.id}
-              item={item}
-              onToggle={() => onToggle(item)}
-              isLast={i === items.length - 1}
-            />
-          ))
-        )}
+        {items.map((item, i) => (
+          <RecurringRow
+            key={item.template.id}
+            item={item}
+            onToggle={() => onToggle(item)}
+            isLast={i === items.length - 1}
+          />
+        ))}
       </div>
     </div>
   )

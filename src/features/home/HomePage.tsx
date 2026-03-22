@@ -67,7 +67,6 @@ export function HomePage({ onNavigate, onSettings }: HomePageProps) {
               <RecurringSection
                 items={home.recurringItems}
                 onToggle={home.toggleRecurring}
-                onGoToSettings={onSettings}
               />
             </div>
 

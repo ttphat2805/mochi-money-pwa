@@ -39,7 +39,9 @@ html, body {
 }
 
 #root {
+  max-width: 480px;
   height: 100dvh;
+  margin: 0 auto;
   background-color: var(--color-bg);
   overflow: hidden;
 }
