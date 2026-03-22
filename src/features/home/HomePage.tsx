@@ -56,13 +56,13 @@ export function HomePage({ onNavigate, onSettings }: HomePageProps) {
 
             {/* Budget warnings */}
             {home.categoryWarnings.length > 0 && (
-              <div className="animate-slide-up delay-2">
+              <div className="animate-slide-up delay-2 content-visibility-auto">
                 <BudgetWarnings warnings={home.categoryWarnings} />
               </div>
             )}
 
             {/* Recurring items for today */}
-            <div className="animate-slide-up delay-3">
+            <div className="animate-slide-up delay-3 content-visibility-auto">
               <RecurringSection
                 items={home.recurringItems}
                 onToggle={home.toggleRecurring}
@@ -71,7 +71,7 @@ export function HomePage({ onNavigate, onSettings }: HomePageProps) {
             </div>
 
             {/* Last 5 transactions */}
-            <div className="animate-slide-up delay-4">
+            <div className="animate-slide-up delay-4 content-visibility-auto">
               <RecentTransactions
                 transactions={home.recentTransactions}
                 onViewAll={() => onNavigate("calendar")}

@@ -26,13 +26,34 @@
     <link
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
 
     <title>Mochi</title>
+
+    <style>
+      /* Home sections stagger-in animation */
+      .animate-slide-up {
+        animation: slideUp 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        will-change: transform, opacity;
+      }
+
+      .delay-1 { animation-delay: 40ms; }
+      .delay-2 { animation-delay: 80ms; }
+      .delay-3 { animation-delay: 120ms; }
+      .delay-4 { animation-delay: 160ms; }
+      .delay-5 { animation-delay: 200ms; }
+
+      /* Performance optimization for scrollable content */
+      .content-visibility-auto {
+        content-visibility: auto;
+        contain-intrinsic-size: 1px 160px; /* Placeholder size for LCP */
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

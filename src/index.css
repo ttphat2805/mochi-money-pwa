@@ -70,13 +70,19 @@ html, body {
 /* Home sections stagger-in animation */
 .animate-slide-up {
   animation: slideUp 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
 }
 
-.delay-1 { animation-delay: 60ms; }
-.delay-2 { animation-delay: 120ms; }
-.delay-3 { animation-delay: 200ms; }
-.delay-4 { animation-delay: 280ms; }
-.delay-5 { animation-delay: 360ms; }
+.delay-1 { animation-delay: 40ms; }
+.delay-2 { animation-delay: 80ms; }
+.delay-3 { animation-delay: 120ms; }
+.delay-4 { animation-delay: 160ms; }
+.delay-5 { animation-delay: 200ms; }
+
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 160px;
+}
 
 /* ApexCharts mobile tweaks */
 .apexcharts-tooltip {
