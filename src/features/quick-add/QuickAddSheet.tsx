@@ -80,7 +80,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
       <Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
         <SheetContent
           side="bottom"
-          showCloseButton={false}
+          showCloseButton={true}
           onPointerDownOutside={(e) => {
             if (datePickerOpen) e.preventDefault();
           }}

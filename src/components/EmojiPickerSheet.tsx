@@ -26,7 +26,7 @@ export function EmojiPickerSheet({
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent
         side="bottom"
-        showCloseButton={false}
+        showCloseButton={true}
         className="p-0 rounded-t-3xl bg-[#FAFAF8]"
         style={{ maxHeight: "80dvh", width: "100%" }}
       >

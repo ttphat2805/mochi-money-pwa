@@ -39,7 +39,7 @@ export function ImportPreviewSheet({
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent
         side="bottom"
-        showCloseButton={false}
+        showCloseButton={true}
         className="rounded-t-3xl bg-white p-0"
         style={{ maxHeight: '85dvh' }}
       >

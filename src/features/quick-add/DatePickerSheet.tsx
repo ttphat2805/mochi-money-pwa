@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import {
   useDatePicker,
   WEEKDAY_LABELS,
@@ -76,9 +76,17 @@ export function DatePickerSheet({
         aria-modal="true"
         aria-label="Chọn ngày"
       >
-        {/* Drag handle */}
-        <div className="flex justify-center pt-2.5 pb-3">
+        {/* Drag handle & Close button */}
+        <div className="relative flex justify-center pt-2.5 pb-3">
           <div className="bg-border2 h-1 w-10 rounded-full" />
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-3 top-2 flex size-8 items-center justify-center rounded-full bg-surface active:bg-surface2 transition-colors"
+            aria-label="Đóng"
+          >
+            <X className="size-4 text-text-muted" />
+          </button>
         </div>
 
         <div className="flex flex-col gap-3 px-4">

@@ -33,7 +33,7 @@ export function ConfirmDialog({
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
-        showCloseButton={false}
+        showCloseButton={true}
         className="max-w-[320px] rounded-[20px] bg-white p-0 shadow-xl"
       >
         {/* Body */}

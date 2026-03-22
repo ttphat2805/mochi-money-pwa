@@ -123,7 +123,7 @@ export function TransactionDetailSheet({
             }
           }}
           side="bottom"
-          showCloseButton={false}
+          showCloseButton={true}
           className="rounded-t-3xl bg-white p-0"
           style={{ maxHeight: '92dvh' }}
         >

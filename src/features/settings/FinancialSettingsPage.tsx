@@ -299,7 +299,7 @@ function ExtraIncomeDialog({
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        showCloseButton={false}
+        showCloseButton={true}
         style={{
           background: "#FFFFFF",
           borderRadius: 20,
@@ -341,24 +341,6 @@ function ExtraIncomeDialog({
               Thu nhập ngoài lương tháng này
             </p>
           </div>
-          <button
-            onClick={onClose}
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: "50%",
-              background: "#F2F0EC",
-              border: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-              marginLeft: 8,
-            }}
-          >
-            <X size={14} color="#88887A" />
-          </button>
         </div>
 
         {/* Form */}

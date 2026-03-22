@@ -37,7 +37,7 @@ export function BudgetWarningDialog({
 
   return (
     <Dialog open={!!warning} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent showCloseButton={false}>
+      <DialogContent showCloseButton={true}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span>{warning.category.icon}</span>

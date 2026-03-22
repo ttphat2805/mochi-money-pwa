@@ -22,7 +22,9 @@ interface FixedExpenseFormSheetProps {
 
 function useFixedExpenseForm(editExpense?: FixedExpense) {
   // Amount
-  const [rawDigits, setRawDigits] = useState<string>("0");
+  const [rawDigits, setRawDigits] = useState<string>(() => 
+    editExpense ? String(editExpense.amount) : "0"
+  );
 
   const appendDigit = useCallback((d: number) => {
     setRawDigits((prev) => {
@@ -42,21 +44,21 @@ function useFixedExpenseForm(editExpense?: FixedExpense) {
   const amountDisplay = amount === 0 ? "" : amount.toLocaleString("vi-VN");
 
   // Fields
-  const [name, setName] = useState("");
-  const [payDay, setPayDay] = useState(1);
-  const [note, setNote] = useState("");
-  const [active, setActive] = useState(true);
-  const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
+  const [name, setName] = useState(editExpense?.name ?? "");
+  const [payDay, setPayDay] = useState(editExpense?.payDay ?? 1);
+  const [note, setNote] = useState(editExpense?.note ?? "");
+  const [active, setActive] = useState(editExpense?.active ?? true);
+  const [categoryId, setCategoryId] = useState<number | undefined>(editExpense?.categoryId);
 
-  // Reset when sheet opens
-  const reset = useCallback(() => {
-    if (editExpense) {
-      setRawDigits(String(editExpense.amount));
-      setName(editExpense.name);
-      setPayDay(editExpense.payDay);
-      setNote(editExpense.note);
-      setActive(editExpense.active);
-      setCategoryId(editExpense.categoryId);
+  // Reset function
+  const reset = useCallback((target?: FixedExpense) => {
+    if (target) {
+      setRawDigits(String(target.amount));
+      setName(target.name);
+      setPayDay(target.payDay);
+      setNote(target.note);
+      setActive(target.active);
+      setCategoryId(target.categoryId);
     } else {
       setRawDigits("0");
       setName("");
@@ -65,7 +67,7 @@ function useFixedExpenseForm(editExpense?: FixedExpense) {
       setActive(true);
       setCategoryId(undefined);
     }
-  }, [editExpense]);
+  }, []);
 
   const canSave = amount > 0 && name.trim().length > 0 && categoryId !== undefined;
   const clearAmount = () => setRawDigits("0");
@@ -105,10 +107,10 @@ export function FixedExpenseFormSheet({
 
   const clearAmount = () => form.clearAmount();
 
-  // Reset form each time sheet opens programmatically
+  // Reset form each time sheet opens OR editExpense changes
   useEffect(() => {
     if (open) {
-      form.reset();
+      form.reset(editExpense);
     }
   }, [open, editExpense, form.reset]);
 
@@ -141,7 +143,7 @@ export function FixedExpenseFormSheet({
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent
         side="bottom"
-        showCloseButton={false}
+        showCloseButton={true}
         className="bg-bg rounded-t-2xl p-0 flex flex-col overflow-hidden"
         style={{
           maxHeight: '95dvh',
@@ -210,8 +212,6 @@ export function FixedExpenseFormSheet({
                 scrollable={false}
               />
             </div>
-
-
 
             {/* Note */}
             <div className="flex flex-col gap-1.5">

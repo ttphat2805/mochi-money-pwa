@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Sheet,
   SheetContent,
@@ -28,6 +28,13 @@ export function RecurringFormSheet({ open, onClose, onSave, editTemplate }: Recu
 
   const form = useRecurringForm(open ? editTemplate : undefined)
 
+  // Reset form when sheet opens or template changes
+  useEffect(() => {
+    if (open) {
+      form.reset(editTemplate)
+    }
+  }, [open, editTemplate, form.reset]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSave = async () => {
     if (!form.canSave || isSaving) return
     setIsSaving(true)
@@ -52,7 +59,7 @@ export function RecurringFormSheet({ open, onClose, onSave, editTemplate }: Recu
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
       <SheetContent
         side="bottom"
-        showCloseButton={false}
+        showCloseButton={true}
         className="bg-bg rounded-t-2xl p-0 flex flex-col overflow-hidden"
         style={{
           maxHeight: '95dvh',

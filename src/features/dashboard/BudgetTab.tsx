@@ -113,11 +113,10 @@ export function BudgetTab() {
   );
 
   return (
-    <div className="flex flex-col pb-32 pt-2 animate-in fade-in duration-150">
+    <div className="flex-1 overflow-y-auto bg-bg px-4 py-4 scrollbar-hide pb-32 pt-2 animate-in fade-in duration-150">
       {/* Gauge + Month overview card */}
       <div
-        className="mx-4 mb-4 bg-white rounded-2xl border border-border overflow-hidden"
-        style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
+        className="mb-4 bg-white rounded-2xl border border-border overflow-hidden shadow-sm"
       >
         {/* Radial gauge */}
         <div className="pt-4 -mb-2 flex justify-center items-center">
@@ -157,7 +156,7 @@ export function BudgetTab() {
         </div>
 
         {/* Progress bar */}
-        <div className="mx-5 h-2.5 bg-bg rounded-full overflow-hidden mb-2">
+        <div className="mx-5 h-2.5 bg-surface rounded-full overflow-hidden mb-2">
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{
@@ -189,7 +188,7 @@ export function BudgetTab() {
       {/* Category budget list */}
       {catsWithLimit.length > 0 && (
         <>
-          <div className="px-4 mb-2">
+          <div className="px-1 mb-2">
             <span className="text-[10px] font-semibold uppercase tracking-[1.2px] text-text-hint">
               Theo danh mục
             </span>
@@ -201,27 +200,13 @@ export function BudgetTab() {
             return (
               <div
                 key={cat.id}
-                className="mx-4 mb-4 p-4 bg-white rounded-[22px] relative overflow-hidden"
+                className="mb-4 p-4 bg-white rounded-[22px] relative overflow-hidden shadow-sm"
                 style={{
-                  boxShadow: `
-                    0 10px 25px -5px rgba(0,0,0,0.08),
-                    0 4px 10px -2px rgba(0,0,0,0.04),
-                    0 1px 0 rgba(255,255,255,1) inset
-                  `,
                   border: "1px solid rgba(232, 230, 224, 0.6)",
                 }}
               >
-                {/* Soft Glass Shine */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, rgba(255,255,255,0.8) 0%, transparent 45%)",
-                  }}
-                />
-
                 {/* Header */}
-                <div className="relative flex bg-[#F8F7F4] rounded-[16px] p-3 items-center gap-3 shadow-sm border border-white">
+                <div className="relative flex bg-surface/50 rounded-[16px] p-3 items-center gap-3 border border-white/50">
                   <div
                     className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-xl shrink-0"
                     style={{ background: color + "15" }}
@@ -247,15 +232,13 @@ export function BudgetTab() {
 
                 {/* 3D Progress bar groove */}
                 <div
-                  className="relative mt-2 h-3.5 bg-[#F0EDE8] rounded-full overflow-hidden mb-3"
-                  style={{ boxShadow: "0 2px 6px rgba(0,0,0,0.08) inset" }}
+                  className="relative mt-2 h-3.5 bg-surface rounded-full overflow-hidden mb-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]"
                 >
                   <div
                     className="h-full rounded-full transition-all duration-700"
                     style={{
                       width: Math.min(100, cat.pct) + "%",
-                      background: `linear-gradient(90deg, ${color}CC, ${color})`,
-                      boxShadow: `0 0 10px ${color}66`, // glowing line
+                      background: `linear-gradient(90deg, ${color}AA, ${color})`,
                     }}
                   />
                 </div>
@@ -283,17 +266,13 @@ export function BudgetTab() {
 
       {/* Categories without limit */}
       {catsWithoutLimit.length > 0 && (
-        <div className="mx-4 mt-2">
-          <p className="text-[10px] font-semibold uppercase tracking-[1.2px] text-text-hint mb-2">
+        <div className="mt-2">
+          <p className="text-[10px] font-semibold uppercase tracking-[1.2px] text-text-hint mb-2 px-1">
             Chưa đặt giới hạn
           </p>
           <div
-            className="bg-white rounded-[22px] relative overflow-hidden"
+            className="bg-white rounded-[22px] relative overflow-hidden shadow-sm"
             style={{
-              boxShadow: `
-              0 8px 20px -6px rgba(0,0,0,0.06),
-              0 1px 0 rgba(255,255,255,1) inset
-            `,
               border: "1px solid rgba(232, 230, 224, 0.6)",
             }}
           >
@@ -302,65 +281,76 @@ export function BudgetTab() {
               return (
                 <div
                   key={cat.id}
-                  className={`flex items-center gap-3 px-4 py-3 ${i > 0 ? "border-t border-border" : ""}`}
+                  className={`${i > 0 ? "border-t border-border" : ""}`}
                 >
-                  <span style={{ fontSize: 22 }}>{cat.icon}</span>
-                  <span className="flex-1 text-[13px] text-text">
-                    {cat.name}
-                  </span>
-                  <span className="text-[12px] font-num font-semibold text-text-muted">
-                    {formatVND(cat.spent)}đ
-                  </span>
-
-                  {/* Inline limit setter */}
-                  {isSettingThis ? (
-                    <div className="flex bg-bg rounded-xl p-1 mt-3">
-                      <input
-                        id={`limit-input-${cat.id}`}
-                        type="text"
-                        pattern="[0-9]*"
-                        inputMode="numeric"
-                        autoFocus
-                        placeholder="VD: 5.000.000"
-                        value={budget.limitInput}
-                        onChange={(e) =>
-                          budget.handleLimitInputChange(e.target.value)
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter")
-                            budget.saveLimit(cat.id!, budget.limitAmount);
-                          if (e.key === "Escape")
-                            budget.setSettingLimitFor(null);
-                        }}
-                        className="flex-1 bg-transparent px-2 py-1.5 text-[13px] font-num font-semibold focus:outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          budget.saveLimit(cat.id!, budget.limitAmount)
-                        }
-                        className="px-4 py-1.5 bg-accent text-white text-[12px] font-semibold rounded-lg shrink-0"
-                      >
-                        Lưu
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => budget.setSettingLimitFor(null)}
-                        className="text-[11px] text-text-muted px-1 py-1.5"
-                      >
-                        Huỷ
-                      </button>
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    <span style={{ fontSize: 22 }}>{cat.icon}</span>
+                    <span className="flex-1 text-[13px] text-text font-medium truncate">
+                      {cat.name}
+                    </span>
+                    <div className="text-right flex items-center gap-3">
+                      <span className="text-[12px] font-num font-semibold text-text-muted">
+                        {formatVND(cat.spent)}đ
+                      </span>
+                      {!isSettingThis && (
+                        <button
+                          id={`set-limit-${cat.id}`}
+                          type="button"
+                          onClick={() => budget.openSetLimit(cat)}
+                          className="text-[11px] text-accent font-semibold px-2.5 py-1.5 
+                            rounded-lg bg-accent-bg active:opacity-70 transition-opacity whitespace-nowrap"
+                        >
+                          Đặt giới hạn
+                        </button>
+                      )}
                     </div>
-                  ) : (
-                    <button
-                      id={`set-limit-${cat.id}`}
-                      type="button"
-                      onClick={() => budget.openSetLimit(cat)}
-                      className="text-[11px] text-accent font-semibold px-2.5 py-1.5
-                        rounded-lg bg-accent-bg active:opacity-70 transition-opacity shrink-0"
-                    >
-                      Đặt giới hạn
-                    </button>
+                  </div>
+
+                  {/* Full-width inline limit setter below */}
+                  {isSettingThis && (
+                    <div className="px-4 pb-4 animate-in slide-in-from-top-1 duration-200">
+                      <div className="flex items-center bg-surface rounded-xl p-1 border border-accent/20">
+                        <div className="flex-1 relative">
+                          <input
+                            id={`limit-input-${cat.id}`}
+                            type="text"
+                            pattern="[0-9]*"
+                            inputMode="numeric"
+                            autoFocus
+                            placeholder="Nhập số tiền..."
+                            value={budget.limitInput}
+                            onChange={(e) =>
+                              budget.handleLimitInputChange(e.target.value)
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter")
+                                budget.saveLimit(cat.id!, budget.limitAmount);
+                              if (e.key === "Escape")
+                                budget.setSettingLimitFor(null);
+                            }}
+                            className="w-full bg-transparent px-3 py-2 text-[14px] font-num font-bold text-accent focus:outline-none"
+                          />
+                        </div>
+                        <div className="flex items-center gap-1 pr-1">
+                          <button
+                            type="button"
+                            onClick={() => budget.setSettingLimitFor(null)}
+                            className="px-3 py-1.5 text-[12px] font-medium text-text-hint bg-transparent"
+                          >
+                            Huỷ
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              budget.saveLimit(cat.id!, budget.limitAmount)
+                            }
+                            className="px-4 py-2 bg-text text-white text-[12px] font-bold rounded-lg shadow-sm"
+                          >
+                            Lưu
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               );
