@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
-import { getCurrentMonthString, formatVND, getMonthLabel } from '@/lib/utils'
+import { getCurrentMonthString, getMonthLabel } from '@/lib/utils'
 import { useCategoryStore } from '@/stores/categoryStore'
 import type { BudgetCategory, Transaction } from '@/types'
 
@@ -96,7 +96,7 @@ export function useHistory() {
 
   // Month label for display
   const monthLabel = useMemo(() => {
-    const [y, m] = selectedMonth.split('-')
+    const [y] = selectedMonth.split('-')
     return `${getMonthLabel(selectedMonth)} ${y}`
   }, [selectedMonth])
 

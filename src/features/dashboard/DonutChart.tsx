@@ -9,7 +9,7 @@ interface DonutChartProps {
   total: number
 }
 
-export function DonutChart({ data, total }: DonutChartProps) {
+export function DonutChart({ data }: DonutChartProps) {
   const options = useMemo((): ApexCharts.ApexOptions => ({
     chart: {
       type: 'donut',
