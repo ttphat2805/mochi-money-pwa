@@ -23,69 +23,61 @@ export function HeroSection({
   if (hasIncome && remainingBudget !== null && dailyAllowance !== null && spentPct !== null) {
     const pctInt = Math.round(spentPct * 100)
     const isOver = remainingBudget < 0
-    const barColor = isOver ? '#D63E3E' : pctInt >= 90 ? '#E8A020' : '#2A9D6E'
+    const barColor = isOver ? 'var(--color-danger)' : pctInt >= 90 ? 'var(--color-accent)' : 'var(--color-success)'
 
     return (
       <div className="px-4">
         <div
-          className="rounded-2xl p-5 relative overflow-hidden bg-white"
-          style={{
-            border: '1px solid #E8E6E0',
-            boxShadow: `
-              0 1px 0 rgba(255,255,255,0.8) inset,
-              0 2px 12px rgba(0,0,0,0.04),
-              0 8px 24px rgba(0,0,0,0.02)
-            `,
-          }}
+          className="rounded-[28px] p-6 relative overflow-hidden bg-white/80 shadow-premium border border-white/60"
         >
-          {/* Subtle 3D Shine */}
-          <div 
-            className="absolute inset-0 pointer-events-none" 
-            style={{ 
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.6) 0%, transparent 40%)'
-            }} 
-          />
+          {/* Decorative Mesh Background */}
+          <div className="absolute top-0 right-0 w-[140px] h-[140px] bg-accent/10 rounded-full blur-3xl -mr-10 -mt-10" />
+          <div className="absolute bottom-0 left-0 w-[100px] h-[100px] bg-success/10 rounded-full blur-2xl -ml-10 -mb-10" />
 
-          <div className="relative flex flex-col gap-4">
-            <div>
-              <p className="text-[10px] font-bold tracking-widest uppercase text-text-hint mb-1">
-                Còn lại tháng này
-              </p>
-              <div className="flex items-baseline gap-1">
-                <span
-                  className={`font-num text-[40px] font-bold leading-none tracking-[-2px] ${
-                    isOver ? 'text-danger' : 'text-text'
-                  }`}
-                >
-                  {isOver ? '-' : ''}{formatVND(Math.abs(remainingBudget))}
-                </span>
-                <span className="text-text-muted text-lg font-medium">đ</span>
+          <div className="relative flex flex-col gap-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-text-hint/80 mb-1.5 mix-blend-multiply">
+                  Còn lại tháng này
+                </p>
+                <div className="flex items-baseline gap-1.5">
+                  <span
+                    className={`font-num text-[44px] font-bold leading-none tracking-[-2.5px] ${
+                      isOver ? 'text-danger' : 'text-text'
+                    }`}
+                  >
+                    {isOver ? '-' : ''}{formatVND(Math.abs(remainingBudget))}
+                  </span>
+                  <span className="text-text-muted text-lg font-bold">đ</span>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
-                <div className="h-2 rounded-full bg-surface2 overflow-hidden mb-2">
+            <div className="flex items-end gap-4 mt-1">
+              <div className="flex-1 pb-1">
+                <div className="flex justify-between text-[11px] font-bold text-text mb-2 px-0.5">
+                  <span className={pctInt >= 100 ? 'text-danger' : 'text-accent'}>{pctInt}% đã dùng</span>
+                  <span className="text-text-hint font-medium">{daysLeft} ngày còn lại</span>
+                </div>
+                <div className="h-3 rounded-full bg-surface2/50 p-0.5 border border-white/40 shadow-inner overflow-hidden">
                   <div
-                    className="h-full rounded-full transition-all duration-700"
+                    className="h-full rounded-full transition-all duration-1000 cubic-bezier(0.34, 1.56, 0.64, 1)"
                     style={{
                       width: `${Math.min(100, pctInt)}%`,
-                      background: barColor,
+                      background: isOver 
+                        ? 'var(--color-danger)' 
+                        : `linear-gradient(90deg, var(--color-success), var(--color-accent))`,
+                      boxShadow: `0 0 12px ${barColor}50`
                     }}
                   />
-                </div>
-                <div className="flex justify-between text-[10px] font-num text-text-hint font-medium">
-                  <span>{pctInt}% đã dùng</span>
-                  <span>{daysLeft} ngày còn lại</span>
                 </div>
               </div>
               
               <div 
-                className="shrink-0 flex flex-col items-center justify-center min-w-[76px] py-1.5 rounded-xl bg-surface"
-                style={{ border: '1px solid #E8E6E0' }}
+                className="shrink-0 flex flex-col items-center justify-center min-w-[84px] py-4 rounded-[22px] bg-white shadow-premium border border-white active-scale cursor-default"
               >
-                <span className="text-[9px] font-bold text-text-hint uppercase tracking-tighter">HÔM NAY CÒN</span>
-                <span className="font-num text-[15px] font-bold text-accent">
+                <span className="text-[9px] font-black text-text-hint uppercase tracking-tighter mb-1 opacity-70">HÔM NAY CÒN</span>
+                <span className="font-num text-[17px] font-black text-accent tracking-tight">
                   {formatShort(Math.round(dailyAllowance))}đ
                 </span>
               </div>

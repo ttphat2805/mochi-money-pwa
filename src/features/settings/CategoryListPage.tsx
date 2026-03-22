@@ -42,7 +42,7 @@ export const CategoryRowContent = memo(function CategoryRowContent({
     <div
       className="flex items-center gap-3 bg-white px-4 py-3"
       style={{
-        border: isDragOverlay ? '1.5px solid #E8A020' : undefined,
+        border: isDragOverlay ? '1.5px solid var(--color-accent)' : undefined,
         boxShadow: isDragOverlay ? '0 8px 24px rgba(0,0,0,0.12)' : undefined,
         borderRadius: isDragOverlay ? 14 : undefined,
       }}

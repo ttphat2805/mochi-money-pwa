@@ -44,7 +44,7 @@ export function DayDetailPanel({
       >
         <div
           key={selectedDay ?? 'none'} // triggers remount animation on day change
-          className="mx-4 mt-3 rounded-[14px] border border-border bg-white"
+          className="mx-4 mt-3 rounded-[24px] border border-white/60 bg-white/90 shadow-premium"
           style={{ animation: isOpen ? 'dayPanelSlideUp 200ms ease-out' : 'none' }}
         >
           {/* Panel header */}
@@ -71,9 +71,9 @@ export function DayDetailPanel({
                   <button
                     type="button"
                     onClick={onAddTransaction}
-                    className="bg-accent mt-3 flex h-9 items-center gap-2 rounded-full px-4 text-[13px] font-semibold text-white active:scale-95 transition-transform"
+                    className="bg-accent mt-3 flex h-10 items-center justify-center gap-2 rounded-2xl px-5 text-[14px] font-bold text-white shadow-accent active-scale btn-premium"
                   >
-                    <Plus className="size-3.5" />
+                    <Plus className="size-4" />
                     Thêm chi tiêu
                   </button>
                 )}

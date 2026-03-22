@@ -2,12 +2,7 @@ import { formatVND } from '@/lib/utils'
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 
 interface BudgetWarning {
   category: {
@@ -37,37 +32,36 @@ export function BudgetWarningDialog({
 
   return (
     <Dialog open={!!warning} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent showCloseButton={true}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <span>{warning.category.icon}</span>
-            <span>Vượt hạn mức</span>
-          </DialogTitle>
-          <DialogDescription>
-            Danh mục <strong>{warning.category.name}</strong> đã chi{' '}
-            <strong className="text-danger">{formatVND(warning.currentSpent)}đ</strong>{' '}
-            / {formatVND(warning.limit)}đ.
-            <br />
-            Thêm {formatVND(warning.newAmount)}đ sẽ vượt{' '}
-            <strong className="text-danger">{formatVND(overBy)}đ</strong>.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            className="flex-1"
-          >
-            Bỏ qua
-          </Button>
-          <Button
-            onClick={onConfirm}
-            variant="default"
-            className="flex-1"
-          >
-            Vẫn thêm
-          </Button>
-        </DialogFooter>
+      <DialogContent showCloseButton={true} className="p-0 overflow-hidden border-none shadow-premium rounded-[32px] bg-white/95 backdrop-blur-md">
+        <div className="flex flex-col items-center p-6 gap-4">
+          {/* Icon Header */}
+          <div className="size-14 rounded-full bg-danger/10 flex items-center justify-center text-2xl shadow-inner">
+            {warning.category.icon}
+          </div>
+          
+          <div className="text-center">
+            <h2 className="text-[17px] font-bold text-text mb-1.5 leading-tight">Vượt hạn mức chi tiêu</h2>
+            <p className="text-[13px] text-text-muted leading-relaxed px-2">
+              Bạn đã chi <span className="font-bold text-danger">{formatVND(warning.currentSpent)}đ</span> trong danh mục <strong>{warning.category.name}</strong>. 
+              Thêm giao dịch này sẽ vượt hạn mức <span className="font-bold text-danger">{formatVND(overBy)}đ</span>.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 w-full mt-2">
+            <button
+              onClick={onCancel}
+              className="h-12 flex items-center justify-center rounded-2xl bg-surface2/50 text-[14px] font-bold text-text-muted active-scale border border-white"
+            >
+              Bỏ qua
+            </button>
+            <button
+              onClick={onConfirm}
+              className="h-12 flex items-center justify-center rounded-2xl bg-danger text-[14px] font-black text-white active-scale shadow-sm btn-premium"
+            >
+              Vẫn thêm
+            </button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   )

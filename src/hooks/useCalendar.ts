@@ -20,9 +20,19 @@ export interface MonthStats {
 
 // ── Constants ─────────────────────────────────────────────────
 
-export const HEAT_BG = ['transparent', '#FFF4E0', '#FDDFA0', '#F5C043', '#E8A020'] as const
+export const HEAT_BG = [
+  'transparent',
+  'var(--color-accent-h1)',
+  'var(--color-accent-h2)',
+  'var(--color-accent-h3)',
+  'var(--color-accent-h4)',
+] as const
 export const HEAT_TEXT = [
-  'var(--color-text-muted)', '#8B5E10', '#7A4E08', '#5A3405', '#FFFFFF',
+  'var(--color-text-muted)',
+  'var(--color-accent-dark)',
+  'var(--color-accent-dark)',
+  'var(--color-accent-dark)',
+  '#FFFFFF',
 ] as const
 
 const MONTH_NAMES = [

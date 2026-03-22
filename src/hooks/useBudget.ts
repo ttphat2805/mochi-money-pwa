@@ -39,7 +39,7 @@ export function useBudget() {
     // We no longer pre-subtract fixed expenses from the flex budget
     // to avoid double counting when the user adds them as transactions.
     const flex = Math.max(0, income - saving)
-    const pct = flex > 0 ? Math.min(100, Math.round((totalSpent / flex) * 100)) : 0
+    const pct = flex > 0 ? Math.round((totalSpent / flex) * 100) : 0;
     const remaining = flex - totalSpent
     const daily = daysLeft > 0 ? Math.max(0, remaining / daysLeft) : 0
     return { flexAmount: flex, spentPct: pct, dailyAllowance: daily }
@@ -61,7 +61,7 @@ export function useBudget() {
         .toArray()
       const spent = txs.reduce((s, t) => s + t.amount, 0)
       const limit = cat.limitPerMonth
-      const pct = limit && limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : 0
+      const pct = limit && limit > 0 ? Math.round((spent / limit) * 100) : 0;
       const remaining = limit ? limit - spent : 0
 
       let status: CategoryBudgetItem['status'] = 'ok'

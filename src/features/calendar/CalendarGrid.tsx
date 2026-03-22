@@ -41,14 +41,14 @@ const DayCell = React.memo(function DayCell({
       onClick={() => onSelect(date)}
       style={{
         minHeight: 52,
-        backgroundColor: isSelected ? '#E8A020' : HEAT_BG[heat],
+        backgroundColor: isSelected ? 'var(--color-accent)' : HEAT_BG[heat],
         border: isSelected
-          ? '2px solid #E8A020'
+          ? '2px solid var(--color-accent)'
           : isToday
-            ? '2px solid #F5C043'
+            ? '2px solid var(--color-accent)'
             : '2px solid transparent',
         transform: isSelected ? 'scale(1.06)' : 'scale(1)',
-        boxShadow: isSelected ? '0 3px 10px rgba(232,160,32,0.35)' : 'none',
+        boxShadow: isSelected ? '0 3px 10px var(--color-accent-h2)' : 'none',
         opacity: isFuture ? 0.35 : 1,
         transition: 'transform 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease',
         borderRadius: 10,
@@ -69,7 +69,7 @@ const DayCell = React.memo(function DayCell({
           color: isSelected
             ? '#FFFFFF'
             : isToday
-              ? '#E8A020'
+              ? 'var(--color-accent)'
               : amount > 0
                 ? HEAT_TEXT[heat]
                 : 'var(--color-text-muted)',
@@ -91,15 +91,12 @@ const DayCell = React.memo(function DayCell({
       )}
       {/* Today dot when not selected */}
       {isToday && !isSelected && (
-        <span
-          style={{
-            width: 4,
-            height: 4,
-            borderRadius: '50%',
-            backgroundColor: '#E8A020',
-            marginTop: 1,
-          }}
-        />
+        <div className="flex items-center gap-1.5">
+          <span
+            className="size-1.5 rounded-full"
+            style={{ backgroundColor: 'var(--color-accent)' }}
+          />
+        </div>
       )}
     </button>
   )

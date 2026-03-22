@@ -58,7 +58,7 @@ export function SummaryRow({
     {
       label: "HÔM NAY",
       value: todaySpent,
-      color: "#D63E3E",
+      color: 'var(--color-danger)',
       icon:
         todaySpent > 0 ? (
           isUpToday ? (
@@ -71,7 +71,7 @@ export function SummaryRow({
     {
       label: "THÁNG NÀY",
       value: monthSpent,
-      color: "#C07010",
+      color: 'var(--color-accent)',
       icon:
         monthSpent > 0 ? (
           isUpMonth ? (

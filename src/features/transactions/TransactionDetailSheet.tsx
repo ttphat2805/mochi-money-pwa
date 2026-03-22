@@ -222,9 +222,9 @@ export function TransactionDetailSheet({
                         onClick={() => setPaymentMethod(selected ? undefined : m.value as PaymentMethod)}
                         className="h-9 px-4 rounded-full text-[12px] font-medium border transition-colors"
                         style={{
-                          background: selected ? '#FFF4E0' : '#F2F0EC',
-                          borderColor: selected ? '#E8A020' : 'transparent',
-                          color: selected ? '#B87B10' : '#88887A',
+                          background: selected ? 'var(--color-accent-bg)' : '#F2F0EC',
+                          borderColor: selected ? 'var(--color-accent)' : 'transparent',
+                          color: selected ? 'var(--color-accent-dark)' : '#88887A',
                         }}
                       >
                         {m.label}

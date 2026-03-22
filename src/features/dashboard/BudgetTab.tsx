@@ -12,8 +12,8 @@ function ChartSkeleton() {
 }
 
 function getStatusColor(status: string, fallback: string) {
-  if (status === "over") return "#D63E3E";
-  if (status === "danger") return "#E8A020";
+  if (status === "over") return "var(--color-danger)";
+  if (status === "danger") return "var(--color-accent)";
   return fallback;
 }
 
@@ -75,9 +75,9 @@ export function BudgetTab() {
         shade: "light",
         type: "horizontal",
         colorStops: [
-          { offset: 0, color: "#2A9D6E", opacity: 1 },
-          { offset: 50, color: "#E8A020", opacity: 1 },
-          { offset: 100, color: "#D63E3E", opacity: 1 },
+          { offset: 0, color: "var(--color-success)", opacity: 1 },
+          { offset: 50, color: "var(--color-accent)", opacity: 1 },
+          { offset: 100, color: "var(--color-danger)", opacity: 1 },
         ],
       },
     },
@@ -113,7 +113,7 @@ export function BudgetTab() {
   );
 
   return (
-    <div className="flex-1 overflow-y-auto bg-bg px-4 py-4 scrollbar-hide pb-32 pt-2 animate-in fade-in duration-150">
+    <div className="flex-1 overflow-y-auto bg-bg px-4 py-4 scrollbar-hide pb-32 pt-2 animate-in fade-in duration-150 mesh-gradient min-h-full">
       {/* Gauge + Month overview card */}
       <div
         className="mb-4 bg-white rounded-2xl border border-border overflow-hidden shadow-sm"
@@ -146,8 +146,8 @@ export function BudgetTab() {
               style={{
                 color:
                   budget.flexAmount - budget.totalSpent >= 0
-                    ? "#2A9D6E"
-                    : "#D63E3E",
+                    ? "var(--color-success)"
+                    : "var(--color-danger)",
               }}
             >
               {formatVND(Math.max(0, budget.flexAmount - budget.totalSpent))}đ
@@ -163,10 +163,10 @@ export function BudgetTab() {
               width: Math.min(100, budget.spentPct) + "%",
               background:
                 budget.spentPct >= 100
-                  ? "#D63E3E"
+                  ? "var(--color-danger)"
                   : budget.spentPct >= 80
-                    ? "#E8A020"
-                    : "#2A9D6E",
+                    ? "var(--color-accent)"
+                    : "var(--color-success)",
             }}
           />
         </div>
@@ -195,69 +195,91 @@ export function BudgetTab() {
           </div>
 
           {catsWithLimit.map((cat) => {
-            const color = getStatusColor(cat.status, cat.color ?? "#2A9D6E");
+            const isFull = cat.pct === 100;
+            const isOver = cat.pct > 100;
+            const isAtOrOver = cat.pct >= 100;
+            
+            // Modern 2026 Colors - No more harsh black
+            const color = isOver 
+              ? "var(--color-danger)" 
+              : isFull 
+                ? "var(--color-accent)" // Use Accent for Full
+                : getStatusColor(cat.status, cat.color ?? "var(--color-success)");
 
             return (
               <div
                 key={cat.id}
-                className="mb-4 p-4 bg-white rounded-[22px] relative overflow-hidden shadow-sm"
-                style={{
-                  border: "1px solid rgba(232, 230, 224, 0.6)",
-                }}
+                className={`mb-4 p-5 bg-white/90 rounded-[32px] shadow-premium border transition-all active-scale ${
+                  isOver ? "border-danger/40 shadow-danger/10" : isFull ? "border-accent/40 shadow-accent" : "border-white/60"
+                }`}
               >
-                {/* Header */}
-                <div className="relative flex bg-surface/50 rounded-[16px] p-3 items-center gap-3 border border-white/50">
-                  <div
-                    className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-xl shrink-0"
-                    style={{ background: color + "15" }}
-                  >
+                {/* Header info */}
+                <div className="flex items-center gap-4 mb-4 bg-muted/30 p-3 rounded-2xl border border-white/60">
+                  <div className="size-12 rounded-2xl bg-white flex items-center justify-center text-2xl shadow-sm shrink-0">
                     {cat.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13.5px] font-semibold text-text truncate">
+                    <h3 className="text-[14px] font-bold text-text truncate leading-tight">
                       {cat.name}
-                    </p>
-                    <p className="text-[11px] text-text-muted font-num">
+                    </h3>
+                    <p className="text-[11px] text-text-hint mt-1 font-medium">
                       Giới hạn {formatVND(cat.limitPerMonth!)}đ/tháng
                     </p>
                   </div>
-                  {/* Status badge */}
-                  <div
-                    className="px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0"
-                    style={{ background: color + "18", color }}
+                  {/* Modern 2026 Badge Wrapper */}
+                  <div 
+                    className={`px-4 py-2 rounded-2xl text-[12px] font-black shrink-0 shadow-sm transition-all duration-300 ${
+                      isOver 
+                        ? "bg-danger text-white ring-4 ring-danger/10" 
+                        : isFull 
+                          ? "bg-accent text-white ring-4 ring-accent/10" 
+                          : "bg-surface2/50 text-text-muted border border-white"
+                    }`}
                   >
                     {formatBudgetPct(cat.pct)}
                   </div>
                 </div>
 
-                {/* 3D Progress bar groove */}
-                <div
-                  className="relative mt-2 h-3.5 bg-surface rounded-full overflow-hidden mb-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]"
-                >
+                {/* Modern Mesh Progress Bar */}
+                <div className="h-3 bg-surface rounded-full overflow-hidden mb-4 relative p-0.5 border border-white/40 shadow-inner">
                   <div
-                    className="h-full rounded-full transition-all duration-700"
+                    className="h-full rounded-full transition-all duration-1000 cubic-bezier(0.34, 1.56, 0.64, 1)"
                     style={{
                       width: Math.min(100, cat.pct) + "%",
-                      background: `linear-gradient(90deg, ${color}AA, ${color})`,
+                      background: isOver 
+                        ? "linear-gradient(90deg, #D63E3E, #FF6B6B)" 
+                        : isFull 
+                          ? "linear-gradient(90deg, var(--color-accent), var(--color-accent-dark))"
+                          : `linear-gradient(90deg, #2A9D6E, ${color})`,
+                      boxShadow: isAtOrOver ? `0 0 12px ${color}50` : 'none'
                     }}
                   />
                 </div>
 
-                {/* Stats row */}
-                <div className="relative flex justify-between text-[12px] px-1">
-                  <span className="text-text-muted font-num">
-                    Đã chi {formatVND(cat.spent)}đ
+                {/* Footer stats */}
+                <div className="flex justify-between items-baseline pt-0.5">
+                  <span className="text-[12px] text-text-muted font-medium">
+                    Đã chi <span className="font-num font-bold text-text">{formatVND(cat.spent)}đ</span>
                   </span>
                   {cat.remaining >= 0 ? (
-                    <span className="font-num font-semibold" style={{ color }}>
-                      Còn {formatVND(cat.remaining)}đ
+                    <span className="text-[13px] font-bold text-[#00bcd4]">
+                      Còn <span className="font-num">{formatVND(cat.remaining)}đ</span>
                     </span>
                   ) : (
-                    <span className="font-num font-semibold text-danger">
-                      Vượt {formatVND(-cat.remaining)}đ
+                    <span className="text-[13px] font-bold text-danger">
+                      Vượt <span className="font-num">{formatVND(-cat.remaining)}đ</span>
                     </span>
                   )}
                 </div>
+
+                {/* Overspending Warning Label */}
+                {isOver && (
+                  <div className="mt-4 p-2.5 bg-danger/5 rounded-xl border border-danger/10 flex items-center justify-center gap-2 animate-pulse">
+                    <span className="text-[11px] font-black text-danger uppercase tracking-tight">
+                      ⚠️ Hạn chế chi tiêu lãng phí
+                    </span>
+                  </div>
+                )}
               </div>
             );
           })}

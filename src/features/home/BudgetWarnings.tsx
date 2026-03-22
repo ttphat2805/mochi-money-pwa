@@ -1,5 +1,5 @@
 import { AlertTriangle, AlertCircle } from 'lucide-react'
-import { formatBudgetPct } from '@/lib/utils'
+import { formatBudgetPct, formatVND } from '@/lib/utils'
 import type { BudgetCategory } from '@/types'
 
 interface BudgetWarningsProps {
@@ -10,52 +10,52 @@ export function BudgetWarnings({ warnings }: BudgetWarningsProps) {
   if (warnings.length === 0) return null
 
   return (
-    <div className="px-4 flex flex-col gap-2.5">
-      {warnings.map(({ category, pct }) => {
+    <div className="px-4 flex flex-col gap-2">
+      {warnings.map(({ category, spent, pct }) => {
         const isOver = pct > 1
-        const pctFormattedStr = formatBudgetPct(pct * 100)
+        const isFull = pct === 1
+        const overspentVND = category.limitPerMonth ? Math.max(0, spent - category.limitPerMonth) : 0
+        
+        // PCT formatted might include "Vượt " so we strip it to avoid duplication
+        const pctFormattedStr = formatBudgetPct(pct * 100).replace("Vượt ", "")
 
+        // Only show RED (Danger) if truly over 100%
         if (isOver) {
           return (
             <div
               key={category.id}
-              className="flex items-center gap-2 flex-row"
-              style={{
-                backgroundColor: '#FFF0F0',
-                borderColor: '#FFC5C5',
-                borderWidth: 1,
-                borderStyle: 'solid',
-                borderRadius: 12,
-                padding: '10px 14px',
-                color: '#D63E3E', // text-danger
-              }}
+              className="flex items-center gap-2.5 bg-danger/10 border border-danger/30 p-3 rounded-[18px] shadow-sm animate-in zoom-in-95 duration-200 active-scale"
             >
-              <AlertCircle size={14} className="shrink-0" />
-              <span style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.3 }}>
-                <span style={{ fontWeight: 700 }}>{category.name}</span> đã vượt ngân sách ({pctFormattedStr})
-              </span>
+              <div className="size-7 rounded-full bg-danger/20 flex items-center justify-center shrink-0">
+                <AlertCircle size={14} className="text-danger" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-[11px] font-black text-danger uppercase tracking-wider leading-tight">Vượt ngân sách</h4>
+                <p className="text-[11px] text-danger/80 font-bold leading-tight truncate">
+                  <span className="text-text font-black">{category.name}</span> vượt <span className="font-black text-danger">{formatVND(overspentVND)}đ</span> ({pctFormattedStr})
+                </p>
+              </div>
             </div>
           )
         }
 
+        // Show AMBER (Accent) for 100% or nearly full
         return (
           <div
             key={category.id}
-            className="flex items-center gap-2 flex-row"
-            style={{
-              backgroundColor: '#FFFBEB',
-              borderColor: '#F5D080',
-              borderWidth: 1,
-              borderStyle: 'solid',
-              borderRadius: 12,
-              padding: '10px 14px',
-              color: '#B87B10', // Darker amber for contrast
-            }}
+            className="flex items-center gap-2.5 bg-accent/10 border border-accent/30 p-3 rounded-[18px] shadow-sm animate-in zoom-in-95 duration-200 active-scale"
           >
-            <AlertTriangle size={14} className="shrink-0" />
-            <span style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.3 }}>
-              <span style={{ fontWeight: 700 }}>{category.name}</span> sắp vượt ngân sách ({pctFormattedStr})
-            </span>
+            <div className="size-7 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
+              <AlertTriangle size={14} className="text-accent" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-[11px] font-black text-accent uppercase tracking-wider leading-tight">
+                {isFull ? "Đã đạt hạn mức" : "Sắp vượt hạn mức"}
+              </h4>
+              <p className="text-[11px] text-accent-dark font-bold leading-tight truncate">
+                <span className="text-text font-black">{category.name}</span> đã tiêu {pctFormattedStr}
+              </p>
+            </div>
           </div>
         )
       })}

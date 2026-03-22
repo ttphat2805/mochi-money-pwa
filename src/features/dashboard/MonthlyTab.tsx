@@ -46,8 +46,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
         top: 8,
         left: 0,
         blur: 16,
-        color: '#E8A020',
-        opacity: 0.35,
+        color: 'var(--color-accent)',
       },
     },
 
@@ -75,7 +74,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
     },
 
     colors: barData.map(d =>
-      d.isCurrentMonth ? '#E8A020' : '#D0CCC6'
+      d.isCurrentMonth ? 'var(--color-accent)' : 'var(--color-text-hint)'
     ),
 
     dataLabels: {
@@ -87,7 +86,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
         fontWeight: 700,
         fontFamily: 'JetBrains Mono, monospace',
         colors: barData.map(d =>
-          d.isCurrentMonth ? '#B87B10' : '#A8A49E'
+          d.isCurrentMonth ? 'var(--color-accent-dark)' : 'var(--color-text-hint)'
         ),
       },
       background: {
@@ -110,7 +109,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
           fontSize: '12px',
           fontFamily: 'JetBrains Mono, monospace',
           colors: barData.map(d =>
-            d.isCurrentMonth ? '#E8A020' : '#A8A49E'
+            d.isCurrentMonth ? 'var(--color-accent)' : 'var(--color-text-hint)'
           ),
           fontWeight: 600,
         },
@@ -147,7 +146,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
             box-shadow: 0 4px 16px rgba(0,0,0,0.2);
           ">
             <div style="font-size: 10px; color: #88887A; margin-bottom: 2px;">${label}</div>
-            <div style="font-size: 14px; font-weight: 700; color: ${isCurrent ? '#E8A020' : '#fff'};">
+            <div style="font-size: 14px; font-weight: 700; color: ${isCurrent ? 'var(--color-accent)' : '#fff'};">
               ${formatVND(val)}đ
             </div>
           </div>
@@ -258,30 +257,34 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
   const donutSeries = useMemo(() => donutData.map(d => d.value), [donutData])
 
   return (
-    <div className="flex flex-col pb-32 pt-2 animate-in fade-in duration-150">
+    <div className="flex flex-col pb-32 pt-2 animate-in fade-in duration-150 mesh-gradient min-h-full">
       {/* Stat cards */}
       <div className="px-4 pt-2">
         <StatCards monthTotal={monthTotal} settings={settings} />
       </div>
 
       {/* Income / Expense strip */}
-      <div className="px-4 mt-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-xl border-2 bg-white" style={{ borderColor: '#E8A020' }}>
-            <div className="flex items-center gap-1.5 mb-1">
-              <ArrowUpCircle size={13} className="text-danger shrink-0" />
-              <span className="text-[11px] text-text-hint">Chi tiêu</span>
+      <div className="px-4 mt-6">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 rounded-[24px] bg-white/80 shadow-premium border border-white/60 active-scale">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="size-6 rounded-full bg-danger/10 flex items-center justify-center">
+                <ArrowUpCircle size={14} className="text-danger" />
+              </div>
+              <span className="text-[11px] font-bold text-text-hint uppercase tracking-wider">Chi tiêu</span>
             </div>
-            <p className="font-num text-[17px] font-bold text-text leading-none mt-1">
+            <p className="font-num text-[20px] font-black text-text leading-tight">
               {formatVND(monthTotal)}đ
             </p>
           </div>
-          <div className="p-3 rounded-xl border border-border bg-white">
-            <div className="flex items-center gap-1.5 mb-1">
-              <ArrowDownCircle size={13} className="text-success shrink-0" />
-              <span className="text-[11px] text-text-hint">Thu nhập</span>
+          <div className="p-4 rounded-[24px] bg-white/80 shadow-premium border border-white/60 active-scale">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="size-6 rounded-full bg-success/10 flex items-center justify-center">
+                <ArrowDownCircle size={14} className="text-success" />
+              </div>
+              <span className="text-[11px] font-bold text-text-hint uppercase tracking-wider">Thu nhập</span>
             </div>
-            <p className="font-num text-[17px] font-bold text-text leading-none mt-1">
+            <p className="font-num text-[20px] font-bold text-text leading-tight">
               {settings?.income ? `${formatVND(settings.income)}đ` : '0đ'}
             </p>
           </div>
@@ -289,7 +292,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
       </div>
 
       {/* Chart section */}
-      <div className="mt-4 mx-4 rounded-[16px] border border-border bg-white overflow-hidden">
+      <div className="mt-6 mx-4 rounded-[32px] bg-white/60 shadow-premium border border-white/80 overflow-hidden backdrop-blur-sm">
         {/* Toggle header */}
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
           <span className="text-[11px] font-medium text-text-hint uppercase tracking-[1px]">

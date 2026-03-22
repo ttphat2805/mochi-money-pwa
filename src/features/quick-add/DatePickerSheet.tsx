@@ -139,7 +139,7 @@ export function DatePickerSheet({
           </div>
 
           {/* Selected date display box */}
-          <div className="rounded-xl border border-[#F5D080] bg-accent-bg px-4 py-3">
+          <div className="rounded-xl border border-accent/20 bg-accent-bg px-4 py-3">
             <span className="text-text-muted text-[11px] font-medium uppercase tracking-[1px]">
               Ngày đã chọn
             </span>

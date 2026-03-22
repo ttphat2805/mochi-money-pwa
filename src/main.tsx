@@ -4,7 +4,13 @@ import { inject } from '@vercel/analytics';
 import "./index.css";
 import App from "./App";
 
+import { getPersonalization, applyAccentColor } from './lib/personalization'
+
 inject();
+
+// Apply personalization on app startup
+const { accentColor } = getPersonalization()
+applyAccentColor(accentColor)
 
 // ── iOS Safari --vh fix ───────────────────────────────────────
 // On iOS Safari the viewport height changes when the address bar

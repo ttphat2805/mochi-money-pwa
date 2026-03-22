@@ -32,7 +32,7 @@ export function NotificationSettings() {
     <div>
       {/* Not installed warning */}
       {isSupported && !isInstalled && (
-        <div className="mx-4 mb-2 rounded-xl border border-[#F5D080] bg-accent-bg p-3">
+        <div className="mx-4 mb-2 rounded-xl border border-accent/20 bg-accent-bg p-3">
           <p className="text-[12px] text-accent-dark font-medium">
             📲 Cần cài app lên màn hình chính để dùng thông báo
           </p>

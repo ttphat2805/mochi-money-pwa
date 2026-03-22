@@ -139,7 +139,7 @@ function PreviewCard({
             bold
           />
 
-          <div className="mt-3 rounded-xl bg-accent-bg px-4 py-3 border border-[#F5D080]">
+          <div className="mt-3 rounded-xl bg-accent-bg px-4 py-3 border border-accent/20">
             <p className="text-text-muted text-[11px]">Mỗi ngày được tiêu</p>
             <p className="font-num text-accent text-[18px] font-semibold mt-0.5">
               ~{formatVND(daily)}đ
@@ -379,7 +379,7 @@ function ExtraIncomeDialog({
                 fontFamily: "inherit",
                 transition: "border-color 0.15s",
               }}
-              onFocus={(e) => (e.target.style.borderColor = "#E8A020")}
+              onFocus={(e) => (e.target.style.borderColor = "var(--color-accent)")}
               onBlur={(e) => (e.target.style.borderColor = "#E2E0D8")}
             />
           </div>
@@ -416,18 +416,18 @@ function ExtraIncomeDialog({
                   fontSize: 20, // large mono font, also prevents zoom
                   fontWeight: 700,
                   fontFamily: "JetBrains Mono, monospace",
-                  color: amount > 0 ? "#E8A020" : "#B8B8A8",
+                  color: amount > 0 ? "var(--color-accent)" : "#B8B8A8",
                   outline: "none",
                   transition: "background-color 0.15s, border-color 0.15s",
-                  borderColor: amount > 0 ? "#F5D080" : "#E2E0D8",
+                  borderColor: amount > 0 ? "var(--color-accent-h2)" : "#E2E0D8",
                 }}
                 onFocus={(e) =>
                   (e.target.style.borderColor =
-                    amount > 0 ? "#F5D080" : "#E8A020")
+                    amount > 0 ? "var(--color-accent-h2)" : "var(--color-accent)")
                 }
                 onBlur={(e) => {
                   e.target.style.borderColor =
-                    amount > 0 ? "#F5D080" : "#E2E0D8";
+                    amount > 0 ? "var(--color-accent-h2)" : "#E2E0D8";
                 }}
               />
               {/* đ suffix */}
@@ -505,22 +505,14 @@ function ExtraIncomeDialog({
           >
             Huỷ
           </button>
-          <button
+            <button
             onClick={handleSave}
             disabled={!canSave}
-            style={{
-              flex: 2,
-              height: 44,
-              borderRadius: 12,
-              background: canSave ? "#E8A020" : "#F2F0EC",
-              border: "none",
-              fontSize: 14,
-              fontWeight: 600,
-              color: canSave ? "#fff" : "#C0BEB4",
-              cursor: canSave ? "pointer" : "default",
-              fontFamily: "inherit",
-              transition: "all 0.2s",
-            }}
+            className={`flex-2 h-11 rounded-xl border-none text-[14px] font-bold transition-all btn-premium ${
+              canSave 
+                ? "bg-accent text-white shadow-accent active-scale" 
+                : "bg-surface text-text-hint opacity-50 cursor-default"
+            }`}
           >
             Thêm
           </button>
@@ -635,12 +627,12 @@ export function FinancialSettingsPage({ onBack }: FinancialSettingsPageProps) {
         </div>
 
         {/* Save button */}
-        <div className="fixed max-w-[480px] mx-auto bottom-0 inset-x-0 bg-bg border-t border-border px-4 py-4 safe-bottom">
+        <div className="fixed max-w-[480px] mx-auto bottom-0 inset-x-0 bg-bg/80 backdrop-blur-md border-t border-border/50 px-6 py-4 safe-bottom">
           <button
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="bg-text flex h-12 w-full items-center justify-center rounded-[14px] text-white text-[15px] font-semibold disabled:opacity-60 transition-opacity"
+            className="bg-accent shadow-accent flex h-12 w-full items-center justify-center rounded-[20px] text-white text-[15px] font-bold disabled:opacity-60 active-scale btn-premium"
           >
             {isSaving ? "Đang lưu..." : "Lưu cài đặt"}
           </button>

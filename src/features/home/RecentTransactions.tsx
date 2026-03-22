@@ -85,7 +85,7 @@ function TransactionRow({
   isLast: boolean
   onSelect: (tx: Transaction) => void
 }) {
-  const catColor = tx.category?.color ?? '#E8A020'
+  const catColor = tx.category?.color ?? 'var(--color-accent)'
 
   return (
     <button

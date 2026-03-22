@@ -1,11 +1,14 @@
 import { Settings } from 'lucide-react'
 import { getVietnameseDay } from '@/lib/utils'
+import { usePersonalization } from '@/hooks/usePersonalization'
 
 interface TopBarProps {
   onSettingsTap: () => void
 }
 
 export function TopBar({ onSettingsTap }: TopBarProps) {
+  const { settings } = usePersonalization()
+
   return (
     <header className="flex items-center justify-between px-5 py-3 safe-top">
       <div>
@@ -13,7 +16,7 @@ export function TopBar({ onSettingsTap }: TopBarProps) {
           {getVietnameseDay()}
         </p>
         <h1 className="text-[22px] font-bold text-text tracking-tight leading-tight">
-          Chi Tiêu
+          {settings.appName}
         </h1>
       </div>
       <button

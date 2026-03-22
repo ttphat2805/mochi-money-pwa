@@ -33,7 +33,7 @@ export function BarChart6Months({ data }: BarChart6MonthsProps) {
         dataLabels: { position: 'top' },
       },
     },
-    colors: data.map(d => d.monthKey === currentMonthKey ? '#E8A020' : '#E0DDD8'),
+    colors: data.map(d => d.monthKey === currentMonthKey ? 'var(--color-accent)' : '#E0DDD8'),
     fill: {
       type: 'gradient',
       gradient: {
@@ -54,7 +54,7 @@ export function BarChart6Months({ data }: BarChart6MonthsProps) {
         fontSize: '10px',
         fontWeight: '500',
         fontFamily: 'inherit',
-        colors: data.map(d => d.monthKey === currentMonthKey ? '#B87B10' : '#A0A09A'),
+        colors: data.map(d => d.monthKey === currentMonthKey ? 'var(--color-accent-dark)' : '#A0A09A'),
       },
       background: { enabled: false },
       dropShadow: { enabled: false },
@@ -67,7 +67,7 @@ export function BarChart6Months({ data }: BarChart6MonthsProps) {
         style: {
           fontSize: '10px',
           fontFamily: 'inherit',
-          colors: data.map(d => d.monthKey === currentMonthKey ? '#E8A020' : '#88887A'),
+          colors: data.map(d => d.monthKey === currentMonthKey ? 'var(--color-accent)' : '#88887A'),
         },
       },
     },

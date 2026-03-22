@@ -26,6 +26,27 @@
   --radius: 16px;
   --radius-sm: 10px;
   --radius-xs: 6px;
+
+  /* ── shadcn/ui generic variables ── */
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text);
+  
+  --color-primary: var(--color-text);
+  --color-primary-foreground: #FFFFFF;
+
+  --color-secondary: var(--color-surface2);
+  --color-secondary-foreground: var(--color-text);
+
+  --color-muted: var(--color-surface);
+  --color-muted-foreground: var(--color-text-muted);
+
+  --color-accent-fg: var(--color-accent-dark);
+  /* (already have --color-accent defined above) */
+  
+  --color-destructive: var(--color-danger);
+  --color-destructive-foreground: #FFFFFF;
+
+  --color-ring: var(--color-accent);
 }
 
 /* ── Base styles ── */
@@ -225,6 +246,72 @@ body.dev-shell #root::before {
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* ── 2026 Modern Premium Utilities ── */
+
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-morphism-dark {
+  background: rgba(26, 26, 24, 0.8);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shadow-premium {
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.08),
+    0 4px 12px -2px rgba(0, 0, 0, 0.03);
+}
+
+.shadow-accent {
+  box-shadow: 0 12px 24px -8px var(--color-accent-dark-rgba, rgba(184, 123, 16, 0.25));
+}
+
+.mesh-gradient {
+  background-color: #f0ede8;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(232, 160, 32, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(42, 157, 110, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(214, 62, 62, 0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(55, 138, 221, 0.1) 0px, transparent 50%);
+}
+
+.text-gradient-accent {
+  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.active-scale {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.active-scale:active {
+  transform: scale(0.96);
+}
+
+.btn-premium {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+.btn-premium::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(rgba(255,255,255,0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.btn-premium:active::after {
+  opacity: 1;
 }
 
 /* ── emoji-mart overrides ── */

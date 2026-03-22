@@ -35,6 +35,7 @@ import { InstallBanner } from "@/components/InstallBanner";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { checkAndCreateFixedTransactions } from "@/hooks/useFixedExpenses";
 import { useRegisterSW } from "virtual:pwa-register/react";
+import { usePersonalization } from "@/hooks/usePersonalization";
 
 // ── Navigation types ──────────────────────────────────────────
 
@@ -57,6 +58,11 @@ function App() {
   });
   const { loadCategories } = useCategoryStore();
   const quickAdd = useQuickAdd();
+  const { settings } = usePersonalization();
+
+  useEffect(() => {
+    document.title = settings.appName;
+  }, [settings.appName]);
 
   // ── Service worker update detection ──
   const {

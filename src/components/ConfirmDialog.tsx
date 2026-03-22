@@ -42,13 +42,13 @@ export function ConfirmDialog({
           <div
             className="flex size-14 items-center justify-center rounded-full shrink-0"
             style={{
-              backgroundColor: isDelete ? '#FFF0F0' : '#FFF4E0',
+              backgroundColor: isDelete ? 'var(--color-danger-bg)' : 'var(--color-accent-bg)',
             }}
           >
             {isDelete ? (
-              <Trash2 size={24} color="#D63E3E" strokeWidth={2} />
+              <Trash2 size={24} className="text-danger" strokeWidth={2} />
             ) : (
-              <AlertTriangle size={24} color="#E8A020" strokeWidth={2} />
+              <AlertTriangle size={24} className="text-accent" strokeWidth={2} />
             )}
           </div>
 
@@ -78,8 +78,9 @@ export function ConfirmDialog({
               type="button"
               onClick={handleConfirm}
               disabled={loading}
-              className="flex h-11 flex-1 items-center justify-center rounded-[12px] text-[14px] font-semibold text-white transition-all active:scale-[0.97] disabled:opacity-50"
-              style={{ backgroundColor: isDelete ? '#D63E3E' : '#E8A020' }}
+              className={`flex h-11 flex-1 items-center justify-center rounded-[12px] text-[14px] font-semibold text-white transition-all active:scale-[0.97] disabled:opacity-50 ${
+                isDelete ? 'bg-danger' : 'bg-accent'
+              }`}
             >
               {loading ? '...' : confirmLabel}
             </button>

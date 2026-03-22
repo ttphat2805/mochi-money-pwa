@@ -3,6 +3,7 @@ import { SettingsRow } from './SettingsRow'
 import { SectionLabel } from './SettingsHelpers'
 import { NotificationSettings } from './NotificationSettings'
 import { DataSettingsSection } from './DataSettingsSection'
+import { PersonalizationSettings } from './PersonalizationSettings'
 
 interface SettingsPageProps {
   onBack: () => void
@@ -25,6 +26,9 @@ export function SettingsPage({ onBack, onGoRecurring, onGoFixedExpenses, onGoFin
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto pb-8">
+        <SectionLabel>Cá nhân hoá</SectionLabel>
+        <PersonalizationSettings />
+
         {/* Khoản lặp lại */}
         <SectionLabel>Khoản lặp lại</SectionLabel>
         <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">

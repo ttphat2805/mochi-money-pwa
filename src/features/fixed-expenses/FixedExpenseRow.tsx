@@ -23,7 +23,7 @@ export function FixedExpenseRow({ expense, onEdit, onToggleActive, onDelete }: F
   const categories = useLiveQuery(() => db.categories.toArray())
   const category = categories?.find((c) => c.id === expense.categoryId)
   const displayIcon = category?.icon ?? '📦'
-  const displayColor = category?.color ?? '#E8A020'
+  const displayColor = category?.color ?? 'var(--color-accent)'
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
