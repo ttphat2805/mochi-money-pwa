@@ -117,10 +117,14 @@ export function TransactionDetailSheet({
     <>
       <Sheet open={open} onOpenChange={(v) => !v && handleClose()}>
         <SheetContent
+          onPointerDownOutside={(e) => {
+            if (datePickerOpen || deleteConfirmOpen) e.preventDefault()
+          }}
           onInteractOutside={(e) => {
-            if (datePickerOpen || deleteConfirmOpen) {
-              e.preventDefault()
-            }
+            if (datePickerOpen || deleteConfirmOpen) e.preventDefault()
+          }}
+          onFocusOutside={(e) => {
+            if (datePickerOpen || deleteConfirmOpen) e.preventDefault()
           }}
           side="bottom"
           showCloseButton={true}

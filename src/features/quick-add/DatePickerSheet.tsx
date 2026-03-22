@@ -1,26 +1,27 @@
-import { useEffect } from 'react'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import {
   useDatePicker,
   WEEKDAY_LABELS,
   formatDateLabel,
-} from '@/hooks/useDatePicker'
-import type { DateShortcut } from '@/hooks/useDatePicker'
+} from "@/hooks/useDatePicker";
+import type { DateShortcut } from "@/hooks/useDatePicker";
 
 interface DatePickerSheetProps {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
   /** Called with 'YYYY-MM-DD'. Parent is responsible for closing via setDatePickerOpen(false). */
-  onConfirm: (date: string) => void
-  initialDate?: string
+  onConfirm: (date: string) => void;
+  initialDate?: string;
 }
 
 const SHORTCUTS: { key: DateShortcut; label: string }[] = [
-  { key: 'yesterday', label: 'Hôm qua' },
-  { key: 'today', label: 'Hôm nay' },
-  { key: '2days', label: '2 ngày trước' },
-  { key: 'custom', label: 'Tuỳ chọn ›' },
-]
+  { key: "yesterday", label: "Hôm qua" },
+  { key: "today", label: "Hôm nay" },
+  { key: "2days", label: "2 ngày trước" },
+  { key: "custom", label: "Tuỳ chọn ›" },
+];
 
 /**
  * Custom date picker overlay — does NOT use Radix Sheet.
@@ -34,43 +35,68 @@ export function DatePickerSheet({
   onConfirm,
   initialDate,
 }: DatePickerSheetProps) {
-  const picker = useDatePicker(initialDate)
+  const picker = useDatePicker(initialDate);
+  const [mounted, setMounted] = useState(false);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+
+    if (diff > 40) {
+      picker.nextMonth();
+    } else if (diff < -40) {
+      picker.prevMonth();
+    }
+    setTouchStartX(null);
+  };
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Reset picker state whenever the overlay opens
   useEffect(() => {
     if (open) {
-      picker.reset(initialDate)
+      picker.reset(initialDate);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialDate])
+  }, [open, initialDate]);
 
   const handleConfirm = () => {
-    const date = picker.confirm()
-    onConfirm(date) // parent updates its date state
+    const date = picker.confirm();
+    onConfirm(date); // parent updates its date state
     // parent also calls setDatePickerOpen(false) inside onConfirm
     // so we don't call onClose() here to avoid double-firing
-  }
+  };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <>
       {/* Backdrop — tap to dismiss */}
       <div
         onClick={onClose}
-        className="fixed inset-0 z-[60] bg-black/20 transition-opacity duration-200"
+        className="fixed inset-0 z-60 bg-black/20 transition-opacity duration-200"
         style={{
           opacity: open ? 1 : 0,
-          pointerEvents: open ? 'auto' : 'none',
+          pointerEvents: open ? "auto" : "none",
         }}
         aria-hidden="true"
       />
 
       {/* Panel — slides up from bottom */}
       <div
-        className="bg-bg fixed inset-x-0 bottom-0 z-[70] rounded-t-2xl shadow-xl transition-transform duration-300 ease-out"
+        className="bg-bg fixed inset-x-0 bottom-0 z-70 w-full max-w-[480px] mx-auto rounded-t-2xl shadow-xl transition-transform duration-300 ease-out"
         style={{
-          transform: open ? 'translateY(0)' : 'translateY(100%)',
-          paddingBottom: 'env(safe-area-inset-bottom)',
-          pointerEvents: open ? 'auto' : 'none',
+          transform: open ? "translateY(0)" : "translateY(100%)",
+          paddingBottom: "env(safe-area-inset-bottom)",
+          pointerEvents: open ? "auto" : "none",
         }}
         role="dialog"
         aria-modal="true"
@@ -91,21 +117,23 @@ export function DatePickerSheet({
 
         <div className="flex flex-col gap-3 px-4">
           {/* Quick shortcut chips */}
-          <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
-            {SHORTCUTS.map((s) => (
-              <button
-                key={s.key}
-                type="button"
-                onClick={() => picker.selectShortcut(s.key)}
-                className={`shrink-0 h-9 rounded-full border-[1.5px] px-4 text-[13px] font-medium transition-all ${
-                  picker.activeShortcut === s.key
-                    ? 'border-accent bg-accent text-white'
-                    : 'border-border bg-white text-text-muted active:bg-surface'
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
+          <div className="-mx-4 px-4 pb-1">
+            <div className="flex gap-2 w-full overflow-x-auto pb-0.5 scrollbar-hide snap-x touch-pan-x">
+              {SHORTCUTS.map((s) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => picker.selectShortcut(s.key)}
+                  className={`snap-center shrink-0 h-9 rounded-full border-[1.5px] px-4 text-[13px] font-medium transition-all ${
+                    picker.activeShortcut === s.key
+                      ? "border-accent bg-accent text-white"
+                      : "border-border bg-white text-text-muted active:bg-surface"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Selected date display box */}
@@ -122,9 +150,11 @@ export function DatePickerSheet({
           <div
             className="overflow-hidden transition-all duration-300 ease-in-out"
             style={{
-              maxHeight: picker.showCalendar ? '380px' : '0px',
+              maxHeight: picker.showCalendar ? "380px" : "0px",
               opacity: picker.showCalendar ? 1 : 0,
             }}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
           >
             {/* Month navigation */}
             <div className="mb-3 flex items-center justify-between">
@@ -153,7 +183,7 @@ export function DatePickerSheet({
                 <div
                   key={label}
                   className={`text-center text-[11px] font-medium ${
-                    i >= 5 ? 'text-accent' : 'text-text-muted'
+                    i >= 5 ? "text-accent" : "text-text-muted"
                   }`}
                 >
                   {label}
@@ -169,25 +199,25 @@ export function DatePickerSheet({
                     <button
                       key={cell.date}
                       type="button"
-                      disabled={cell.isFuture || !cell.isCurrentMonth}
+                      disabled={!cell.isCurrentMonth}
                       onClick={() => picker.selectDay(cell.date)}
                       className={`relative mx-auto flex aspect-square w-full max-w-[40px] items-center justify-center rounded-full text-[13px] transition-colors ${
                         cell.isSelected
-                          ? 'bg-accent font-semibold text-white'
+                          ? "bg-accent font-semibold text-white"
                           : cell.isToday && cell.isCurrentMonth
-                            ? 'font-semibold text-accent active:bg-surface'
-                            : cell.isFuture
-                              ? 'pointer-events-none text-text-hint'
-                              : !cell.isCurrentMonth
-                                ? 'pointer-events-none text-text-hint opacity-30'
-                                : 'text-text active:bg-surface'
+                            ? "font-semibold text-accent active:bg-surface"
+                            : !cell.isCurrentMonth
+                                ? "pointer-events-none text-text-hint opacity-30"
+                                : "text-text active:bg-surface"
                       }`}
                     >
                       {cell.day}
                       {/* Today amber dot */}
-                      {cell.isToday && cell.isCurrentMonth && !cell.isSelected && (
-                        <span className="bg-accent absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full" />
-                      )}
+                      {cell.isToday &&
+                        cell.isCurrentMonth &&
+                        !cell.isSelected && (
+                          <span className="bg-accent absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full" />
+                        )}
                     </button>
                   ))}
                 </div>
@@ -203,11 +233,12 @@ export function DatePickerSheet({
           >
             <span className="text-sm font-semibold">Xác nhận</span>
             <span className="text-[11px] text-white/50">
-              {formatDateLabel(picker.selectedDate).split(' · ')[0]}
+              {formatDateLabel(picker.selectedDate).split(" · ")[0]}
             </span>
           </button>
         </div>
       </div>
-    </>
-  )
+    </>,
+    document.body,
+  );
 }

@@ -187,8 +187,6 @@ export function useDatePicker(initialDate?: string): UseDatePickerReturn {
   }, [])
 
   const selectDay = useCallback((date: string) => {
-    if (date > todayStr) return // block future
-
     setSelectedDate(date)
     const detected = detectShortcut(date)
     setActiveShortcut(detected === 'custom' ? 'custom' : detected)
@@ -205,24 +203,14 @@ export function useDatePicker(initialDate?: string): UseDatePickerReturn {
   }, [])
 
   const nextMonth = useCallback(() => {
-    // Don't navigate past current month
-    const todayYear = parseInt(todayStr.slice(0, 4), 10)
-    const todayMonth = parseInt(todayStr.slice(5, 7), 10) - 1
-
     setCurrentMonth((prev) => {
       const nextM = prev === 11 ? 0 : prev + 1
-      const nextY = prev === 11 ? currentYear + 1 : currentYear
-
-      if (nextY > todayYear || (nextY === todayYear && nextM > todayMonth)) {
-        return prev // block
-      }
-
       if (prev === 11) {
         setCurrentYear((y) => y + 1)
       }
       return nextM
     })
-  }, [todayStr, currentYear])
+  }, [currentYear])
 
   const confirm = useCallback(() => {
     return selectedDate
