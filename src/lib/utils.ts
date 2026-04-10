@@ -19,13 +19,31 @@ export function formatVND(amount: number): string {
 }
 
 /**
+ * Format a Date object as 'YYYY-MM-DD' string in Asia/Ho_Chi_Minh timezone.
+ */
+export function formatDateToString(date: Date): string {
+  return new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+  }).format(date)
+}
+
+/**
  * Get today's date as 'YYYY-MM-DD' string in Asia/Ho_Chi_Minh timezone.
  * All dates in the app are stored as strings, never Date objects.
  */
 export function getTodayString(): string {
-  return new Intl.DateTimeFormat('sv-SE', {
-    timeZone: 'Asia/Ho_Chi_Minh',
-  }).format(new Date())
+  return formatDateToString(new Date())
+}
+
+/**
+ * Get date string for N days ago from today.
+ */
+export function getDateNDaysAgo(n: number): string {
+  // Adjust to start of day in Vietnam timezone to be safe, 
+  // though just using new Date() and setDate is usually fine if we format it correctly.
+  const today = new Date(getTodayString() + 'T00:00:00+07:00')
+  today.setDate(today.getDate() - n)
+  return formatDateToString(today)
 }
 
 /**
@@ -62,9 +80,7 @@ export function getDaysLeftInMonth(): number {
 export function getVietnameseDateLabel(dateStr: string): string {
   const today = getTodayString()
   if (dateStr === today) return 'Hôm nay'
-  const todayDate = new Date(today + 'T00:00:00+07:00')
-  todayDate.setDate(todayDate.getDate() - 1)
-  const yesterday = todayDate.toISOString().slice(0, 10)
+  const yesterday = getDateNDaysAgo(1)
   if (dateStr === yesterday) return 'Hôm qua'
   const [year, month, day] = dateStr.split('-')
   return `${day}/${month}/${year}`
@@ -176,9 +192,7 @@ export function formatDateTime(isoString: string): string {
 export function getDateLabel(dateStr: string): string {
   const today = getTodayString()
   if (dateStr === today) return 'Hôm nay'
-  const todayDate = new Date(today + 'T00:00:00+07:00')
-  todayDate.setDate(todayDate.getDate() - 1)
-  const yesterday = todayDate.toISOString().slice(0, 10)
+  const yesterday = getDateNDaysAgo(1)
   if (dateStr === yesterday) return 'Hôm qua'
   const [, month, day] = dateStr.split('-')
   return `${parseInt(day)}/${parseInt(month)}`

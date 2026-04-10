@@ -3,7 +3,7 @@ import { useTransactionStore } from '@/stores/transactionStore'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
 import { useAppStore } from '@/stores/appStore'
-import { getTodayString, getCurrentMonthString, formatVND } from '@/lib/utils'
+import { getTodayString, getCurrentMonthString, formatVND, getDateNDaysAgo } from '@/lib/utils'
 import type { BudgetCategory } from '@/types'
 
 const LAST_USED_CATEGORY_KEY = 'chitieu_last_category_id'
@@ -65,10 +65,7 @@ function getDateLabel(dateStr: string): string {
     return 'Hôm nay'
   }
 
-  // Calculate yesterday
-  const todayDate = new Date(today + 'T00:00:00+07:00')
-  todayDate.setDate(todayDate.getDate() - 1)
-  const yesterdayStr = todayDate.toISOString().slice(0, 10)
+  const yesterdayStr = getDateNDaysAgo(1)
 
   if (dateStr === yesterdayStr) {
     return 'Hôm qua'

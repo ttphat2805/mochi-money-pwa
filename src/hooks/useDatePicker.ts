@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
-import { getTodayString } from '@/lib/utils'
+import { getTodayString, getDateNDaysAgo } from '@/lib/utils'
 
 export type DateShortcut = 'today' | 'yesterday' | '2days' | 'custom'
 
@@ -33,11 +33,6 @@ interface UseDatePickerReturn {
 
 const WEEKDAY_LABELS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'] as const
 
-function getDateNDaysAgo(n: number): string {
-  const today = new Date(getTodayString() + 'T00:00:00+07:00')
-  today.setDate(today.getDate() - n)
-  return today.toISOString().slice(0, 10)
-}
 
 function detectShortcut(dateStr: string): DateShortcut {
   if (dateStr === getTodayString()) return 'today'
@@ -190,7 +185,7 @@ export function useDatePicker(initialDate?: string): UseDatePickerReturn {
     setSelectedDate(date)
     const detected = detectShortcut(date)
     setActiveShortcut(detected === 'custom' ? 'custom' : detected)
-  }, [todayStr])
+  }, [])
 
   const prevMonth = useCallback(() => {
     setCurrentMonth((prev) => {
@@ -210,7 +205,7 @@ export function useDatePicker(initialDate?: string): UseDatePickerReturn {
       }
       return nextM
     })
-  }, [currentYear])
+  }, [])
 
   const confirm = useCallback(() => {
     return selectedDate

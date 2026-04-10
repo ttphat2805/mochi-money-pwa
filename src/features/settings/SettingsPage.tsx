@@ -1,7 +1,6 @@
 import { BackButton } from '@/components/BackButton'
 import { SettingsRow } from './SettingsRow'
 import { SectionLabel } from './SettingsHelpers'
-import { NotificationSettings } from './NotificationSettings'
 import { DataSettingsSection } from './DataSettingsSection'
 import { PersonalizationSettings } from './PersonalizationSettings'
 
@@ -59,10 +58,6 @@ export function SettingsPage({ onBack, onGoRecurring, onGoFixedExpenses, onGoFin
         </div>
 
 
-
-        {/* Thông báo — live component with permission flow */}
-        <SectionLabel>Thông báo</SectionLabel>
-        <NotificationSettings />
 
         {/* Dữ liệu */}
         <SectionLabel>Dữ liệu</SectionLabel>
