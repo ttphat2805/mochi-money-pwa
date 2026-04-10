@@ -12,7 +12,6 @@ export interface CategoryWithBudget extends BudgetCategory {
 }
 
 const EMPTY_CATS: BudgetCategory[] = []
-const EMPTY_CATS_BUDGET: CategoryWithBudget[] = []
 
 export function useBudgetCategories() {
   const monthKey = getCurrentMonthString()
@@ -43,7 +42,7 @@ export function useBudgetCategories() {
       })
     }
     return results
-  }, [monthKey]) ?? EMPTY_CATS_BUDGET
+  }, [monthKey]) ?? []
 
   const warningCategories = useMemo(
     () => categoriesWithBudget.filter((c) => c.status === 'danger' || c.status === 'over'),
