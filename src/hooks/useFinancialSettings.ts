@@ -2,8 +2,11 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo } from 'react'
 import { db } from '@/lib/db'
 import { getCurrentMonthString, getDaysLeftInMonth, getDaysInMonth, getTodayString } from '@/lib/utils'
-import type { ExtraIncome, FinancialSettings } from '@/types'
+import type { ExtraIncome, FinancialSettings, FixedExpense } from '@/types'
 import { toast } from 'sonner'
+
+const EMPTY_FIXED: FixedExpense[] = []
+const EMPTY_EXTRA: ExtraIncome[] = []
 
 export function useFinancialSettings() {
   const monthKey = getCurrentMonthString()
@@ -13,12 +16,12 @@ export function useFinancialSettings() {
   const fixedExpenses = useLiveQuery(
     () => db.fixedExpenses.filter((e) => Boolean(e.active)).toArray(),
     [],
-  ) ?? []
+  ) ?? EMPTY_FIXED
 
   const extraIncomes = useLiveQuery(
     () => db.extraIncomes.where('monthKey').equals(monthKey).toArray(),
     [monthKey],
-  ) ?? []
+  ) ?? EMPTY_EXTRA
 
   const monthTxSpent = useLiveQuery(
     () =>

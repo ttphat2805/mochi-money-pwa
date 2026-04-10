@@ -35,6 +35,7 @@ export interface HomeData {
 
   // Actions
   toggleRecurring: (item: RecurringItem) => Promise<void>
+  hasAnyRecurring: boolean
 }
 
 // ── Helpers ────────────────────────────────────────────────────
@@ -49,6 +50,8 @@ function matchesSchedule(schedule: RecurringTemplate['schedule']): boolean {
 
 const EMPTY: RecurringItem[] = []
 const EMPTY_TXS: HomeData['recentTransactions'] = []
+const EMPTY_CATS: BudgetCategory[] = []
+const EMPTY_TEMPLATES: RecurringTemplate[] = []
 
 // ── Hook ───────────────────────────────────────────────────────
 
@@ -58,12 +61,12 @@ export function useHomeData(): HomeData {
 
   // ── Live queries (auto re-render on DB change) ──
 
-  const categories = useLiveQuery(() => db.categories.toArray(), []) ?? []
+  const categories = useLiveQuery(() => db.categories.toArray(), []) ?? EMPTY_CATS
 
   const todayTxs = useLiveQuery(
     () => db.transactions.where('date').equals(today).filter((tx) => !tx.deletedAt).toArray(),
     [today],
-  ) ?? []
+  ) ?? EMPTY_TXS
 
   const todaySpent = useLiveQuery(async () => {
     const txs = await db.transactions
@@ -98,12 +101,12 @@ export function useHomeData(): HomeData {
         .filter((tx) => !tx.deletedAt)
         .toArray(),
     [monthKey],
-  ) ?? []
+  ) ?? EMPTY_TXS
 
   const activeTemplates = useLiveQuery(
     () => db.recurringTemplates.filter((t) => t.active).toArray(),
     [],
-  ) ?? []
+  ) ?? EMPTY_TEMPLATES
 
   const settings = useLiveQuery(
     () => db.settings.toCollection().first(),
@@ -138,7 +141,7 @@ export function useHomeData(): HomeData {
         .limit(5)
         .toArray(),
     [],
-  ) ?? []
+  ) ?? EMPTY_TXS
 
   // ── Derived values ──
 
@@ -251,5 +254,6 @@ export function useHomeData(): HomeData {
     recurringItems: recurringItems ?? EMPTY,
     recentTransactions: recentTransactions ?? EMPTY_TXS,
     toggleRecurring,
+    hasAnyRecurring: activeTemplates.length > 0,
   }
 }

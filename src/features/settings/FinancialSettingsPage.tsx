@@ -39,9 +39,11 @@ function VNDInput({
 }) {
   const [raw, setRaw] = useState(value > 0 ? formatVND(value) : "");
 
-  useEffect(() => {
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setPrevValue(value);
     setRaw(value > 0 ? formatVND(value) : "");
-  }, [value]);
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const digits = e.target.value.replace(/\D/g, "");
@@ -274,13 +276,15 @@ function ExtraIncomeDialog({
   const [amount, setAmount] = useState(0);
   const [display, setDisplay] = useState("");
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setName("");
       setAmount(0);
       setDisplay("");
     }
-  }, [open]);
+  }
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const digits = e.target.value.replace(/\D/g, "");

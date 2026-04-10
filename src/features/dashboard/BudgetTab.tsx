@@ -3,6 +3,8 @@ import { formatBudgetPct, formatShort, formatVND } from "@/lib/utils";
 import { Settings2 } from "lucide-react";
 import { lazy, Suspense } from "react";
 import { useAppStore } from "@/stores/appStore";
+import { useShouldShowSkeleton } from "@/hooks/useShouldShowSkeleton";
+import { BudgetSkeleton } from "./BudgetSkeleton";
 
 const ReactApexChart = lazy(() => import("react-apexcharts"));
 
@@ -23,6 +25,9 @@ function getStatusColor(status: string, fallback: string) {
 export function BudgetTab() {
   const budget = useBudget();
   const openQuickAdd = useAppStore(s => s.openQuickAdd);
+  const showSkeleton = useShouldShowSkeleton(budget.isLoading);
+
+  if (showSkeleton) return <BudgetSkeleton />;
 
   // ── Radial gauge options ──────────────────────────────────────
   const radialOptions: ApexCharts.ApexOptions = {

@@ -27,7 +27,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
 
   // ── Bar chart options ──────────────────────────────────────────
 
-  const barData = last4MonthsBar || []
+  const barData = last4MonthsBar
 
   const barOptions = useMemo((): ApexCharts.ApexOptions => ({
     chart: {
@@ -155,8 +155,10 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
     },
 
     states: {
-      hover: { filter: { type: 'darken', value: 0.88 } as any },
-      active: { filter: { type: 'darken', value: 0.82 } as any },
+      // @ts-expect-error ApexCharts types are incomplete
+      hover: { filter: { type: 'darken', value: 0.88 } },
+      // @ts-expect-error ApexCharts types are incomplete
+      active: { filter: { type: 'darken', value: 0.82 } },
     },
   }), [barData])
 
@@ -217,8 +219,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
               fontSize: '11px',
               color: '#88887A',
               fontFamily: 'inherit',
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              formatter: (w: any) => {
+              formatter: (w) => {
                 const total = (w.globals.seriesTotals as number[]).reduce((a, b) => a + b, 0)
                 return formatShort(total)
               },
@@ -246,10 +247,12 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
       theme: 'dark',
     },
     states: {
-      hover: { filter: { type: 'darken', value: 0.85 } as any },
+      // @ts-expect-error ApexCharts types are incomplete
+      hover: { filter: { type: 'darken', value: 0.85 } },
       active: {
         allowMultipleDataPointsSelection: false,
-        filter: { type: 'darken', value: 0.8 } as any,
+        // @ts-expect-error ApexCharts types are incomplete
+        filter: { type: 'darken', value: 0.8 },
       },
     },
   }), [donutData])

@@ -3,7 +3,9 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
 import { getTodayString } from '@/lib/utils'
 import { useCategoryStore } from '@/stores/categoryStore'
-import type { BudgetCategory } from '@/types'
+import type { BudgetCategory, Transaction } from '@/types'
+
+const EMPTY_TXS: Transaction[] = []
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -106,7 +108,7 @@ export function useCalendar() {
 
   // ── Reactive DB query ──
 
-  const monthTxs = useLiveQuery(
+  const monthTxsRaw = useLiveQuery(
     () =>
       db.transactions
         .where('date')
@@ -114,7 +116,8 @@ export function useCalendar() {
         .filter((tx) => !tx.deletedAt)
         .toArray(),
     [viewMonthKey],
-  ) ?? []
+  )
+  const monthTxs = monthTxsRaw ?? EMPTY_TXS
 
   const catMap = useMemo(() => {
     const m = new Map<number, BudgetCategory>()
@@ -171,6 +174,6 @@ export function useCalendar() {
     selectedDayTxs,
     monthStats,
     calendarDays,
-    isLoading: monthTxs == null,
+    isLoading: monthTxsRaw === undefined,
   }
 }

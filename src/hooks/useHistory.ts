@@ -114,5 +114,6 @@ export function useHistory() {
     filteredTransactions: filteredTransactions ?? [],
     filteredTotal,
     catMap,
+    isLoading: filteredTransactions === undefined,
   }
 }

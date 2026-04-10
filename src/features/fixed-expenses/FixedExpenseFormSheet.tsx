@@ -107,12 +107,14 @@ export function FixedExpenseFormSheet({
 
   const clearAmount = () => form.clearAmount();
 
+  const { reset } = form;
+
   // Reset form each time sheet opens OR editExpense changes
   useEffect(() => {
     if (open) {
-      form.reset(editExpense);
+      reset(editExpense);
     }
-  }, [open, editExpense, form.reset]);
+  }, [open, editExpense, reset]);
 
   const handleOpenChange = (o: boolean) => {
     if (!o) onClose();

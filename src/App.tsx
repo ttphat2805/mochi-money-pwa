@@ -10,6 +10,7 @@ import { useCategoryStore } from "@/stores/categoryStore";
 import { HomePage } from "@/features/home/HomePage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { RecurringListPage } from "@/features/recurring/RecurringListPage";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Lazy-loaded heavy screens
 const CalendarPage = lazy(() =>
@@ -178,7 +179,7 @@ function App() {
                   if (tab === "overview") {
                     push({ id: "settings" });
                   } else {
-                    setTab(tab as any);
+                    setTab(tab as TabKey);
                   }
                 }}
                 onSettings={() => push({ id: "settings" })}
@@ -230,7 +231,9 @@ function App() {
       <div
         className={`flex min-h-0 flex-1 flex-col ${showBottomNav ? "pb-24" : ""}`}
       >
-        {renderScreen()}
+        <ErrorBoundary>
+          {renderScreen()}
+        </ErrorBoundary>
       </div>
 
       {showBottomNav && <BottomNav active={activeTab} onTab={setTab} />}

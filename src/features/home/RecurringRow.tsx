@@ -13,8 +13,8 @@ export function RecurringRow({ item, onToggle, isLast }: RecurringRowProps) {
   const [bouncing, setBouncing] = useState(false)
 
   const handleToggle = () => {
-    setBouncing(true)
-    setTimeout(() => setBouncing(false), 280)
+    if (!isDone) setBouncing(true)
+    setTimeout(() => setBouncing(false), 600)
     onToggle()
   }
 
@@ -29,7 +29,7 @@ export function RecurringRow({ item, onToggle, isLast }: RecurringRowProps) {
     >
       {/* Animated checkbox */}
       <div
-        className="shrink-0 transition-all duration-200"
+        className="shrink-0"
         style={{
           width: 24,
           height: 24,
@@ -39,8 +39,8 @@ export function RecurringRow({ item, onToggle, isLast }: RecurringRowProps) {
           justifyContent: 'center',
           background: isDone ? '#2A9D6E' : 'transparent',
           border: isDone ? '2px solid #2A9D6E' : '2px solid #D0CEC6',
-          transform: bouncing ? 'scale(0.82)' : 'scale(1)',
-          transition: 'background 0.18s, border 0.18s, transform 0.18s cubic-bezier(0.36, 0.07, 0.19, 0.97)',
+          transform: bouncing ? 'scale(1.2)' : 'scale(1)',
+          transition: 'background 0.2s, border 0.2s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
         }}
       >
         {isDone && (

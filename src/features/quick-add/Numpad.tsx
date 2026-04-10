@@ -1,4 +1,5 @@
 import { Delete } from 'lucide-react'
+import { triggerHaptic } from '@/lib/haptic'
 
 interface NumpadProps {
   onDigit: (digit: number) => void
@@ -20,7 +21,7 @@ export function Numpad({ onDigit, onDelete, onConfirm, canConfirm, isSaving }: N
         <button
           key={digit}
           type="button"
-          onClick={() => onDigit(digit)}
+          onClick={() => { triggerHaptic('light'); onDigit(digit); }}
           className="bg-white border border-border/40 shadow-sm active:bg-surface active:scale-[0.96] flex h-[60px] items-center justify-center rounded-2xl text-[22px] font-semibold text-text transition-all duration-100"
         >
           {digit}
@@ -30,7 +31,7 @@ export function Numpad({ onDigit, onDelete, onConfirm, canConfirm, isSaving }: N
       {/* Bottom row: backspace, 0, save */}
       <button
         type="button"
-        onClick={onDelete}
+        onClick={() => { triggerHaptic('light'); onDelete(); }}
         className="active:bg-surface active:scale-[0.96] flex h-[60px] items-center justify-center rounded-2xl transition-all duration-100"
         aria-label="Xóa"
       >
@@ -39,7 +40,7 @@ export function Numpad({ onDigit, onDelete, onConfirm, canConfirm, isSaving }: N
 
       <button
         type="button"
-        onClick={() => onDigit(0)}
+        onClick={() => { triggerHaptic('light'); onDigit(0); }}
         className="bg-white border border-border/40 shadow-sm active:bg-surface active:scale-[0.96] flex h-[60px] items-center justify-center rounded-2xl text-[22px] font-semibold text-text transition-all duration-100"
       >
         0
@@ -47,9 +48,11 @@ export function Numpad({ onDigit, onDelete, onConfirm, canConfirm, isSaving }: N
 
       <button
         type="button"
-        onClick={onConfirm}
+        onClick={() => { triggerHaptic('medium'); onConfirm(); }}
         disabled={!canConfirm || isSaving}
-        className="bg-text text-white shadow-md active:bg-text/90 active:scale-[0.96] flex h-[60px] items-center justify-center rounded-2xl text-[15px] font-bold transition-all duration-100 disabled:opacity-30 disabled:pointer-events-none"
+        className={`bg-text text-white shadow-md active:bg-text/90 active:scale-[0.96] flex h-[60px] items-center justify-center rounded-2xl text-[15px] font-bold transition-all duration-100 disabled:opacity-30 disabled:pointer-events-none ${
+          canConfirm && !isSaving ? 'animate-ready-pulse' : ''
+        }`}
       >
         {isSaving ? '...' : 'Lưu'}
       </button>

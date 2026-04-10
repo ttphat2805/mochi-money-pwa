@@ -1,20 +1,21 @@
-import { useState } from "react";
-import { toast } from "sonner";
-import { formatVND } from "@/lib/utils";
-import { useQuickAdd } from "@/hooks/useQuickAdd";
 import {
   Sheet,
   SheetContent,
-  SheetTitle,
   SheetDescription,
+  SheetTitle,
 } from "@/components/ui/sheet";
+import { useQuickAdd } from "@/hooks/useQuickAdd";
+import { triggerHaptic } from "@/lib/haptic";
+import { useState } from "react";
+import { toast } from "sonner";
 import { AmountDisplay } from "./AmountDisplay";
-import { Numpad } from "./Numpad";
-import { CategoryGrid } from "./CategoryGrid";
-import { NoteInput } from "./NoteInput";
-import { DateSelector } from "./DateSelector";
-import { DatePickerSheet } from "./DatePickerSheet";
 import { BudgetWarningDialog } from "./BudgetWarningDialog";
+import { CategoryGrid } from "./CategoryGrid";
+import { DatePickerSheet } from "./DatePickerSheet";
+import { DateSelector } from "./DateSelector";
+import { FloatingSuccessAnimation } from "./FloatingSuccessAnimation";
+import { NoteInput } from "./NoteInput";
+import { Numpad } from "./Numpad";
 
 interface QuickAddSheetProps {
   quickAdd: ReturnType<typeof useQuickAdd>;
@@ -22,6 +23,7 @@ interface QuickAddSheetProps {
 
 export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [successAnim, setSuccessAnim] = useState({ isVisible: false, amount: 0 });
 
   const {
     amount,
@@ -50,18 +52,26 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
   const handleSave = async () => {
     const result = await save();
     if (result.success) {
-      toast.success(
-        `Đã ghi −${formatVND(result.amount)}đ · ${result.categoryName}`,
-      );
+      if (result.isFirst) {
+        toast.success("Đã ghi khoản đầu tiên! 🎉", {
+          description: "Chúc bạn quản lý chi tiêu hiệu quả!",
+          duration: 4000,
+        });
+        triggerHaptic('success');
+      } else {
+        triggerHaptic('success');
+        setSuccessAnim({ isVisible: true, amount: result.amount });
+        setTimeout(() => setSuccessAnim({ isVisible: false, amount: 0 }), 1500);
+      }
     }
   };
 
   const handleConfirmOverBudget = async () => {
     const result = await confirmOverBudget();
     if (result.success) {
-      toast.success(
-        `Đã ghi −${formatVND(result.amount)}đ · ${result.categoryName}`,
-      );
+      triggerHaptic('success');
+      setSuccessAnim({ isVisible: true, amount: result.amount });
+      setTimeout(() => setSuccessAnim({ isVisible: false, amount: 0 }), 1500);
     }
   };
 
@@ -162,6 +172,12 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
         warning={budgetWarning}
         onConfirm={handleConfirmOverBudget}
         onCancel={dismissBudgetWarning}
+      />
+
+      {/* Floating Success Indicator */}
+      <FloatingSuccessAnimation 
+        isVisible={successAnim.isVisible} 
+        amount={successAnim.amount} 
       />
     </>
   );

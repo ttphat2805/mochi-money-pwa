@@ -21,16 +21,21 @@ export function OfflineIndicator() {
   const online = useOnlineStatus()
   const [show, setShow] = useState(false)
 
-  // Brief delay to avoid flash on slow connections
-  useEffect(() => {
+  const [prevOnline, setPrevOnline] = useState(online)
+
+  if (online !== prevOnline) {
+    setPrevOnline(online)
     if (!online) {
       setShow(true)
-    } else {
-      // Keep visible briefly when recovering so user sees "back online"
+    }
+  }
+
+  useEffect(() => {
+    if (online && show) {
       const t = setTimeout(() => setShow(false), 1500)
       return () => clearTimeout(t)
     }
-  }, [online])
+  }, [online, show])
 
   if (!show) return null
 

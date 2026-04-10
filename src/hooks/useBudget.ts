@@ -48,7 +48,7 @@ export function useBudget() {
   const isConfigured = Boolean(settings?.income)
 
   // ── Per-category budget data ───────────────────────────────────
-  const categoriesWithBudget = useLiveQuery(async () => {
+  const categoriesWithBudgetRaw = useLiveQuery(async () => {
     const cats = await db.categories.orderBy('sortOrder').toArray()
     const results: CategoryBudgetItem[] = []
 
@@ -75,7 +75,9 @@ export function useBudget() {
       results.push({ ...cat, spent, pct, remaining, status })
     }
     return results
-  }, [monthKey]) ?? []
+  }, [monthKey])
+
+  const categoriesWithBudget = categoriesWithBudgetRaw ?? []
 
   // ── Inline limit setter state ─────────────────────────────────
   const [settingLimitFor, setSettingLimitFor] = useState<number | null>(null)
@@ -126,5 +128,6 @@ export function useBudget() {
     saveLimit,
     handleLimitInputChange,
     monthKey,
+    isLoading: categoriesWithBudgetRaw === undefined,
   }
 }

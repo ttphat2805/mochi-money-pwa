@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo } from 'react'
 import { db } from '@/lib/db'
 import { getTodayString, getCurrentMonthString } from '@/lib/utils'
-import type { FixedExpense } from '@/types'
+import type { FixedExpense, Transaction } from '@/types'
 import { toast } from 'sonner'
 
 // ── Auto-transaction logic ─────────────────────────────────────
@@ -63,10 +63,13 @@ export async function checkAndCreateFixedTransactions(): Promise<void> {
 
 // ── Hook ───────────────────────────────────────────────────────
 
+const EMPTY_FIXED_EXPENSES: FixedExpense[] = []
+const EMPTY_TXS: Transaction[] = []
+
 export function useFixedExpenses() {
   const monthKey = getCurrentMonthString()
 
-  const fixedExpenses = useLiveQuery(() => db.fixedExpenses.toArray(), []) ?? []
+  const fixedExpenses = useLiveQuery(() => db.fixedExpenses.toArray(), []) ?? EMPTY_FIXED_EXPENSES
 
   const thisMonthFixedTxs = useLiveQuery(
     () =>
@@ -76,7 +79,7 @@ export function useFixedExpenses() {
         .filter((tx) => tx.type === 'fixed' && !tx.deletedAt)
         .toArray(),
     [monthKey],
-  ) ?? []
+  ) ?? EMPTY_TXS
 
   const activeExpenses = useMemo(
     () => fixedExpenses.filter((e) => e.active),

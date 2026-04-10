@@ -1,4 +1,4 @@
-import { Home, Wallet, CalendarDays, BarChart2, Plus } from "lucide-react";
+import { Home, Wallet, CalendarDays, BarChart2, Plus, type LucideIcon } from "lucide-react";
 import { useAppStore } from "@/stores/appStore";
 
 export type TabKey = "home" | "budget" | "calendar" | "overview";
@@ -9,7 +9,7 @@ interface BottomNavProps {
 }
 
 interface NavItemProps {
-  icon: any;
+  icon: LucideIcon;
   label: string;
   active: boolean;
   onClick: () => void;

@@ -5,10 +5,33 @@ import type { RecurringItem } from '@/hooks/useHomeData'
 interface RecurringSectionProps {
   items: RecurringItem[]
   onToggle: (item: RecurringItem) => void
+  hasAnyRecurring: boolean
+  onSettingsTap: () => void
 }
 
-export function RecurringSection({ items, onToggle }: RecurringSectionProps) {
-  if (items.length === 0) return null
+export function RecurringSection({ items, onToggle, hasAnyRecurring, onSettingsTap }: RecurringSectionProps) {
+  if (items.length === 0 && hasAnyRecurring) return null
+
+  if (!hasAnyRecurring) {
+    return (
+      <div className="px-4">
+        <button
+          type="button"
+          onClick={onSettingsTap}
+          className="w-full bg-accent/10 border border-accent/20 border-dashed rounded-[20px] p-4 text-left flex items-center justify-between active:scale-[0.98] transition-transform"
+        >
+          <div className="flex items-center gap-3">
+            <div className="size-10 bg-accent/15 rounded-xl flex items-center justify-center text-lg">⏰</div>
+            <div>
+              <p className="text-[13px] font-bold text-accent">Thêm khoản lặp lại</p>
+              <p className="text-[11px] text-accent/80 font-medium">Để app tự nhắc mỗi sáng</p>
+            </div>
+          </div>
+          <div className="text-accent text-lg">→</div>
+        </button>
+      </div>
+    )
+  }
 
   const doneCount = items.filter((i) => i.isDone).length
   const doneTotal = items

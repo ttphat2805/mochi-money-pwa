@@ -39,11 +39,10 @@ export function getTodayString(): string {
  * Get date string for N days ago from today.
  */
 export function getDateNDaysAgo(n: number): string {
-  // Adjust to start of day in Vietnam timezone to be safe, 
-  // though just using new Date() and setDate is usually fine if we format it correctly.
-  const today = new Date(getTodayString() + 'T00:00:00+07:00')
-  today.setDate(today.getDate() - n)
-  return formatDateToString(today)
+  const [y, m, d] = getTodayString().split('-').map(Number)
+  // Use UTC to safely subtract days without local timezone interference
+  const utcDate = new Date(Date.UTC(y, m - 1, d - n))
+  return `${utcDate.getUTCFullYear()}-${String(utcDate.getUTCMonth() + 1).padStart(2, '0')}-${String(utcDate.getUTCDate()).padStart(2, '0')}`
 }
 
 /**
@@ -90,12 +89,10 @@ export function getVietnameseDateLabel(dateStr: string): string {
  * Get Vietnamese weekday + date string, e.g. "Thứ Tư, 20 tháng 3"
  */
 export function getVietnameseDay(): string {
-  const today = getTodayString()
-  const date = new Date(today + 'T00:00:00+07:00')
-  const dow = date.getDay()
+  const [y, m, d] = getTodayString().split('-').map(Number)
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
   const WEEKDAYS = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy']
-  const [, month, day] = today.split('-').map(Number)
-  return `${WEEKDAYS[dow]}, ${day} tháng ${month}`
+  return `${WEEKDAYS[dow]}, ${d} tháng ${m}`
 }
 
 /**

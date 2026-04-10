@@ -86,7 +86,8 @@ export function BarChart6Months({ data }: BarChart6MonthsProps) {
       theme: 'dark',
     },
     states: {
-      hover: { filter: { type: 'darken', value: 0.85 } as any },
+      // @ts-expect-error ApexCharts types are incomplete
+      hover: { filter: { type: 'darken', value: 0.85 } },
     },
   }), [data, currentMonthKey])
 

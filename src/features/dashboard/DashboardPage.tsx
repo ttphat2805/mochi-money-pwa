@@ -4,12 +4,15 @@ import { MonthlyTab } from './MonthlyTab'
 import { HistoryTab } from './HistoryTab'
 import { getMonthLabel } from '@/lib/utils'
 import { PullToRefresh } from '@/components/PullToRefresh'
+import { useShouldShowSkeleton } from '@/hooks/useShouldShowSkeleton'
+import { OverviewSkeleton } from './OverviewSkeleton'
 
 type Tab = 'month' | 'history'
 
 export function DashboardPage() {
   const [activeTab, setActiveTab] = useState<Tab>('month')
   const data = useDashboard()
+  const showSkeleton = useShouldShowSkeleton(data.isLoading)
 
   const rightLabel =
     activeTab === 'month'
@@ -53,10 +56,8 @@ export function DashboardPage() {
         <PullToRefresh onRefresh={async () => {
           await new Promise(r => setTimeout(r, 800))
         }}>
-          {data.isLoading ? (
-            <div className="flex h-[200px] items-center justify-center">
-              <span className="text-text-muted text-[13px]">Đang tải dữ liệu...</span>
-            </div>
+          {showSkeleton ? (
+            <OverviewSkeleton />
           ) : activeTab === 'month' ? (
             <MonthlyTab data={data} />
           ) : (

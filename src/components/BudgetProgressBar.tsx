@@ -9,13 +9,11 @@ interface BudgetProgressBarProps {
 }
 
 export function BudgetProgressBar({ spent, limit, showLabel = false, height = 4 }: BudgetProgressBarProps) {
-  if (!limit) return null
-
-  const pct = Math.min(1, spent / limit)
-  const status = getBudgetStatus(spent, limit)
-  const color = BUDGET_STATUS_COLORS[status]
-
   const barRef = useRef<HTMLDivElement>(null)
+
+  const pct = Math.min(1, spent / (limit || 1))
+  const status = getBudgetStatus(spent, limit ?? 0)
+  const color = BUDGET_STATUS_COLORS[status]
 
   // Animate from 0 to actual width on mount
   useEffect(() => {
@@ -28,6 +26,8 @@ export function BudgetProgressBar({ spent, limit, showLabel = false, height = 4 
       })
     })
   }, [pct])
+
+  if (!limit) return null
 
   return (
     <div className="w-full">

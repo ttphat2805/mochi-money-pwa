@@ -11,13 +11,16 @@ export interface CategoryWithBudget extends BudgetCategory {
   status: BudgetStatus
 }
 
+const EMPTY_CATS: BudgetCategory[] = []
+const EMPTY_CATS_BUDGET: CategoryWithBudget[] = []
+
 export function useBudgetCategories() {
   const monthKey = getCurrentMonthString()
 
   const rawCategories = useLiveQuery(
     () => db.categories.orderBy('sortOrder').toArray(),
     [],
-  ) ?? []
+  ) ?? EMPTY_CATS
 
   const categoriesWithBudget = useLiveQuery(async () => {
     const cats = await db.categories.orderBy('sortOrder').toArray()
@@ -40,7 +43,7 @@ export function useBudgetCategories() {
       })
     }
     return results
-  }, [monthKey]) ?? []
+  }, [monthKey]) ?? EMPTY_CATS_BUDGET
 
   const warningCategories = useMemo(
     () => categoriesWithBudget.filter((c) => c.status === 'danger' || c.status === 'over'),

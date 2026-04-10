@@ -23,6 +23,7 @@ interface SaveResult {
   budgetWarningTriggered: boolean
   amount: number
   categoryName: string
+  isFirst?: boolean
 }
 
 interface UseQuickAddReturn {
@@ -94,6 +95,8 @@ const EMPTY_RESULT: SaveResult = {
   categoryName: '',
 }
 
+const EMPTY_CATS: BudgetCategory[] = []
+
 export function useQuickAdd(): UseQuickAddReturn {
   const { quickAddOpen, closeQuickAdd, quickAddInitialDate, quickAddInitialCategoryId } = useAppStore()
   const [amountDigits, setAmountDigits] = useState('')
@@ -103,7 +106,7 @@ export function useQuickAdd(): UseQuickAddReturn {
   const [isSaving, setIsSaving] = useState(false)
   const [budgetWarning, setBudgetWarning] = useState<BudgetWarning | null>(null)
 
-  const categories = useLiveQuery(() => db.categories.orderBy('sortOrder').toArray(), []) ?? []
+  const categories = useLiveQuery(() => db.categories.orderBy('sortOrder').toArray(), []) ?? EMPTY_CATS
   const { addTransaction, getSpentByCategory } = useTransactionStore()
 
   // Derived amount from digit string
@@ -206,6 +209,9 @@ export function useQuickAdd(): UseQuickAddReturn {
 
     setIsSaving(true)
     try {
+      const txCount = await db.transactions.count()
+      const isFirst = txCount === 0
+
       await addTransaction({
         amount: savedAmount,
         categoryId: selectedCategoryId,
@@ -224,6 +230,7 @@ export function useQuickAdd(): UseQuickAddReturn {
         budgetWarningTriggered: false,
         amount: savedAmount,
         categoryName: savedCategoryName,
+        isFirst,
       }
     } finally {
       setIsSaving(false)

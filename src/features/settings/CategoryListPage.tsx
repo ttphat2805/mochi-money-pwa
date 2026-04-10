@@ -1,12 +1,14 @@
-import { useState, useEffect, memo, useCallback } from 'react'
-import { Plus, GripVertical, ChevronRight } from 'lucide-react'
 import { BackButton } from '@/components/BackButton'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { useBudgetCategories, type CategoryWithBudget } from '@/hooks/useBudgetCategories'
+import { formatVND } from '@/lib/utils'
+import type { BudgetCategory } from '@/types'
 import {
   DndContext,
   DragOverlay,
-  closestCenter,
   PointerSensor,
   TouchSensor,
+  closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -19,11 +21,9 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { formatVND } from '@/lib/utils'
-import { useBudgetCategories, type CategoryWithBudget } from '@/hooks/useBudgetCategories'
+import { ChevronRight, GripVertical, Plus } from 'lucide-react'
+import { memo, useCallback, useState } from 'react'
 import { CategoryFormSheet } from './CategoryFormSheet'
-import { ConfirmDialog } from '@/components/ConfirmDialog'
-import type { BudgetCategory } from '@/types'
 
 interface CategoryListPageProps {
   onBack: () => void
@@ -142,12 +142,16 @@ export function CategoryListPage({ onBack }: CategoryListPageProps) {
   const [formOpen, setFormOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<BudgetCategory | null>(null)
 
-  // Sync from DB (but not during drag)
-  useEffect(() => {
+  const [prevCategories, setPrevCategories] = useState(categoriesWithBudget)
+  const [prevActiveId, setPrevActiveId] = useState(activeId)
+
+  if (categoriesWithBudget !== prevCategories || activeId !== prevActiveId) {
+    setPrevCategories(categoriesWithBudget)
+    setPrevActiveId(activeId)
     if (activeId == null) {
       setItems(categoriesWithBudget)
     }
-  }, [categoriesWithBudget, activeId])
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),

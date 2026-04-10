@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
 import { getCurrentMonthString, getLast6Months, getMonthLabel } from '@/lib/utils'
 import { useCategoryStore } from '@/stores/categoryStore'
-import type { BudgetCategory, FinancialSettings } from '@/types'
+import type { BudgetCategory, FinancialSettings, Transaction } from '@/types'
 
 function getPrevMonthKey(monthKey: string): string {
   const [y, m] = monthKey.split('-').map(Number)
@@ -34,6 +34,10 @@ export interface TopCategoryItem {
   category: BudgetCategory; total: number; pct: number
 }
 
+const EMPTY_TXS: Transaction[] = []
+const EMPTY_BAR_DATA: BarMonthDatum[] = []
+const EMPTY_BAR_4_DATA: Bar4MonthDatum[] = []
+
 // ── Hook ──────────────────────────────────────────────────────
 
 export function useDashboard() {
@@ -60,7 +64,7 @@ export function useDashboard() {
         .filter((tx) => !tx.deletedAt)
         .toArray(),
     [currentMonthKey],
-  ) ?? []
+  ) ?? EMPTY_TXS
 
   const categoryTotals = useMemo(() => {
     const acc = new Map<number, number>()
@@ -112,7 +116,7 @@ export function useDashboard() {
       return results
     },
     [sixMonthKeys],
-  ) ?? []
+  ) ?? EMPTY_BAR_DATA
 
   // Last 4 months bar data (prev 3 + current)
   const last4MonthKeys = useMemo(() => getLast4Months(currentMonthKey), [currentMonthKey])
@@ -136,7 +140,7 @@ export function useDashboard() {
       return results
     },
     [last4MonthKeys, currentMonthKey],
-  ) ?? []
+  ) ?? EMPTY_BAR_4_DATA
 
   const lastMonthTotal = useMemo(() => {
     if (!last4MonthsBar.length) return 0

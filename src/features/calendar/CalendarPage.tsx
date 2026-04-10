@@ -5,11 +5,14 @@ import { useAppStore } from '@/stores/appStore'
 import { CalendarGrid } from './CalendarGrid'
 import { MonthSummary } from './MonthSummary'
 import { DayDetailPanel } from './DayDetailPanel'
+import { useShouldShowSkeleton } from '@/hooks/useShouldShowSkeleton'
+import { CalendarSkeleton } from './CalendarSkeleton'
 
 export function CalendarPage() {
   const cal = useCalendar()
   const { openQuickAdd } = useAppStore()
   const [slideDir, setSlideDir] = useState<'left' | 'right' | null>(null)
+  const showSkeleton = useShouldShowSkeleton(cal.isLoading)
 
   const handleAddForDay = () => {
     if (!cal.selectedDay) return
@@ -60,8 +63,12 @@ export function CalendarPage() {
           </button>
         </div>
 
-        {/* Calendar grid — handles swipe internally */}
-        <CalendarGrid
+        {showSkeleton ? (
+          <CalendarSkeleton />
+        ) : (
+          <>
+            {/* Calendar grid — handles swipe internally */}
+            <CalendarGrid
           days={cal.calendarDays}
           dailyTotals={cal.dailyTotals}
           maxDailyAmount={cal.maxDailyAmount}
@@ -86,9 +93,11 @@ export function CalendarPage() {
         <DayDetailPanel
           selectedDay={cal.selectedDay}
           transactions={cal.selectedDayTxs}
-          today={cal.today}
-          onAddTransaction={handleAddForDay}
-        />
+            today={cal.today}
+            onAddTransaction={handleAddForDay}
+          />
+        </>
+        )}
       </div>
 
       <style>{`

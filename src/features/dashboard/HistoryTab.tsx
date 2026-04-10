@@ -4,6 +4,13 @@ import { formatVND, getDateLabel } from '@/lib/utils'
 import { useHistory, type TransactionWithCategory } from '@/hooks/useHistory'
 import { TransactionDetailSheet } from '@/features/transactions/TransactionDetailSheet'
 import type { Transaction } from '@/types'
+import { useShouldShowSkeleton } from '@/hooks/useShouldShowSkeleton'
+import { HistorySkeleton } from './HistorySkeleton'
+
+import { motion, useMotionValue, useTransform, type PanInfo } from 'framer-motion'
+import { Trash } from 'lucide-react'
+import { useTransactionStore } from '@/stores/transactionStore'
+import { triggerHaptic } from '@/lib/haptic'
 
 // ── Transaction row ────────────────────────────────────────────
 
@@ -14,45 +21,75 @@ function TxRow({
   tx: TransactionWithCategory
   onSelect: (tx: Transaction) => void
 }) {
+  const { softDelete } = useTransactionStore()
+  
+  const x = useMotionValue(0)
+  const deleteOpacity = useTransform(x, [0, -60], [0, 1])
+  const deleteBg = useTransform(x, [0, -80], ['#FEE2E2', '#EF4444'])
+
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
+    if (info.offset.x < -80) {
+      triggerHaptic('heavy')
+      softDelete(tx.id!)
+    }
+  }
+
   return (
-    <button
-      type="button"
-      onClick={() => onSelect(tx)}
-      className="flex min-h-[52px] items-center gap-3 rounded-xl px-3 py-2.5 active:bg-surface transition-colors text-left w-full"
-    >
-      <div
-        style={{
-          width: 38,
-          height: 38,
-          borderRadius: 11,
-          background: tx.category?.color ? tx.category.color + '18' : '#F2F0EC',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          border: `1.5px solid ${tx.category?.color ?? '#E2E0D8'}22`,
-        }}
+    <div className="relative overflow-hidden w-full rounded-xl">
+      <motion.div 
+        style={{ opacity: deleteOpacity, backgroundColor: deleteBg }}
+        className="absolute inset-y-0 right-0 flex w-full items-center justify-end pr-5 rounded-xl"
       >
-        <span style={{ fontSize: 20, lineHeight: 1 }}>{tx.category?.icon ?? '📦'}</span>
-      </div>
+        <Trash className="text-white size-4" />
+      </motion.div>
 
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[13.5px] font-medium text-text">
-          {tx.category?.name ?? 'Không rõ'}
-        </p>
-        <p className="font-num text-[11px] text-text-muted mt-0.5">
-          {getDateLabel(tx.date)}
-          {tx.note ? ` · ${tx.note}` : ''}
-        </p>
-      </div>
+      <motion.button
+        type="button"
+        drag="x"
+        dragConstraints={{ left: -100, right: 0 }}
+        dragElastic={0.1}
+        onDragEnd={handleDragEnd}
+        style={{ x }}
+        onClick={() => {
+          if (x.get() > -10 && x.get() < 10) onSelect(tx)
+        }}
+        whileTap={{ scale: 0.98 }}
+        className="flex min-h-[52px] items-center gap-3 rounded-xl px-3 py-2.5 bg-white active:bg-surface transition-colors cursor-grab active:cursor-grabbing text-left w-full relative z-10"
+      >
+        <div
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 11,
+            background: tx.category?.color ? tx.category.color + '18' : '#F2F0EC',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            border: `1.5px solid ${tx.category?.color ?? '#E2E0D8'}22`,
+          }}
+        >
+          <span style={{ fontSize: 20, lineHeight: 1 }}>{tx.category?.icon ?? '📦'}</span>
+        </div>
 
-      <div className="flex shrink-0 items-center gap-0.5">
-        <span className="text-text-muted text-[12px]">−</span>
-        <span className="font-num text-[14px] font-semibold text-text">
-          {formatVND(tx.amount)}đ
-        </span>
-      </div>
-    </button>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13.5px] font-medium text-text">
+            {tx.category?.name ?? 'Không rõ'}
+          </p>
+          <p className="font-num text-[11px] text-text-muted mt-0.5">
+            {getDateLabel(tx.date)}
+            {tx.note ? ` · ${tx.note}` : ''}
+          </p>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-0.5">
+          <span className="text-text-muted text-[12px]">−</span>
+          <span className="font-num text-[14px] font-semibold text-text">
+            {formatVND(tx.amount)}đ
+          </span>
+        </div>
+      </motion.button>
+    </div>
   )
 }
 
@@ -81,6 +118,10 @@ export function HistoryTab() {
   const currentIdx = history.monthKeys.indexOf(history.selectedMonth)
   const canGoBack = currentIdx < history.monthKeys.length - 1
   const canGoForward = currentIdx > 0
+
+  const showSkeleton = useShouldShowSkeleton(history.isLoading)
+
+  if (showSkeleton) return <HistorySkeleton />
 
   return (
     <>
