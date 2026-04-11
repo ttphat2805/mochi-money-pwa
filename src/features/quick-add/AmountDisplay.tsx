@@ -1,4 +1,5 @@
-import { X } from 'lucide-react'
+import { Delete } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface AmountDisplayProps {
   display: string
@@ -8,41 +9,42 @@ interface AmountDisplayProps {
 
 export function AmountDisplay({ display, hasValue, onClear }: AmountDisplayProps) {
   return (
-    <div className="flex flex-col items-center py-4 relative group">
-      <span className="text-text-hint mb-3 text-[10px] font-semibold uppercase tracking-[2px] opacity-70">
-        Số tiền
-      </span>
-      
-      <div className="flex items-center justify-center relative w-full px-10 min-h-[64px]">
-        {/* Main Amount Group */}
-        <div className="flex items-baseline gap-1 animate-in zoom-in-95 duration-200">
-          <span
-            className={`font-num text-[48px] font-bold leading-none tracking-[-2.5px] transition-all drop-shadow-sm ${
-              hasValue ? 'text-text scale-105' : 'text-text-hint/40'
-            }`}
+    <div className="flex flex-col items-center py-2 relative group w-full">      
+      <div className="flex items-center justify-center relative w-full px-4 min-h-[80px]">
+        {/* Main Amount Group with Pop Animation */}
+        <AnimatePresence mode="popLayout">
+          <motion.div 
+            key={display}
+            initial={{ scale: 0.9, opacity: 0.8 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+            className="flex items-baseline gap-1.5"
           >
-            {display}
-          </span>
-          <span className={`text-[20px] font-medium transition-colors ${hasValue ? 'text-text-muted' : 'text-text-hint/30'}`}>
-            đ
-          </span>
-        </div>
+            <span
+              className={`font-num text-[56px] font-black leading-none tracking-[-3px] drop-shadow-sm transition-colors duration-300 ${
+                hasValue ? 'text-text' : 'text-text-hint/30'
+              }`}
+            >
+              {display}
+            </span>
+            <span className={`text-[24px] font-black transition-colors ${hasValue ? 'text-text-muted' : 'text-text-hint/20'}`}>
+              đ
+            </span>
+          </motion.div>
+        </AnimatePresence>
 
-        {/* Clear button — sophisticated positioning */}
+        {/* Differentiated Clear Button (Using Delete icon) */}
         {hasValue && onClear && (
           <button
             type="button"
             onClick={onClear}
-            className="absolute right-4 w-7 h-7 rounded-lg flex items-center justify-center bg-white shadow-sm border border-border/50 active:scale-90 transition-all hover:bg-white hover:shadow-md"
+            className="absolute -right-2 top-1/2 -translate-y-1/2 size-8 rounded-full flex items-center justify-center bg-surface active:bg-surface2 transition-all border border-border/30"
             aria-label="Xóa số tiền"
           >
-            <X size={12} className="text-text-muted" />
+            <Delete size={14} className="text-text-hint" />
           </button>
         )}
       </div>
-
-      {/* Decorative line */}
-      <div className="mt-4 w-12 h-0.5 rounded-full bg-border/40" />
     </div>
   )
 }

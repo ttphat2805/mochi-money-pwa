@@ -1,17 +1,14 @@
-import * as React from 'react'
-import { useState, useCallback } from 'react'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { formatVND, getDateLabel } from '@/lib/utils'
-import { useHistory, type TransactionWithCategory } from '@/hooks/useHistory'
 import { TransactionDetailSheet } from '@/features/transactions/TransactionDetailSheet'
-import type { Transaction } from '@/types'
+import { useHistory, type TransactionWithCategory } from '@/hooks/useHistory'
 import { useShouldShowSkeleton } from '@/hooks/useShouldShowSkeleton'
-import { HistorySkeleton } from './HistorySkeleton'
-
-import { motion, useMotionValue, animate, type PanInfo } from 'framer-motion'
-import { Trash } from 'lucide-react'
-import { useTransactionStore } from '@/stores/transactionStore'
 import { triggerHaptic } from '@/lib/haptic'
+import { cn, formatVND, getDateLabel } from '@/lib/utils'
+import type { Transaction } from '@/types'
+import { animate, motion, useMotionValue, type PanInfo } from 'framer-motion'
+import { ChevronLeft, ChevronRight, Trash, X } from 'lucide-react'
+import * as React from 'react'
+import { useCallback, useState } from 'react'
+import { HistorySkeleton } from './HistorySkeleton'
 
 // ── Transaction row ────────────────────────────────────────────
 
@@ -22,15 +19,8 @@ function TxRow({
   tx: TransactionWithCategory
   onSelect: (tx: Transaction) => void
 }) {
-  const { softDelete } = useTransactionStore()
   const x = useMotionValue(0)
   const [hasDragged, setHasDragged] = React.useState(false)
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    triggerHaptic('heavy')
-    softDelete(tx.id!)
-  }
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     if (Math.abs(info.offset.x) > 10) {
@@ -46,16 +36,10 @@ function TxRow({
   }
 
   return (
-    <div className="relative overflow-hidden w-full rounded-xl bg-[#EF4444]">
-      {/* Background delete button layer */}
+    <div className="relative w-full bg-danger overflow-hidden">
+      {/* Background delete layer */}
       <div className="absolute inset-y-0 right-0 w-[64px] flex items-center justify-center">
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="w-full h-full flex items-center justify-center text-white active:opacity-70 transition-opacity"
-        >
-          <Trash className="size-4" />
-        </button>
+        <Trash className="size-4 text-white" />
       </div>
 
       <motion.button
@@ -74,38 +58,34 @@ function TxRow({
           }
           onSelect(tx)
         }}
-        whileTap={{ scale: Math.abs(x.get()) < 5 ? 0.98 : 1 }}
-        className="flex min-h-[52px] items-center gap-3 rounded-xl px-3 py-2.5 bg-white transition-colors cursor-grab active:cursor-grabbing text-left w-full relative z-10"
+        whileTap={{ backgroundColor: 'rgba(0,0,0,0.03)' }}
+        className="flex min-h-[58px] items-center gap-3 px-3 py-3 bg-white transition-colors cursor-grab active:cursor-grabbing text-left w-full relative z-10"
       >
         <div
+          className="shrink-0 flex items-center justify-center rounded-[12px] text-xl border border-border/40"
           style={{
-            width: 38,
-            height: 38,
-            borderRadius: 11,
-            background: tx.category?.color ? tx.category.color + '18' : '#F2F0EC',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            border: `1.5px solid ${tx.category?.color ?? '#E2E0D8'}22`,
+            width: 40,
+            height: 40,
+            background: tx.category?.color ? tx.category.color + '15' : '#F2F0EC',
+            color: tx.category?.color ?? 'var(--color-text-muted)',
           }}
         >
-          <span style={{ fontSize: 20, lineHeight: 1 }}>{tx.category?.icon ?? '📦'}</span>
+          {tx.category?.icon ?? '📦'}
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[13.5px] font-medium text-text">
+          <p className="truncate text-[14px] font-bold text-text mb-0.5">
             {tx.category?.name ?? 'Không rõ'}
           </p>
-          <p className="font-num text-[11px] text-text-muted mt-0.5">
+          <p className="font-num text-[11px] text-text-hint truncate opacity-90">
             {getDateLabel(tx.date)}
             {tx.note ? ` · ${tx.note}` : ''}
           </p>
         </div>
 
         <div className="flex shrink-0 items-center gap-0.5">
-          <span className="text-text-muted text-[12px]">−</span>
-          <span className="font-num text-[14px] font-semibold text-text">
+          <span className="text-text-muted text-[13px] font-medium opacity-60">−</span>
+          <span className="font-num text-[15px] font-black text-text tracking-tight">
             {formatVND(tx.amount)}đ
           </span>
         </div>
@@ -176,46 +156,68 @@ export function HistoryTab() {
           </button>
         </div>
 
-        {/* Category filter chips */}
+        {/* Category filter pills - Elite Scroll Version */}
         {history.activeCategories.length > 0 && (
-          <div
-            className="flex gap-2 overflow-x-auto px-4 pb-3"
-            style={{ scrollbarWidth: 'none' }}
-          >
-            {/* All chip */}
-            <button
-              id="history-filter-all"
-              type="button"
-              onClick={() => history.setSelectedCategoryId(null)}
-              className="shrink-0 flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-medium transition-colors"
-              style={{
-                background: !history.selectedCategoryId ? '#1A1A18' : '#F2F0EC',
-                color: !history.selectedCategoryId ? '#fff' : '#88887A',
-              }}
-            >
-              Tất cả
-            </button>
+          <div className="relative mb-4">
+             {/* Edge Fades for visual depth */}
+            <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-bg to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-bg to-transparent z-10 pointer-events-none" />
 
-            {history.activeCategories.map((cat) => {
-              const isActive = history.selectedCategoryId === cat.id
-              return (
-                <button
-                  key={cat.id}
-                  id={`history-filter-cat-${cat.id}`}
-                  type="button"
-                  onClick={() => history.setSelectedCategoryId(isActive ? null : cat.id!)}
-                  className="shrink-0 flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-medium transition-colors"
-                  style={{
-                    background: isActive ? cat.color + '20' : '#F2F0EC',
-                    color: isActive ? cat.color : '#88887A',
-                    border: isActive ? `1.5px solid ${cat.color}` : '1.5px solid transparent',
-                  }}
-                >
-                  <span style={{ fontSize: 13 }}>{cat.icon}</span>
-                  {cat.name}
-                </button>
-              )
-            })}
+            <div
+              className="flex gap-2.5 overflow-x-auto px-4 pb-1 snap-x scrollbar-hide"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
+              {/* All chip */}
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.95 }}
+                animate={!history.selectedCategoryId ? { scale: 1.05 } : { scale: 1 }}
+                onClick={() => {
+                   triggerHaptic('light');
+                   history.setSelectedCategoryId(null);
+                }}
+                className={cn(
+                  "snap-start shrink-0 flex items-center h-10 px-5 rounded-full border-[1.5px] transition-all",
+                  !history.selectedCategoryId 
+                    ? "bg-text text-white shadow-md z-10" 
+                    : "bg-white border-border text-text-muted hover:bg-surface"
+                )}
+              >
+                <span className="text-[13px] font-black tracking-tight">Tất cả</span>
+              </motion.button>
+
+              {history.activeCategories.map((cat) => {
+                const isActive = history.selectedCategoryId === cat.id
+                return (
+                  <motion.button
+                    key={cat.id}
+                    type="button"
+                    whileTap={{ scale: 0.95 }}
+                    animate={isActive ? { scale: 1.05 } : { scale: 1 }}
+                    onClick={() => {
+                        triggerHaptic('light');
+                        history.setSelectedCategoryId(isActive ? null : cat.id!);
+                    }}
+                    className={cn(
+                      "snap-start shrink-0 flex items-center gap-2 h-10 px-4 rounded-full border-[1.5px] transition-all",
+                      isActive 
+                        ? "bg-white shadow-md z-10" 
+                        : "bg-white border-border text-text-muted hover:bg-surface"
+                    )}
+                    style={{
+                      borderColor: isActive ? cat.color : undefined,
+                      backgroundColor: isActive ? `${cat.color}10` : undefined,
+                      color: isActive ? cat.color : undefined,
+                    }}
+                  >
+                    <span className="text-lg translate-y-[0.5px]">{cat.icon}</span>
+                    <span className="text-[13px] font-black whitespace-nowrap tracking-tight">
+                        {cat.name}
+                    </span>
+                  </motion.button>
+                )
+              })}
+            </div>
           </div>
         )}
 

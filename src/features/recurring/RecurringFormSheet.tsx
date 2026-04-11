@@ -109,7 +109,6 @@ export function RecurringFormSheet({ open, onClose, onSave, editTemplate }: Recu
                 categories={categories}
                 selectedId={form.state.categoryId ?? null}
                 onSelect={(id) => form.selectCategory(id)}
-                scrollable={false}
               />
             </div>
 

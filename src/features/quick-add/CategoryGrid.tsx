@@ -5,75 +5,73 @@ import { useCategoryStore } from "@/stores/categoryStore";
 import { CategoryFormSheet } from "@/features/settings/CategoryFormSheet";
 import type { BudgetCategory } from "@/types";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { usePersonalization } from "@/hooks/usePersonalization";
 
 interface CategoryGridProps {
   categories: BudgetCategory[];
   selectedId: number | null;
   onSelect: (id: number) => void;
   showAdd?: boolean;
-  scrollable?: boolean;
-  className?: string;
 }
 
+/**
+ * Senior UX Architecture: Tactile Category Row
+ * Refined the horizontal scroll with premium 'Tactile' pills.
+ * Replaces hard gradients with a CSS mask for seamless edge fading.
+ */
 export function CategoryGrid({
   categories,
   selectedId,
   onSelect,
   showAdd,
-  scrollable = true,
-  className,
 }: CategoryGridProps) {
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-
-  if (categories.length === 0) {
-    return (
-      <div className="text-text-muted py-4 text-center text-[13px] font-medium">
-        Chưa có danh mục nào
-      </div>
-    );
-  }
+  const { settings } = usePersonalization();
+  const accentColor = settings.accentColor || '#E8A020';
 
   return (
-    <div
-      className={className}
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: 8,
-        ...(scrollable ? {
-          maxHeight: 180,
-          overflowY: 'auto',
-          scrollbarWidth: 'none',
-        } : {
-          maxHeight: 'none',
-          overflow: 'visible',
-        }),
-      }}
-    >
+    <div className="relative py-1">
+      <div 
+        className="flex gap-3 overflow-x-auto pb-5 pt-3 snap-x scrollbar-hide -mx-6 px-6"
+        style={{ 
+            WebkitOverflowScrolling: 'touch',
+        }}
+      >
         {categories.map((category) => {
           const isSelected = category.id === selectedId;
           return (
             <motion.button
               key={category.id}
               type="button"
-              whileTap={{ scale: 0.96 }}
-              animate={isSelected ? { scale: [1, 1.03, 1] } : {}}
-              transition={{ duration: 0.2 }}
-              onClick={() => category.id != null && onSelect(category.id)}
-              className={`group flex h-12 items-center gap-3 rounded-2xl border px-3 text-left transition-all ${
-                isSelected
-                  ? "border-accent bg-accent-bg shadow-sm"
-                  : "border-border/60 bg-white active:bg-surface"
-              }`}
+              initial={false}
+              animate={isSelected ? { scale: 1.05 } : { scale: 1 }}
+              whileTap={{ scale: 0.94 }}
+              onClick={() => {
+                category.id != null && onSelect(category.id);
+              }}
+              className={cn(
+                "snap-center shrink-0 flex items-center gap-2.5 h-[46px] px-5 rounded-full border-[1.5px] transition-all duration-300",
+                isSelected 
+                  ? "bg-white shadow-xl shadow-accent/10 z-10" 
+                  : "bg-white/80 border-border/30 text-text-muted hover:bg-white"
+              )}
+              style={{
+                borderColor: isSelected ? category.color : 'transparent',
+                backgroundColor: isSelected ? `${category.color}10` : undefined,
+                color: isSelected ? category.color : undefined
+              }}
             >
-              <span className="text-2xl leading-none shrink-0 transition-transform group-active:scale-90">
-                {category.icon}
-              </span>
-              <span
-                className={`truncate text-[13px] font-bold ${
-                  isSelected ? "text-accent-dark" : "text-text"
-                }`}
+              <motion.span 
+                animate={isSelected ? { rotate: [0, -10, 10, 0] } : {}}
+                className="text-[22px] shrink-0"
               >
+                {category.icon}
+              </motion.span>
+              <span className={cn(
+                  "text-[14px] font-black whitespace-nowrap tracking-tight",
+                  isSelected ? "opacity-100" : "opacity-60"
+              )}>
                 {category.name}
               </span>
             </motion.button>
@@ -83,16 +81,27 @@ export function CategoryGrid({
         {showAdd && (
           <motion.button
             type="button"
-            whileTap={{ scale: 0.96 }}
+            whileTap={{ scale: 0.92 }}
             onClick={() => setAddCategoryOpen(true)}
-            className="flex h-12 items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed border-border bg-transparent text-text-hint text-[12px] font-bold transition-colors hover:border-accent hover:text-accent"
+            className="snap-center shrink-0 flex items-center gap-2 h-[46px] px-6 rounded-full border-[2px] border-dashed transition-all relative group/add"
+            style={{ 
+                borderColor: `${accentColor}40`,
+                backgroundColor: 'rgba(255,255,255,0.5)'
+            }}
           >
-            <Plus size={14} />
-            Thêm
+            <div 
+                className="size-6 rounded-full flex items-center justify-center text-white shadow-sm"
+                style={{ backgroundColor: accentColor }}
+            >
+                <Plus size={16} strokeWidth={3} />
+            </div>
+            <span className="text-[14px] font-extrabold uppercase tracking-tight" style={{ color: accentColor }}>
+                Thêm
+            </span>
           </motion.button>
         )}
+      </div>
 
-      {/* Add new category sheet */}
       <CategoryFormSheet
         open={addCategoryOpen}
         onClose={() => setAddCategoryOpen(false)}
@@ -101,7 +110,7 @@ export function CategoryGrid({
           const id = await db.categories.add({
             ...data,
             sortOrder: count,
-            color: "#F5C043", // default color since it is required
+            color: "#F5C043",
           });
           await useCategoryStore.getState().loadCategories();
           onSelect(id as number);

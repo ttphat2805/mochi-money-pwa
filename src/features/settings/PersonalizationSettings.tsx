@@ -1,168 +1,127 @@
 import { useState } from 'react'
 import { usePersonalization } from '@/hooks/usePersonalization'
+import { Check } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+const PRESET_COLORS = [
+  { hex: '#E8A020', name: 'Amber' },
+  { hex: '#2A9D6E', name: 'Xanh lá' },
+  { hex: '#378ADD', name: 'Xanh dương' },
+  { hex: '#7C3AED', name: 'Tím' },
+  { hex: '#D63E3E', name: 'Đỏ' },
+  { hex: '#DB2777', name: 'Hồng' },
+  { hex: '#0891B2', name: 'Cyan' },
+  { hex: '#1A1A18', name: 'Đen' },
+  { hex: '#6D28D9', name: 'Violet' },
+  { hex: '#BE123C', name: 'Rose' },
+  { hex: '#F59E0B', name: 'Orange' },
+]
 
 export function PersonalizationSettings() {
   const { settings, updateAppName, updateAccentColor } = usePersonalization()
   const [nameInput, setNameInput] = useState(settings.appName)
 
-  const PRESET_COLORS = [
-    { hex: '#E8A020', name: 'Amber' },
-    { hex: '#2A9D6E', name: 'Xanh lá' },
-    { hex: '#378ADD', name: 'Xanh dương' },
-    { hex: '#7C3AED', name: 'Tím' },
-    { hex: '#D63E3E', name: 'Đỏ' },
-    { hex: '#DB2777', name: 'Hồng' },
-    { hex: '#0891B2', name: 'Cyan' },
-    { hex: '#1A1A18', name: 'Đen' },
-  ]
-
   return (
-    <div className="mb-6">
+    <div className="space-y-6 pb-2">
       {/* App name */}
-      <div style={{ padding: '0 16px', marginBottom: 20 }}>
-        <label style={{
-          fontSize: 11, fontWeight: 500,
-          color: '#88887A', textTransform: 'uppercase',
-          letterSpacing: '0.6px', display: 'block', marginBottom: 8,
-        }}>
+      <div className="space-y-2 px-4 text-left">
+        <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block ml-1">
           Tên hiển thị
         </label>
-        <div style={{ position: 'relative' }}>
+        <div className="relative group">
           <input
             type="text"
             value={nameInput}
             onChange={e => setNameInput(e.target.value)}
             onBlur={() => updateAppName(nameInput)}
-            placeholder="Chi Tiêu"
+            placeholder="Mochi Money"
             maxLength={20}
-            style={{
-              width: '100%', height: 48,
-              borderRadius: 14,
-              border: '1.5px solid #E2E0D8',
-              background: 'white',
-              padding: '0 44px 0 16px',
-              fontSize: 16, fontWeight: 500,
-              color: '#1A1A18', outline: 'none',
-              fontFamily: 'inherit',
-              transition: 'border-color 0.15s',
-            }}
-            onFocus={e =>
-              e.target.style.borderColor = settings.accentColor
-            }
-            onBlurCapture={e => e.target.style.borderColor = '#E2E0D8'}
+            className="w-full h-13 rounded-2xl border-[1.5px] border-border bg-white px-4 pr-12 text-[15px] font-semibold text-text outline-none transition-all focus:border-accent shadow-sm"
           />
-          {/* Character count */}
-          <span style={{
-            position: 'absolute', right: 14,
-            top: '50%', transform: 'translateY(-50%)',
-            fontSize: 11, color: '#C0BEB4',
-          }}>
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-text-hint/70 pointer-events-none">
             {nameInput.length}/20
           </span>
         </div>
-        <p style={{ fontSize: 11, color: '#B8B8A8', marginTop: 6 }}>
+        <p className="text-[11px] text-text-hint ml-1 leading-relaxed">
           Hiển thị ở đầu trang chủ và màn hình loading
         </p>
       </div>
 
       {/* Accent color */}
-      <div style={{ padding: '0 16px' }}>
-        <label style={{
-          fontSize: 11, fontWeight: 500,
-          color: '#88887A', textTransform: 'uppercase',
-          letterSpacing: '0.6px', display: 'block', marginBottom: 12,
-        }}>
+      <div className="space-y-3">
+        <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block ml-5 text-left">
           Màu chủ đạo
         </label>
 
-        {/* Color swatches */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(8, 1fr)',
-          gap: 10,
-          marginBottom: 16,
-        }}>
-          {PRESET_COLORS.map(c => (
-            <button
-              key={c.hex}
-              onClick={() => updateAccentColor(c.hex)}
-              title={c.name}
-              style={{
-                width: '100%',
-                aspectRatio: '1',
-                borderRadius: 12,
-                background: c.hex,
-                border: settings.accentColor === c.hex
-                  ? `3px solid ${c.hex}`
-                  : '3px solid transparent',
-                outline: settings.accentColor === c.hex
-                  ? `2px solid white`
-                  : 'none',
-                outlineOffset: -5,
-                cursor: 'pointer',
-                transition: 'transform 0.15s',
-                boxShadow: `0 3px 10px ${c.hex}50`,
-              }}
-              onTouchStart={e =>
-                (e.currentTarget.style.transform = 'scale(0.88)')
-              }
-              onTouchEnd={e =>
-                (e.currentTarget.style.transform = 'scale(1)')
-              }
-            />
-          ))}
+        {/* Horizontal Scrollable Color Picker */}
+        <div 
+          className="flex gap-3 overflow-x-auto px-5 p-4 scrollbar-hide -webkit-overflow-scrolling-touch"
+          style={{ scrollSnapType: 'x proximity' }}
+        >
+          {PRESET_COLORS.map(c => {
+            const isActive = settings.accentColor === c.hex
+            return (
+              <button
+                key={c.hex}
+                onClick={() => updateAccentColor(c.hex)}
+                className={cn(
+                  "relative shrink-0 w-11 h-11 rounded-full transition-all active:scale-95 shadow-sm overflow-hidden flex items-center justify-center",
+                  isActive ? "ring-2 ring-offset-2 ring-accent scale-105" : "hover:scale-105 opacity-80"
+                )}
+                style={{ 
+                    backgroundColor: c.hex,
+                    scrollSnapAlign: 'start'
+                }}
+              >
+                {isActive && (
+                  <Check className="size-5 text-white drop-shadow-sm" strokeWidth={3} />
+                )}
+              </button>
+            )
+          })}
+          {/* Spacer for end of scroll */}
+          <div className="shrink-0 w-2" />
         </div>
 
-        {/* Preview */}
-        <div style={{
-          background: 'white',
-          borderRadius: 16,
-          padding: '14px 16px',
-          border: `1.5px solid ${settings.accentColor}30`,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-        }}>
-          {/* Mini preview elements */}
-          <div style={{
-            width: 36, height: 36, borderRadius: 10,
-            background: settings.accentColor,
-            display: 'flex', alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: `0 4px 12px ${settings.accentColor}50`,
-          }}>
-            <span style={{ fontSize: 16, color: 'white' }}>+</span>
-          </div>
-          <div style={{ flex: 1 }}>
-            <p style={{
-              fontSize: 12, fontWeight: 600,
-              color: settings.accentColor,
-            }}>
-              {settings.appName || 'Chi Tiêu'}
-            </p>
-            <div style={{
-              height: 4, borderRadius: 99, marginTop: 5,
-              background: settings.accentColor + '20',
-              overflow: 'hidden',
-            }}>
-              <div style={{
-                height: '100%', borderRadius: 99,
-                width: '65%',
-                background: settings.accentColor,
-              }} />
+        {/* Real-time Theme Preview Card */}
+        <div className="px-4">
+            <div 
+            className="bg-white rounded-2xl p-4 border shadow-premium transition-colors"
+            style={{ borderColor: settings.accentColor + '30' }}
+            >
+            <div className="flex items-center gap-3">
+                <div 
+                className="size-10 rounded-xl flex items-center justify-center shadow-lg transition-transform active:scale-95"
+                style={{ 
+                    backgroundColor: settings.accentColor,
+                    boxShadow: `0 8px 20px -6px ${settings.accentColor}60`
+                }}
+                >
+                <span className="text-xl text-white font-bold">+</span>
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                <p className="text-[13px] font-bold truncate" style={{ color: settings.accentColor }}>
+                    {nameInput || 'Mochi Money'}
+                </p>
+                <div className="h-1.5 w-full bg-surface rounded-full mt-1.5 overflow-hidden">
+                    <div 
+                    className="h-full rounded-full transition-all duration-500 ease-out" 
+                    style={{ 
+                        width: '65%', 
+                        backgroundColor: settings.accentColor 
+                    }} 
+                    />
+                </div>
+                </div>
+                <span className="text-[12px] font-black" style={{ color: settings.accentColor }}>
+                65%
+                </span>
             </div>
-          </div>
-          <span style={{
-            fontSize: 11, fontWeight: 700,
-            color: settings.accentColor,
-            fontFamily: 'monospace',
-          }}>
-            65%
-          </span>
+            </div>
+            <p className="text-[11px] text-text-hint mt-3 leading-relaxed text-left">
+            Chọn màu sắc đại diện cho phong cách cá nhân của bạn.
+            </p>
         </div>
-        <p style={{ fontSize: 11, color: '#B8B8A8', marginTop: 8 }}>
-          Áp dụng cho toàn bộ app — FAB, progress bar, active states
-        </p>
       </div>
     </div>
   )

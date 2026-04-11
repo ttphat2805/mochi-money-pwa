@@ -211,7 +211,6 @@ export function FixedExpenseFormSheet({
                 selectedId={form.categoryId ?? null}
                 onSelect={(id) => form.setCategoryId(id)}
                 showAdd
-                scrollable={false}
               />
             </div>
 

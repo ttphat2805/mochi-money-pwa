@@ -11,8 +11,8 @@ export function NoteInput({ value, onChange }: NoteInputProps) {
   const [isFocused, setIsFocused] = useState(false)
 
   return (
-    <div className="relative flex flex-1 items-center gap-2 rounded-xl bg-white px-3 py-3 shadow-sm border border-border/40 transition-colors">
-      <Pencil className={`size-4 shrink-0 transition-colors ${isFocused ? 'text-accent' : 'text-text-hint'}`} />
+    <div className="relative flex flex-1 items-center gap-2 rounded-xl bg-white px-3 py-2 border border-border/30 shadow-none transition-colors">
+      <Pencil className={`size-3.5 shrink-0 transition-colors ${isFocused ? 'text-accent' : 'text-text-hint/60'}`} />
       <input
         type="text"
         value={value}
@@ -20,7 +20,7 @@ export function NoteInput({ value, onChange }: NoteInputProps) {
         onBlur={() => setIsFocused(false)}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Ghi chú (tùy chọn)"
-        className="w-full bg-transparent text-[13px] font-medium outline-none placeholder:text-text-hint/80 text-text relative z-10"
+        className="w-full bg-transparent text-[12px] font-bold outline-none placeholder:text-text-hint/50 text-text relative z-10"
         maxLength={100}
       />
       

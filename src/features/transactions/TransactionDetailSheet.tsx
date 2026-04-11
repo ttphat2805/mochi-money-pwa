@@ -46,6 +46,16 @@ export function TransactionDetailSheet({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [initialCategoryId, setInitialCategoryId] = useState<number | null>(null)
+
+  // Capture the starting category when the sheet opens to prevent list jumping during selection
+  useEffect(() => {
+    if (open && transaction && initialCategoryId === null) {
+      setInitialCategoryId(transaction.categoryId)
+    } else if (!open) {
+      setInitialCategoryId(null)
+    }
+  }, [open, transaction?.id, initialCategoryId])
 
   const categories = useLiveQuery(() => db.categories.orderBy('sortOrder').toArray()) ?? []
 
@@ -166,7 +176,11 @@ export function TransactionDetailSheet({
                   Danh mục
                 </label>
                 <CategoryGrid
-                  categories={categories}
+                  categories={[...categories].sort((a, b) => {
+                    if (a.id === initialCategoryId) return -1;
+                    if (b.id === initialCategoryId) return 1;
+                    return 0;
+                  })}
                   selectedId={categoryId}
                   onSelect={setCategoryId}
                 />

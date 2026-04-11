@@ -344,13 +344,7 @@ button, label, .nav-item {
 }
 
 /* ── Animations ── */
-[data-state="open"] {
-  animation: sheetSlideUp 300ms cubic-bezier(0.32, 0.72, 0, 1) !important;
-}
-[data-state="closed"] {
-  animation: sheetSlideDown 200ms ease-in !important;
-}
-
+/* Remove redundant sheet transition animations that conflict with vaul gestures */
 @keyframes sheetSlideUp {
   from { transform: translateY(100%); }
   to   { transform: translateY(0); }

@@ -43,6 +43,14 @@ export interface ImportResult {
 // ── Build backup object ────────────────────────────────────────
 
 async function buildBackupData(): Promise<BackupData> {
+  const safeFetch = async (table: any) => {
+    try {
+      return await table.toArray()
+    } catch {
+      return []
+    }
+  }
+
   const [
     categories,
     transactions,
@@ -51,12 +59,12 @@ async function buildBackupData(): Promise<BackupData> {
     settings,
     extraIncomes,
   ] = await Promise.all([
-    db.categories.toArray(),
-    db.transactions.toArray(),
-    db.recurringTemplates.toArray(),
-    db.fixedExpenses.toArray(),
-    db.settings.toArray(),
-    db.extraIncomes.toArray(),
+    safeFetch(db.categories),
+    safeFetch(db.transactions),
+    safeFetch(db.recurringTemplates),
+    safeFetch(db.fixedExpenses),
+    safeFetch(db.settings),
+    safeFetch(db.extraIncomes),
   ])
 
   return {

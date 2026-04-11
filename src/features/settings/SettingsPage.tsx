@@ -15,16 +15,21 @@ interface SettingsPageProps {
 
 export function SettingsPage({ onBack, onGoRecurring, onGoFixedExpenses, onGoFinancial, onGoCategories }: SettingsPageProps) {
   return (
-    <div className="flex h-[100dvh] flex-col relative">
-      {/* Header */}
-      <header className="flex items-center gap-3 px-4 py-3 safe-top">
-        <BackButton onBack={onBack} />
-        <h1 className="flex-1 text-center text-base font-semibold">Cài đặt</h1>
-        <div className="size-8" /> {/* spacer */}
+    <div className="flex h-[100dvh] flex-col relative bg-bg">
+      {/* Header with Robust Safe Area support */}
+      <header className="sticky top-0 z-20 bg-bg/80 backdrop-blur-md border-b border-border/40">
+        <div className="safe-top" />
+        <div className="flex h-12 items-center gap-2 px-4">
+            <div className="w-10 flex items-center">
+            <BackButton onBack={onBack} />
+            </div>
+            <h1 className="flex-1 text-center text-[16px] font-bold text-text">Cài đặt</h1>
+            <div className="w-10" />
+        </div>
       </header>
 
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto pb-8">
+      <div className="flex-1 overflow-y-auto pb-10 scrollbar-hide">
         <SectionLabel>Cá nhân hoá</SectionLabel>
         <PersonalizationSettings />
 
@@ -56,8 +61,6 @@ export function SettingsPage({ onBack, onGoRecurring, onGoFixedExpenses, onGoFin
         <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">
           <SettingsRow icon="🏠" label="Chi phí cố định" sublabel="Tiền nhà, điện nước..." onTap={onGoFixedExpenses} />
         </div>
-
-
 
         {/* Dữ liệu */}
         <SectionLabel>Dữ liệu</SectionLabel>

@@ -62,7 +62,7 @@ export function TrendBadge({ monthSpent, lastMonthSpent, onClick }: TrendBadgePr
         
         <div className="flex-1 min-w-0">
           <p className="text-[13px] leading-tight" style={{ color: '#6B7280' }}>
-            {isIncrease ? 'Bạn chi ' : 'Bạn đã tiết kiệm '}
+            {isIncrease ? 'Tháng này bạn chi thêm ' : 'Bạn đã tiết kiệm được '}
             <span
               className="font-bold font-num inline-flex items-center gap-0.5"
               style={{ color: isIncrease ? '#EF4444' : '#10B981' }}
