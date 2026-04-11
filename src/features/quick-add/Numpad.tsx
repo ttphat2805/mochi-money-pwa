@@ -18,55 +18,57 @@ export function Numpad({ onDigit, onDelete, onConfirm, canConfirm, isSaving }: N
   const accent = settings.accentColor || '#E8A020'
 
   return (
-    <div
-      className="grid grid-cols-3 gap-3 w-full"
-    >
+    <div className="grid grid-cols-3 gap-2.5 w-full">
+      {/* Digit keys 1–9 */}
       {KEYS.map((digit) => (
         <motion.button
           key={digit}
           type="button"
-          whileTap={{ scale: 0.94, backgroundColor: 'var(--color-surface2)' }}
+          whileTap={{ scale: 0.92, transition: { duration: 0.08 } }}
           onClick={() => { triggerHaptic('light'); onDigit(digit); }}
-          className="bg-white border border-border/30 shadow-sm flex h-[54px] items-center justify-center rounded-2xl text-[24px] font-bold text-text active:shadow-inner transition-all"
+          className="bg-white shadow-sm flex h-[52px] items-center justify-center rounded-2xl text-[22px] font-bold text-text active:bg-white/70 transition-colors"
         >
           {digit}
         </motion.button>
       ))}
 
-      {/* Bottom row: backspace, 0, save */}
+      {/* Backspace */}
       <motion.button
         type="button"
-        whileTap={{ scale: 0.94, backgroundColor: 'rgba(0,0,0,0.05)' }}
+        whileTap={{ scale: 0.92, transition: { duration: 0.08 } }}
         onClick={() => { triggerHaptic('light'); onDelete(); }}
-        className="flex h-[54px] items-center justify-center rounded-2xl transition-colors"
+        className="flex h-[52px] items-center justify-center rounded-2xl transition-colors active:bg-black/5"
         aria-label="Xóa"
       >
-        <Delete className="text-text-muted size-6" />
+        <Delete className="text-black/40 size-5" />
       </motion.button>
 
+      {/* Zero */}
       <motion.button
         type="button"
-        whileTap={{ scale: 0.94, backgroundColor: 'var(--color-surface2)' }}
+        whileTap={{ scale: 0.92, transition: { duration: 0.08 } }}
         onClick={() => { triggerHaptic('light'); onDigit(0); }}
-        className="bg-white border border-border/30 shadow-sm flex h-[54px] items-center justify-center rounded-2xl text-[24px] font-bold text-text active:shadow-inner transition-all"
+        className="bg-white shadow-sm flex h-[52px] items-center justify-center rounded-2xl text-[22px] font-bold text-text active:bg-white/70 transition-colors"
       >
         0
       </motion.button>
 
+      {/* Confirm / Done — spans prominently */}
       <motion.button
         type="button"
-        whileTap={canConfirm && !isSaving ? { scale: 0.94 } : {}}
+        whileTap={canConfirm && !isSaving ? { scale: 0.94, transition: { duration: 0.08 } } : {}}
         onClick={() => { triggerHaptic('medium'); onConfirm(); }}
         disabled={!canConfirm || isSaving}
-        style={{ 
-            backgroundColor: canConfirm ? accent : '#D0CEC4',
-            boxShadow: canConfirm ? `0 8px 20px -6px ${accent}60` : 'none'
+        className="flex h-[52px] items-center justify-center rounded-2xl text-[15px] font-black text-white transition-all duration-200 disabled:opacity-35"
+        style={{
+          backgroundColor: canConfirm ? accent : '#C0BDB5',
         }}
-        className={`text-white flex h-[54px] items-center justify-center rounded-2xl text-[16px] font-black transition-all duration-300 disabled:opacity-40`}
       >
         {isSaving ? (
           <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        ) : 'Xong'}
+        ) : (
+          <span>Xong ✓</span>
+        )}
       </motion.button>
     </div>
   )

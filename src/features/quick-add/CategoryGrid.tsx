@@ -12,19 +12,12 @@ interface CategoryGridProps {
   categories: BudgetCategory[];
   selectedId: number | null;
   onSelect: (id: number) => void;
-  showAdd?: boolean;
 }
 
-/**
- * Senior UX Architecture: Compact Tactical Grid
- * Reduced footprint (4 columns) and internal vertical scrolling.
- * Keeps the 'QuickAdd' sheet compact while supporting many categories.
- */
 export function CategoryGrid({
   categories,
   selectedId,
   onSelect,
-  showAdd,
 }: CategoryGridProps) {
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
   const { settings } = usePersonalization();
@@ -32,88 +25,63 @@ export function CategoryGrid({
 
   return (
     <div className="relative">
-      {/* 
-        Scrollable Container with Max Height
-        Limits the vertical space to ~2.5 rows (180px)
-      */}
-      <div className="max-h-[150px] overflow-y-auto scrollbar-hide px-0.5 pb-2 pt-1 -mx-0.5">
-        <div className="grid grid-cols-4 gap-2">
-          <AnimatePresence mode="popLayout">
-            {categories.map((category) => {
-              const isSelected = category.id === selectedId;
-              return (
-                <motion.button
-                  key={category.id}
-                  layout
-                  type="button"
-                  initial={false}
-                  animate={isSelected ? { 
-                      scale: 1,
-                      backgroundColor: category.color,
-                      borderColor: category.color
-                  } : { 
-                      scale: 1,
-                      backgroundColor: 'rgba(255,255,255,0.7)',
-                      borderColor: 'transparent'
-                  }}
-                  whileTap={{ 
-                      scale: 0.92, 
-                      opacity: 0.8,
-                      transition: { type: "spring", stiffness: 400, damping: 10 } 
-                  }}
-                  onClick={() => {
-                    category.id != null && onSelect(category.id);
-                  }}
-                  className={cn(
-                    "flex flex-col items-center justify-center gap-1 h-[68px] rounded-xl border-[1.5px] transition-all duration-300 relative overflow-hidden group touch-none",
-                    isSelected 
-                      ? "shadow-md shadow-black/10 z-10" 
-                      : "text-text-muted hover:bg-white border-border/5"
-                  )}
-                  style={{
-                    color: isSelected ? 'white' : undefined
-                  }}
-                >
-                  <motion.span 
-                    animate={isSelected ? { scale: [1, 1.2, 1] } : {}}
-                    className="text-[22px] leading-none z-10"
-                  >
-                    {category.icon}
-                  </motion.span>
-                  <span className={cn(
-                      "text-[9px] font-black uppercase tracking-tight z-10 line-clamp-1 px-1 text-center leading-tight",
-                      isSelected ? "opacity-100" : "opacity-50"
-                  )}>
-                    {category.name}
-                  </span>
-                </motion.button>
-              );
-            })}
-
-            {showAdd && (
+      <div className="grid grid-cols-4 gap-1.5">
+        <AnimatePresence mode="popLayout">
+          {categories.map((category) => {
+            const isSelected = category.id === selectedId;
+            return (
               <motion.button
+                key={category.id}
                 layout
                 type="button"
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setAddCategoryOpen(true)}
-                className="flex flex-col items-center justify-center gap-1 h-[68px] rounded-xl border-[1.5px] border-dashed transition-all bg-white/40"
-                style={{ 
-                    borderColor: `${accentColor}30`,
+                initial={false}
+                whileTap={{ scale: 0.96, transition: { duration: 0.1 } }}
+                animate={isSelected ? { scale: 1.02 } : { scale: 1 }}
+                onClick={() => {
+                  category.id != null && onSelect(category.id);
                 }}
+                className={cn(
+                  "relative flex flex-col items-center justify-center gap-1 rounded-2xl border transition-all duration-200 text-center min-h-[84px] touch-none px-1 py-2",
+                  isSelected
+                    ? "border-transparent shadow-sm"
+                    : "bg-white/70 border-border/20"
+                )}
+                style={isSelected ? {
+                  backgroundColor: category.color,
+                } : {}}
               >
-                <div 
-                    className="size-5 rounded-full flex items-center justify-center text-white shadow-sm"
-                    style={{ backgroundColor: accentColor }}
-                >
-                    <Plus size={14} strokeWidth={4} />
-                </div>
-                <span className="text-[9px] font-black uppercase tracking-tight" style={{ color: accentColor }}>
-                    Thêm
+                <span className="text-[26px] leading-none shrink-0 mb-1">
+                  {category.icon}
+                </span>
+
+                <span className={cn(
+                  "text-[10px] font-black leading-tight line-clamp-2",
+                  isSelected ? "text-white" : "text-text"
+                )}>
+                  {category.name}
                 </span>
               </motion.button>
-            )}
-          </AnimatePresence>
-        </div>
+            );
+          })}
+
+            <motion.button
+              layout
+              type="button"
+              whileTap={{ scale: 0.96 }}
+              onClick={() => setAddCategoryOpen(true)}
+              className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-border/30 min-h-[84px] bg-white/40 touch-none"
+            >
+              <div
+                className="size-6 rounded-full flex items-center justify-center text-white shrink-0"
+                style={{ backgroundColor: `${accentColor}20` }}
+              >
+                <Plus size={14} strokeWidth={3} style={{ color: accentColor }} />
+              </div>
+              <span className="text-[9px] font-black uppercase tracking-tight text-center px-1" style={{ color: accentColor }}>
+                Thêm mới
+              </span>
+            </motion.button>
+        </AnimatePresence>
       </div>
 
       <CategoryFormSheet

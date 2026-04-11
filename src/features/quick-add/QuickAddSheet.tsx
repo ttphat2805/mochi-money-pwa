@@ -1,7 +1,4 @@
-import {
-  Sheet,
-  SheetContent
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useQuickAdd } from "@/hooks/useQuickAdd";
 import { triggerHaptic } from "@/lib/haptic";
 import { cn } from "@/lib/utils";
@@ -23,9 +20,14 @@ interface QuickAddSheetProps {
 
 export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [successAnim, setSuccessAnim] = useState({ isVisible: false, amount: 0 });
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
-  const [initialCategoryId, setInitialCategoryId] = useState<number | null>(null);
+  const [successAnim, setSuccessAnim] = useState({
+    isVisible: false,
+    amount: 0,
+  });
+  const [initialCategoryId, setInitialCategoryId] = useState<number | null>(
+    null,
+  );
+
   const {
     amount,
     amountDisplay,
@@ -50,7 +52,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
     dateLabel,
   } = quickAdd;
 
-  // Capture the starting category when the sheet opens to prevent list jumping during selection
+  // Lock selected category position to prevent grid jumping on re-select
   useEffect(() => {
     if (isOpen && initialCategoryId === null) {
       setInitialCategoryId(selectedCategoryId);
@@ -59,30 +61,16 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
     }
   }, [isOpen, selectedCategoryId]);
 
-
-  useEffect(() => {
-    const handleFocus = (e: FocusEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') setIsKeyboardOpen(true);
-    };
-    const handleBlur = () => setIsKeyboardOpen(false);
-    window.addEventListener('focusin', handleFocus);
-    window.addEventListener('focusout', handleBlur);
-    return () => {
-      window.removeEventListener('focusin', handleFocus);
-      window.removeEventListener('focusout', handleBlur);
-    };
-  }, []);
-
   const handleSave = async () => {
-    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    if (document.activeElement instanceof HTMLElement)
+      document.activeElement.blur();
     const result = await save();
     if (result.success) {
       if (result.isFirst) {
         toast.success("Đã ghi thành công! 🎉", { duration: 4000 });
-        triggerHaptic('success');
+        triggerHaptic("success");
       } else {
-        triggerHaptic('success');
+        triggerHaptic("success");
         setSuccessAnim({ isVisible: true, amount: result.amount });
         setTimeout(() => setSuccessAnim({ isVisible: false, amount: 0 }), 1500);
       }
@@ -98,6 +86,13 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
     setTimeout(() => setDatePickerOpen(false), 50);
   };
 
+  // Sort: keep initial selection at top to prevent layout jumps
+  const sortedForDisplay = [...sortedCategories].sort((a, b) => {
+    if (a.id === initialCategoryId) return -1;
+    if (b.id === initialCategoryId) return 1;
+    return 0;
+  });
+
   return (
     <>
       <Sheet open={isOpen} onOpenChange={handleOpenChange}>
@@ -105,65 +100,73 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
           side="bottom"
           showCloseButton={false}
           className={cn(
-            "bg-bg rounded-t-[40px] p-0 transition-all duration-400 ease-[cubic-bezier(0.32,0.72,0,1)] shadow-2xl overflow-hidden border-none flex flex-col",
-            isKeyboardOpen ? "h-[92vh]" : "h-[85vh] max-h-[85vh]"
+            "bg-[#F7F5F0] rounded-t-[32px] p-0 shadow-2xl overflow-hidden border-none flex flex-col transition-all duration-300",
+            "h-[82vh] max-h-[82vh]",
           )}
         >
-          <div className="flex flex-col h-full relative">
-            {/* Header / Amount Branding */}
-            <div className="px-6 pt-3 pb-1 flex flex-col items-center bg-bg relative shrink-0">
-               <div className="absolute top-2 w-12 h-1 rounded-full bg-border/30 mb-4" />
-                <div className="w-full flex justify-between items-center mb-0 mt-2">
-                  <span className="text-[10px] font-black tracking-[2px] text-text-hint/70 uppercase">Số Tiền</span>
-                  <button onClick={close} className="size-8 rounded-full bg-surface items-center justify-center flex active:scale-90 transition-transform">
-                    <X size={14} className="text-text-muted" />
-                  </button>
-               </div>
-               <AmountDisplay display={amountDisplay} hasValue={amount > 0} onClear={clearAmount} />
-            </div>
+          <div className="flex flex-col h-full">
+            {/* ── HEADER: close + amount + date ── */}
+            <div className="px-5 pt-3 pb-3 shrink-0 bg-[#F7F5F0]">
+              {/* Drag handle */}
+              <div className="w-9 h-1 rounded-full bg-black/10 mx-auto mb-3" />
 
-            {/* Middle Section: Swipable Categories & Intel */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide px-6 space-y-4 pb-4 min-h-0">
-                <div className="space-y-4">
-                   <div className="flex items-center justify-between">
-                     <span className="text-text-muted text-[10px] font-black uppercase tracking-[1.5px]">Danh mục</span>
-                   </div>
-                  {/* 
-                      Senior UX Reordering: Hoist selected category to the first position.
-                      This ensures the active choice is instantly visible on edit without scrolling.
-                   */}
-                   <CategoryGrid
-                    categories={[...sortedCategories].sort((a, b) => {
-                       if (a.id === initialCategoryId) return -1;
-                       if (b.id === initialCategoryId) return 1;
-                       return 0;
-                    })}
-                    selectedId={selectedCategoryId}
-                    onSelect={(id) => {
-                        selectCategory(id);
-                        triggerHaptic('light');
-                        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-                    }}
-                    showAdd
+              {/* Top row */}
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-black tracking-[2px] text-black/30 uppercase">
+                  Chi tiêu
+                </span>
+                <div className="flex items-center gap-2">
+                  <DateSelector
+                    dateLabel={dateLabel}
+                    onTap={() => setDatePickerOpen(true)}
                   />
+                  <button
+                    onClick={close}
+                    className="size-7 rounded-full bg-black/6 flex items-center justify-center active:scale-90 transition-transform"
+                  >
+                    <X size={13} className="text-black/40" />
+                  </button>
                 </div>
+              </div>
 
-                <div className="space-y-3">
-                   <div className="flex items-center gap-3">
-                        <div className="flex-1">
-                            <NoteInput value={note} onChange={setNote} />
-                        </div>
-                        <DateSelector dateLabel={dateLabel} onTap={() => setDatePickerOpen(true)} />
-                   </div>
-                </div>
-
-                {isKeyboardOpen && <div className="h-64" />}
+              {/* Big amount display */}
+              <AmountDisplay
+                display={amountDisplay}
+                hasValue={amount > 0}
+                onClear={clearAmount}
+              />
             </div>
 
-            <div className={cn(
-              "px-6 pb-[calc(16px+env(safe-area-inset-bottom))] shrink-0 bg-bg",
-              isKeyboardOpen ? "hidden" : "block"
-            )}>
+            {/* ── Scrollable: Categories ONLY ── */}
+            <div className="flex-1 overflow-y-auto scrollbar-hide px-5 min-h-0 pt-3">
+              {/* Category label */}
+              <span className="text-text-muted text-[10px] font-black uppercase tracking-[1.5px] block mb-2">
+                Danh mục
+              </span>
+
+              {/* Category grid */}
+              <CategoryGrid
+                categories={sortedForDisplay}
+                selectedId={selectedCategoryId}
+                onSelect={(id) => {
+                  selectCategory(id);
+                  triggerHaptic("light");
+                  if (document.activeElement instanceof HTMLElement) {
+                    document.activeElement.blur();
+                  }
+                }}
+              />
+              {/* Extra space for scrolling */}
+              <div className="h-4" />
+            </div>
+
+            {/* ── Fixed Bottom Area: Note + Numpad ── */}
+            <div
+              className="px-5 pb-[calc(10px+env(safe-area-inset-bottom))] shrink-0 bg-[#F7F5F0] pt-2 border-t border-black/5"
+            >
+              <div className="mb-3">
+                <NoteInput value={note} onChange={setNote} />
+              </div>
               <Numpad
                 onDigit={appendDigit}
                 onDelete={deleteDigit}
@@ -173,17 +176,6 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
               />
             </div>
 
-            {/* Keyboard Dismiss Bar */}
-            {isKeyboardOpen && (
-              <div className="flex items-center justify-end px-4 py-2 bg-white border-t border-border/40 safe-bottom">
-                <button 
-                  onClick={() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); }}
-                  className="text-[14px] font-black text-accent px-5 py-2.5 bg-accent/5 rounded-full"
-                >
-                  Xong
-                </button>
-              </div>
-            )}
           </div>
         </SheetContent>
       </Sheet>
@@ -198,17 +190,23 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
       <BudgetWarningDialog
         warning={budgetWarning}
         onConfirm={async () => {
-            const result = await confirmOverBudget();
-            if (result.success) {
-                triggerHaptic('success');
-                setSuccessAnim({ isVisible: true, amount: result.amount });
-                setTimeout(() => setSuccessAnim({ isVisible: false, amount: 0 }), 1500);
-            }
+          const result = await confirmOverBudget();
+          if (result.success) {
+            triggerHaptic("success");
+            setSuccessAnim({ isVisible: true, amount: result.amount });
+            setTimeout(
+              () => setSuccessAnim({ isVisible: false, amount: 0 }),
+              1500,
+            );
+          }
         }}
         onCancel={dismissBudgetWarning}
       />
 
-      <FloatingSuccessAnimation isVisible={successAnim.isVisible} amount={successAnim.amount} />
+      <FloatingSuccessAnimation
+        isVisible={successAnim.isVisible}
+        amount={successAnim.amount}
+      />
     </>
   );
 }

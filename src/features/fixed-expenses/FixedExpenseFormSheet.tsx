@@ -210,7 +210,6 @@ export function FixedExpenseFormSheet({
                 categories={categories}
                 selectedId={form.categoryId ?? null}
                 onSelect={(id) => form.setCategoryId(id)}
-                showAdd
               />
             </div>
 

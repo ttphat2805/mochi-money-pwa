@@ -3,6 +3,7 @@ import { SettingsRow } from './SettingsRow'
 import { SectionLabel } from './SettingsHelpers'
 import { DataSettingsSection } from './DataSettingsSection'
 import { PersonalizationSettings } from './PersonalizationSettings'
+import packageJson from '../../../package.json'
 
 interface SettingsPageProps {
   onBack: () => void
@@ -65,6 +66,11 @@ export function SettingsPage({ onBack, onGoRecurring, onGoFixedExpenses, onGoFin
         {/* Dữ liệu */}
         <SectionLabel>Dữ liệu</SectionLabel>
         <DataSettingsSection />
+
+        {/* Phiên bản */}
+        <div className="mt-12 flex flex-col items-center justify-center pb-8 opacity-40">
+          <p className="text-[11px] font-medium text-text-muted uppercase tracking-[1px]">Phiên bản {packageJson.version}</p>
+        </div>
       </div>
     </div>
   )

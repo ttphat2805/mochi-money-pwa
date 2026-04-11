@@ -106,7 +106,7 @@ export function useQuickAdd(): UseQuickAddReturn {
   const [isSaving, setIsSaving] = useState(false)
   const [budgetWarning, setBudgetWarning] = useState<BudgetWarning | null>(null)
 
-  const categories = useLiveQuery(() => db.categories.orderBy('sortOrder').toArray(), []) ?? EMPTY_CATS
+  const categories = useLiveQuery(() => db.categories.toArray(), []) ?? EMPTY_CATS
   const { addTransaction, getSpentByCategory } = useTransactionStore()
 
   // Derived amount from digit string
@@ -120,8 +120,15 @@ export function useQuickAdd(): UseQuickAddReturn {
     return formatVND(amount)
   }, [amount])
 
-  // Categories are already sorted by sortOrder from DB, no need to restruct
-  const sortedCategories = categories
+  // Sort categories by sortOrder, then by id
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => {
+      const orderA = a.sortOrder ?? 0;
+      const orderB = b.sortOrder ?? 0;
+      if (orderA !== orderB) return orderA - orderB;
+      return (a.id ?? 0) - (b.id ?? 0);
+    });
+  }, [categories]);
 
   // Select first category by default if none selected
   useMemo(() => {
