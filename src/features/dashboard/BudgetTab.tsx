@@ -1,19 +1,15 @@
 import { useBudget } from "@/hooks/useBudget";
 import { formatBudgetPct, formatShort, formatVND, cn } from "@/lib/utils";
 import { Settings2, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
-import { lazy, Suspense } from "react";
 import { useAppStore } from "@/stores/appStore";
 import { useShouldShowSkeleton } from "@/hooks/useShouldShowSkeleton";
 import { BudgetSkeleton } from "./BudgetSkeleton";
 import { motion } from "framer-motion";
 
-const ReactApexChart = lazy(() => import("react-apexcharts"));
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
 // ── Small helpers ──────────────────────────────────────────────
 
-function ChartSkeleton() {
-  return <div className="h-[200px] bg-surface rounded-2xl animate-pulse" />;
-}
 
 // ── Budget Tab ─────────────────────────────────────────────────
 
@@ -23,61 +19,6 @@ export function BudgetTab() {
   const showSkeleton = useShouldShowSkeleton(budget.isLoading);
 
   if (showSkeleton) return <BudgetSkeleton />;
-
-  // ── Radial gauge options ──────────────────────────────────────
-  const radialOptions: ApexCharts.ApexOptions = {
-    chart: {
-      type: "radialBar",
-      toolbar: { show: false },
-      fontFamily: "inherit",
-      animations: { enabled: true, speed: 600 },
-    },
-    plotOptions: {
-      radialBar: {
-        startAngle: -130,
-        endAngle: 130,
-        hollow: {
-          size: "66%",
-          background: "transparent",
-        },
-        track: {
-          background: "#F1F5F9",
-          strokeWidth: "100%",
-          margin: 0,
-        },
-        dataLabels: {
-          name: {
-            offsetY: -10,
-            fontSize: "12px",
-            color: "#64748B",
-            fontFamily: "inherit",
-          },
-          value: {
-            offsetY: 6,
-            fontSize: "24px",
-            fontWeight: 800,
-            fontFamily: "inherit",
-            color: "#0F172A",
-            formatter: (val) => val + "%",
-          },
-        },
-      },
-    },
-    fill: {
-      type: "gradient",
-      gradient: {
-        shade: "light",
-        type: "horizontal",
-        colorStops: [
-          { offset: 0, color: "#10B981", opacity: 1 },
-          { offset: 50, color: "#F59E0B", opacity: 1 },
-          { offset: 100, color: "#EF4444", opacity: 1 },
-        ],
-      },
-    },
-    stroke: { lineCap: "round" },
-    labels: ["Đã sử dụng"],
-  };
 
   if (!budget.isConfigured) {
     return (
@@ -102,54 +43,151 @@ export function BudgetTab() {
   const catsWithoutLimit = budget.categoriesWithBudget.filter(
     (c) => !c.limitPerMonth && c.spent > 0,
   );
+  // Gauge geometry — compute fill arc end angle dynamically
+  // so we use ONE slice (no remaining slice) → cornerRadius works perfectly
+  const GAUGE_START = 215
+  const GAUGE_SWEEP = 250  // total degrees of the gauge track
+  const fillEndAngle = GAUGE_START - (Math.min(100, budget.spentPct) / 100) * GAUGE_SWEEP
 
   return (
     <div className="flex-1 overflow-y-auto bg-bg px-4 py-4 scrollbar-hide pb-32 pt-2 animate-in fade-in duration-150 mesh-gradient min-h-full">
-      {/* Gauge overview card */}
-      <div className="mb-6 bg-white rounded-[32px] border border-white shadow-premium overflow-hidden">
-        <div className="pt-6 -mb-4 flex justify-center items-center">
-          <Suspense fallback={<ChartSkeleton />}>
-            <ReactApexChart
-              type="radialBar"
-              options={radialOptions}
-              series={[budget.spentPct]}
-              height={220}
-              width="100%"
-            />
-          </Suspense>
+      {/* Gauge overview card — 3D Liquid Glass */}
+      <div
+        className="mb-6 rounded-[32px] relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.65) 100%)',
+          backdropFilter: 'blur(32px)',
+          WebkitBackdropFilter: 'blur(32px)',
+          border: '1.5px solid rgba(255,255,255,0.75)',
+          boxShadow: '0 16px 56px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.95)',
+        }}
+      >
+        {/* Floating ambient orbs — larger and more vivid */}
+        <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(99,179,237,0.22) 0%, transparent 65%)', filter: 'blur(28px)' }}
+        />
+        <div className="absolute -left-16 -bottom-16 w-56 h-56 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(52,211,153,0.18) 0%, transparent 65%)', filter: 'blur(24px)' }}
+        />
+        <div className="absolute left-1/2 -translate-x-1/2 top-4 w-48 h-24 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(251,191,36,0.12) 0%, transparent 70%)', filter: 'blur(20px)' }}
+        />
+        {/* Top inner gloss */}
+        <div className="absolute top-0 inset-x-0 h-[40%] bg-gradient-to-b from-white/80 to-transparent pointer-events-none rounded-t-[32px]" />
+
+        {/* Gauge chart — bigger and bolder */}
+        <div className="pt-6 h-[280px] flex justify-center items-center relative w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart style={{ outline: 'none' }}>
+              <defs>
+                <linearGradient id="gauge-liquid" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="var(--color-success)" stopOpacity={1} />
+                  <stop offset="60%" stopColor="var(--color-accent)" stopOpacity={1} />
+                  <stop offset="100%" stopColor="var(--color-danger)" stopOpacity={1} />
+                </linearGradient>
+                <filter id="gauge-3d" x="-25%" y="-25%" width="150%" height="150%">
+                  <feDropShadow dx="0" dy="8" stdDeviation="10" floodColor="var(--color-accent)" floodOpacity="0.28" />
+                </filter>
+              </defs>
+
+              {/* Track — static background arc */}
+              <Pie
+                data={[{ value: 1 }]}
+                cx="50%" cy="60%"
+                startAngle={215} endAngle={-35}
+                innerRadius="55%" outerRadius="80%"
+                dataKey="value"
+                stroke="none"
+                isAnimationActive={false}
+              >
+                <Cell fill="rgba(0,0,0,0.07)" style={{ outline: 'none' }} />
+              </Pie>
+
+              {/* Fill — single slice with proper cornerRadius */}
+              <Pie
+                data={[{ value: 1 }]}
+                cx="50%" cy="60%"
+                startAngle={GAUGE_START}
+                endAngle={fillEndAngle}
+                innerRadius="55%" outerRadius="80%"
+                dataKey="value"
+                stroke="none"
+                cornerRadius={14}
+                isAnimationActive={true}
+                animationDuration={1000}
+                animationBegin={100}
+              >
+                <Cell fill="url(#gauge-liquid)" filter="url(#gauge-3d)" style={{ outline: 'none', cursor: 'default' }} />
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+
+          {/* Center text */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ paddingTop: '40px' }}>
+            <span className="text-[10px] font-black tracking-[0.2em] uppercase text-text-hint mb-1">Sử dụng</span>
+            <span
+              className="font-black font-num leading-none"
+              style={{
+                fontSize: '52px',
+                color: 'var(--color-accent)',
+              }}
+            >
+              {Math.round(budget.spentPct)}%
+            </span>
+          </div>
         </div>
 
-        <div className="flex justify-between px-6 pb-2">
-          <div>
-            <p className="text-[11px] font-bold text-text-hint uppercase tracking-wider mb-1">Đã chi</p>
-            <p className="font-num text-[20px] font-black text-danger leading-tight">
-              {formatVND(budget.totalSpent)}đ
-            </p>
+        {/* Stats — two premium pill cards */}
+        <div className="flex gap-3 px-5 pb-4 mt-1">
+          <div className="flex-1 rounded-2xl px-4 py-3 relative overflow-hidden"
+            style={{
+              background: 'rgba(239,68,68,0.07)',
+              border: '1px solid rgba(239,68,68,0.15)',
+            }}
+          >
+            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-danger mb-1">Tổng chi</p>
+            <p className="font-num text-[18px] font-black text-danger leading-none">{formatVND(budget.totalSpent)}đ</p>
           </div>
-          <div className="text-right">
-            <p className="text-[11px] font-bold text-text-hint uppercase tracking-wider mb-1">Còn lại</p>
-            <p className={cn("font-num text-[20px] font-black leading-tight", 
-                budget.flexAmount - budget.totalSpent >= 0 ? "text-success" : "text-danger"
-            )}>
-              {formatVND(Math.max(0, budget.flexAmount - budget.totalSpent))}đ
-            </p>
+          <div className="flex-1 rounded-2xl px-4 py-3 relative overflow-hidden text-right"
+            style={{
+              background: budget.flexAmount - budget.totalSpent >= 0 ? 'rgba(16,185,129,0.07)' : 'rgba(239,68,68,0.07)',
+              border: budget.flexAmount - budget.totalSpent >= 0 ? '1px solid rgba(16,185,129,0.15)' : '1px solid rgba(239,68,68,0.15)',
+            }}
+          >
+            <p className={cn("text-[9px] font-black uppercase tracking-[0.15em] mb-1",
+              budget.flexAmount - budget.totalSpent >= 0 ? 'text-success' : 'text-danger'
+            )}>Còn lại</p>
+            <p className={cn("font-num text-[18px] font-black leading-none",
+              budget.flexAmount - budget.totalSpent >= 0 ? 'text-success' : 'text-danger'
+            )}>{formatVND(Math.max(0, budget.flexAmount - budget.totalSpent))}đ</p>
           </div>
         </div>
 
-        <div className="mx-6 h-2 bg-surface rounded-full overflow-hidden mb-3">
+        {/* 3D Liquid progress bar */}
+        <div className="mx-6 h-4 rounded-full overflow-hidden p-[2px] mb-3"
+          style={{ background: 'rgba(0,0,0,0.07)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
+        >
           <motion.div
             initial={{ width: 0 }}
-            animate={{ width: Math.min(100, budget.spentPct) + "%" }}
-            transition={{ duration: 1 }}
-            className="h-full rounded-full bg-text"
-          />
+            animate={{ width: Math.min(100, budget.spentPct) + '%' }}
+            transition={{ duration: 1, type: 'spring', bounce: 0 }}
+            className="h-full rounded-full relative"
+            style={{
+              background: (budget.flexAmount - budget.totalSpent < 0)
+                ? 'var(--color-danger)'
+                : 'linear-gradient(90deg, var(--color-success), var(--color-accent))',
+              boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5), inset 0 -2px 3px rgba(0,0,0,0.12)',
+            }}
+          >
+            <div className="absolute top-0 left-0 w-full h-[45%] bg-gradient-to-b from-white/65 to-white/5 rounded-t-full pointer-events-none" />
+            <div className="absolute top-0 right-0 bottom-0 w-12 bg-gradient-to-l from-white/35 to-transparent rounded-r-full pointer-events-none mix-blend-overlay" />
+          </motion.div>
         </div>
 
-        <div className="flex justify-between items-center px-6 pb-6 text-[12px] text-text-muted font-medium">
+        {/* Footer */}
+        <div className="flex justify-between items-center px-6 pb-6 text-[11px] text-text-muted font-medium">
           <span className="font-num">{formatBudgetPct(budget.spentPct)} đã dùng</span>
-          <span>
-            Còn {budget.daysLeft} ngày · <span className="text-text font-bold">~{formatShort(budget.dailyAllowance)}/ngày</span>
-          </span>
+          <span>Còn {budget.daysLeft} ngày &middot; <span className="text-text font-bold">~{formatShort(budget.dailyAllowance)}/ngày</span></span>
         </div>
       </div>
 
@@ -220,14 +258,14 @@ export function BudgetTab() {
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col">
                     <span className="text-[10px] text-text-hint uppercase tracking-widest font-bold mb-0.5">Đã chi</span>
-                    <span className="text-[14px] font-bold text-text font-num">{formatShort(cat.spent)}đ</span>
+                    <span className="text-[14px] font-bold text-text font-num">{formatShort(cat.spent)}</span>
                   </div>
                   <div className="flex flex-col items-end">
                     <span className="text-[10px] text-text-hint uppercase tracking-widest font-bold mb-0.5">
                       {cat.remaining >= 0 ? "Còn lại" : "Vượt mức"}
                     </span>
                     <span className={cn("text-[14px] font-bold font-num", cat.remaining >= 0 ? "text-success" : "text-danger")}>
-                      {formatShort(Math.abs(cat.remaining))}đ
+                      {formatShort(Math.abs(cat.remaining))}
                     </span>
                   </div>
                 </div>
@@ -264,7 +302,7 @@ export function BudgetTab() {
                     </span>
                     <div className="text-right flex items-center gap-4">
                       <span className="text-[13px] font-num font-bold text-text-muted">
-                        {formatShort(cat.spent)}đ
+                        {formatShort(cat.spent)}
                       </span>
                       {!isSettingThis && (
                         <button
