@@ -9,7 +9,7 @@ interface AmountDisplayProps {
 
 export function AmountDisplay({ display, hasValue, onClear }: AmountDisplayProps) {
   return (
-    <div className="flex flex-col items-center py-2 relative group w-full">      
+    <div className="flex flex-col items-center relative group w-full">      
       <div className="flex items-center justify-center relative w-full px-4 min-h-[80px]">
         {/* Main Amount Group with Pop Animation */}
         <AnimatePresence mode="popLayout">
@@ -38,7 +38,7 @@ export function AmountDisplay({ display, hasValue, onClear }: AmountDisplayProps
           <button
             type="button"
             onClick={onClear}
-            className="absolute -right-2 top-1/2 -translate-y-1/2 size-8 rounded-full flex items-center justify-center bg-surface active:bg-surface2 transition-all border border-border/30"
+            className="!min-h-7 absolute -right-2 top-1/2 -translate-y-1/2 size-8 rounded-full flex items-center justify-center bg-surface active:bg-surface2 transition-all border border-border/30"
             aria-label="Xóa số tiền"
           >
             <Delete size={14} className="text-text-hint" />

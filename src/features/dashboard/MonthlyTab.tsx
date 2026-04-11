@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { TrendingUp, TrendingDown, BarChart3, PieChart } from 'lucide-react'
 import { formatVND, formatShort } from '@/lib/utils'
 import { triggerHaptic } from '@/lib/haptic'
 import { StatCards } from './StatCards'
@@ -236,19 +236,22 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
           </div>
 
           {/* D/W/M-style Pill Toggle but for our features */}
-          <div className="flex items-center bg-surface p-1 rounded-full shrink-0 shadow-sm border border-border/60">
+          <div className="flex items-center bg-surface p-1 rounded-full shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-border/60">
             <button
               onClick={() => {
                 triggerHaptic('light')
                 setChartMode('trend')
               }}
-              className="relative px-3.5 py-1.5 rounded-full text-[13px] font-bold z-10 transition-colors"
+              className="relative px-3.5 py-1.5 rounded-full text-[12px] font-semibold z-10 transition-colors flex items-center gap-1.5"
             >
-              <span className={chartMode === 'trend' ? "text-white" : "text-text-muted hover:text-text transition-colors"}>Bar</span>
+              <span className={chartMode === 'trend' ? "text-white flex items-center gap-1.5" : "text-text-muted hover:text-text transition-colors flex items-center gap-1.5"}>
+                <BarChart3 size={14} strokeWidth={2.5} />
+                <span>Xu hướng</span>
+              </span>
               {chartMode === 'trend' && (
                 <motion.div 
                   layoutId="activeTabBg" 
-                  className="absolute inset-0 rounded-full -z-10"
+                  className="absolute inset-0 rounded-full -z-10 shadow-sm"
                   style={{ backgroundColor: 'var(--color-accent)' }}
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
@@ -259,13 +262,16 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                 triggerHaptic('light')
                 setChartMode('distribution')
               }}
-              className="relative px-3.5 py-1.5 rounded-full text-[13px] font-bold z-10 transition-colors"
+              className="relative px-3.5 py-1.5 rounded-full text-[12px] font-semibold z-10 transition-colors flex items-center gap-1.5"
             >
-              <span className={chartMode === 'distribution' ? "text-white" : "text-text-muted hover:text-text transition-colors"}>Pie</span>
+              <span className={chartMode === 'distribution' ? "text-white flex items-center gap-1.5" : "text-text-muted hover:text-text transition-colors flex items-center gap-1.5"}>
+                <PieChart size={14} strokeWidth={2.5} />
+                <span>Cơ cấu</span>
+              </span>
               {chartMode === 'distribution' && (
                 <motion.div 
                   layoutId="activeTabBg" 
-                  className="absolute inset-0 rounded-full -z-10"
+                  className="absolute inset-0 rounded-full -z-10 shadow-sm"
                   style={{ backgroundColor: 'var(--color-accent)' }}
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />

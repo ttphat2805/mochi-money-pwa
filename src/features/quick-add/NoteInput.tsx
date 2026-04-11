@@ -21,7 +21,7 @@ export function NoteInput({ value, onChange }: NoteInputProps) {
     <motion.div
       onClick={() => inputRef.current?.focus()}
       className={cn(
-        "flex items-center gap-2 px-3 py-1.5 rounded-xl cursor-text transition-all duration-200",
+        "flex items-center gap-2 px-3 rounded-xl cursor-text transition-all duration-200",
         isFocused || hasValue
           ? "bg-white border border-border/40"
           : "bg-white/50 border border-dashed border-border/30"

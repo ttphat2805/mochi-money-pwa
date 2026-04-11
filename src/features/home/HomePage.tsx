@@ -10,6 +10,7 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import type { TabKey } from "@/components/BottomNav";
 import { useShouldShowSkeleton } from "@/hooks/useShouldShowSkeleton";
 import { HomeSkeleton } from "./HomeSkeleton";
+import { WaveBackground } from "@/components/ui/WaveBackground";
 import * as React from "react";
 
 interface HomePageProps {
@@ -55,10 +56,11 @@ export function HomePage({ onNavigate, onSettings }: HomePageProps) {
   ), [home.monthSpent, home.lastMonthTotal, home.todaySpent, home.remainingBudget, onNavigate]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-surface">
+    <div className="flex h-full flex-col overflow-hidden bg-surface relative">
+      <WaveBackground />
       <TopBar onSettingsTap={onSettings} />
 
-      <div className="flex-1 min-h-0 relative">
+      <div className="flex-1 min-h-0 relative z-10">
         <PullToRefresh onRefresh={async () => {}}>
           {showSkeleton ? (
             <HomeSkeleton />

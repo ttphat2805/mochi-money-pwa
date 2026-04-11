@@ -107,11 +107,8 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
           <div className="flex flex-col h-full">
             {/* ── HEADER: close + amount + date ── */}
             <div className="px-5 pt-3 pb-3 shrink-0 bg-[#F7F5F0]">
-              {/* Drag handle */}
-              <div className="w-9 h-1 rounded-full bg-black/10 mx-auto mb-3" />
-
               {/* Top row */}
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between">
                 <span className="text-[11px] font-black tracking-[2px] text-black/30 uppercase">
                   Chi tiêu
                 </span>
@@ -122,7 +119,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                   />
                   <button
                     onClick={close}
-                    className="size-7 rounded-full bg-black/6 flex items-center justify-center active:scale-90 transition-transform"
+                    className="!min-h-7 size-7 rounded-full bg-black/6 flex items-center justify-center active:scale-90 transition-transform"
                   >
                     <X size={13} className="text-black/40" />
                   </button>
@@ -138,7 +135,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
             </div>
 
             {/* ── Scrollable: Categories ONLY ── */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide px-5 min-h-0 pt-3">
+            <div className="flex-1 overflow-y-auto scrollbar-hide px-5 min-h-0">
               {/* Category label */}
               <span className="text-text-muted text-[10px] font-black uppercase tracking-[1.5px] block mb-2">
                 Danh mục
