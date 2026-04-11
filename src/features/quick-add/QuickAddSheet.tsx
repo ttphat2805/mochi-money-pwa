@@ -105,8 +105,8 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
           side="bottom"
           showCloseButton={false}
           className={cn(
-            "bg-bg rounded-t-[40px] p-0 transition-all duration-400 ease-[cubic-bezier(0.32,0.72,0,1)] shadow-2xl overflow-hidden border-none",
-            isKeyboardOpen ? "h-[94dvh]" : "h-auto max-h-[92dvh]"
+            "bg-bg rounded-t-[40px] p-0 transition-all duration-400 ease-[cubic-bezier(0.32,0.72,0,1)] shadow-2xl overflow-hidden border-none flex flex-col",
+            isKeyboardOpen ? "h-[94dvh]" : "h-[88dvh] max-h-[92dvh]"
           )}
         >
           <div className="flex flex-col h-full relative">
@@ -161,7 +161,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
             </div>
 
             <div className={cn(
-              "px-6 pb-[calc(8px+env(safe-area-inset-bottom))]",
+              "px-6 pb-[calc(12px+env(safe-area-inset-bottom))]",
               isKeyboardOpen ? "hidden" : "block"
             )}>
               <Numpad
