@@ -175,13 +175,7 @@ function App() {
           case "home":
             return (
               <HomePage
-                onNavigate={(tab) => {
-                  if (tab === "overview") {
-                    push({ id: "settings" });
-                  } else {
-                    setTab(tab as TabKey);
-                  }
-                }}
+                onNavigate={setTab}
                 onSettings={() => push({ id: "settings" })}
               />
             );

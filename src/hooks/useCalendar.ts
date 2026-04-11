@@ -87,7 +87,7 @@ export function useCalendar() {
 
   const viewMonthKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}`
   const monthLabel = `${MONTH_NAMES[viewMonth]} · ${viewYear}`
-  const canGoNext = viewYear < todayYear || (viewYear === todayYear && viewMonth < todayMonth)
+  const canGoNext = viewYear < todayYear + 10 // Allow scheduling up to 10 years in the future
 
   const goToPrevMonth = () => {
     setViewMonth((prev) => {

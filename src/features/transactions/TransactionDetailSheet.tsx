@@ -135,11 +135,6 @@ export function TransactionDetailSheet({
           <SheetDescription className="sr-only">Xem và chỉnh sửa giao dịch</SheetDescription>
 
           <div className="overflow-y-auto" style={{ maxHeight: '90dvh' }}>
-            {/* Handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-9 h-1 rounded-full bg-surface2" />
-            </div>
-
             <div className="px-5 pb-8 flex flex-col gap-4 pt-4">
               {/* Header Title replaced "Back to view" */}
               <div className="flex items-center justify-center -mt-2 mb-2">

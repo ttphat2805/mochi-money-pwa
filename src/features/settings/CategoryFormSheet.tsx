@@ -93,11 +93,6 @@ export function CategoryFormSheet({
             Quản lý danh mục và giới hạn ngân sách
           </SheetDescription>
 
-          {/* Handle */}
-          <div className="flex justify-center pt-3 pb-0">
-            <div className="w-9 h-1 rounded-full bg-surface2" />
-          </div>
-
           <div className="overflow-y-auto px-5 py-4 flex flex-col gap-5">
             {/* ── Emoji selector ── */}
             <div className="flex flex-col items-center gap-2">

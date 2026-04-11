@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { Pencil } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface NoteInputProps {
   value: string
@@ -6,17 +8,34 @@ interface NoteInputProps {
 }
 
 export function NoteInput({ value, onChange }: NoteInputProps) {
+  const [isFocused, setIsFocused] = useState(false)
+
   return (
-    <div className="border-border flex flex-1 items-center gap-2 border-b pb-2">
-      <Pencil className="text-text-hint size-4 shrink-0" />
+    <div className="relative flex flex-1 items-center gap-2 rounded-xl bg-white px-3 py-3 shadow-sm border border-border/40 transition-colors">
+      <Pencil className={`size-4 shrink-0 transition-colors ${isFocused ? 'text-accent' : 'text-text-hint'}`} />
       <input
         type="text"
         value={value}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Ghi chú (tùy chọn)"
-        className="w-full bg-transparent text-[13px] outline-none placeholder:text-text-hint"
+        className="w-full bg-transparent text-[13px] font-medium outline-none placeholder:text-text-hint/80 text-text relative z-10"
         maxLength={100}
       />
+      
+      {/* Animated Focus Ring */}
+      <AnimatePresence>
+        {isFocused && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 rounded-xl border-2 border-accent/50 pointer-events-none"
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

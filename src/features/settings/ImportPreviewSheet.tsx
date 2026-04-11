@@ -46,11 +46,6 @@ export function ImportPreviewSheet({
         <SheetTitle className="sr-only">Nhập dữ liệu</SheetTitle>
         <SheetDescription className="sr-only">Xem trước dữ liệu backup</SheetDescription>
 
-        {/* Handle */}
-        <div className="flex justify-center pt-3 pb-0">
-          <div className="w-9 h-1 rounded-full bg-surface2" />
-        </div>
-
         <div className="px-5 py-5 flex flex-col gap-5">
           {/* Icon + heading */}
           <div className="flex flex-col items-center gap-2">

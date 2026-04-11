@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
-import { getCurrentMonthString, getLast6Months, getMonthLabel } from '@/lib/utils'
+import { getCurrentMonthString, getLast6Months, getMonthLabel, getLast7Days, getShortWeekday, getTodayString } from '@/lib/utils'
 import { useCategoryStore } from '@/stores/categoryStore'
 import type { BudgetCategory, FinancialSettings, Transaction } from '@/types'
 
@@ -26,6 +26,9 @@ export interface DonutSlice {
 }
 export interface BarMonthDatum {
   monthLabel: string; monthKey: string; total: number
+}
+export interface BarWeekDatum {
+  dayLabel: string; dateStr: string; amount: number; isToday: boolean
 }
 export interface Bar4MonthDatum {
   monthLabel: string; monthKey: string; amount: number; isCurrentMonth: boolean
@@ -142,6 +145,31 @@ export function useDashboard() {
     [last4MonthKeys, currentMonthKey],
   ) ?? EMPTY_BAR_4_DATA
 
+  // Last 7 days bar data
+  const last7DaysKeys = useMemo(() => getLast7Days(), [])
+  const todayStr = getTodayString()
+
+  const weeklyBarData = useLiveQuery<BarWeekDatum[]>(
+    async () => {
+      const results = await Promise.all(
+        last7DaysKeys.map(async (dateStr) => {
+          const txs = await db.transactions
+            .where('date').equals(dateStr)
+            .filter((tx) => !tx.deletedAt).toArray()
+          const amount = txs.reduce((s, t) => s + t.amount, 0)
+          return {
+            dayLabel: getShortWeekday(dateStr),
+            dateStr,
+            amount,
+            isToday: dateStr === todayStr,
+          }
+        }),
+      )
+      return results
+    },
+    [last7DaysKeys, todayStr],
+  ) ?? []
+
   const lastMonthTotal = useMemo(() => {
     if (!last4MonthsBar.length) return 0
     const prev = last4MonthsBar.find(d => d.monthKey === getPrevMonthKey(currentMonthKey))
@@ -152,7 +180,7 @@ export function useDashboard() {
   return {
     currentMonthKey, monthTotal, settings: settings ?? null,
     categoryTotals, donutData, topCategories,
-    barData, last4MonthsBar, lastMonthTotal,
+    barData, last4MonthsBar, lastMonthTotal, weeklyBarData,
     selectedTrendCatIds, setSelectedTrendCatIds,
     isLoading: false,
   }

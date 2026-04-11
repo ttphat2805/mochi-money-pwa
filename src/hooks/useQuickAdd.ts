@@ -163,8 +163,7 @@ export function useQuickAdd(): UseQuickAddReturn {
 
   const close = useCallback(() => {
     closeQuickAdd()
-    resetState()
-  }, [closeQuickAdd, resetState])
+  }, [closeQuickAdd])
 
   // Watch for global open state and propagate initial date
   useEffect(() => {
@@ -172,6 +171,15 @@ export function useQuickAdd(): UseQuickAddReturn {
       resetState(quickAddInitialDate, quickAddInitialCategoryId)
     }
   }, [quickAddOpen, quickAddInitialDate, quickAddInitialCategoryId, resetState])
+
+  // Optional: reset state only when COMPONENT is completely hidden to prevent flash mid-close
+  useEffect(() => {
+    if (!quickAddOpen) {
+       // Optional: delay state clearing until animation finishes
+       const t = setTimeout(() => resetState(), 400); 
+       return () => clearTimeout(t);
+    }
+  }, [quickAddOpen, resetState])
 
   const appendDigit = useCallback((digit: number) => {
     setAmountDigits((prev) => {

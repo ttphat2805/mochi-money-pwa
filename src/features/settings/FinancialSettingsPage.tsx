@@ -309,7 +309,7 @@ function ExtraIncomeDialog({
           borderRadius: 20,
           padding: 0,
           maxWidth: 320,
-          width: "calc(100vw - 48px)",
+          width: "calc(100% - 48px)",
           border: "none",
           boxShadow: "0 8px 40px rgba(0,0,0,0.14)",
           overflow: "hidden",
@@ -567,7 +567,7 @@ export function FinancialSettingsPage({ onBack }: FinancialSettingsPageProps) {
 
   return (
     <>
-      <div className="flex h-full flex-col">
+      <div className="flex h-[100dvh] flex-col relative">
         {/* Header */}
         <header className="flex items-center gap-3 px-4 py-3 safe-top">
           <BackButton onBack={onBack} />

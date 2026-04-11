@@ -38,7 +38,10 @@ export function SettingsRow({ icon, label, sublabel, onTap, rightSlot, danger, l
     return (
       <button
         type="button"
-        onClick={onTap}
+        onClick={() => {
+          import('@/lib/haptic').then(({ triggerHaptic }) => triggerHaptic('light'))
+          onTap?.()
+        }}
         disabled={loading}
         className={className}
       >

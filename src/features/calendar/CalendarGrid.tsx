@@ -37,7 +37,6 @@ const DayCell = React.memo(function DayCell({
   return (
     <button
       type="button"
-      disabled={isFuture}
       onClick={() => onSelect(date)}
       style={{
         minHeight: 52,
@@ -49,7 +48,7 @@ const DayCell = React.memo(function DayCell({
             : '2px solid transparent',
         transform: isSelected ? 'scale(1.06)' : 'scale(1)',
         boxShadow: isSelected ? '0 3px 10px var(--color-accent-h2)' : 'none',
-        opacity: isFuture ? 0.35 : 1,
+        opacity: 1,
         transition: 'transform 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease',
         borderRadius: 10,
         display: 'flex',

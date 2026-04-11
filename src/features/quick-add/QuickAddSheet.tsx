@@ -103,11 +103,6 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
           className="bg-bg rounded-t-2xl p-0"
         >
           <div className="flex flex-col">
-            {/* 1. Drag handle */}
-            <div className="flex justify-center pt-2.5 pb-1">
-              <div className="bg-border2 h-1 w-10 rounded-full" />
-            </div>
-
             <SheetTitle className="sr-only">Thêm chi tiêu</SheetTitle>
             <SheetDescription className="sr-only">
               Nhập số tiền và chọn danh mục để ghi chi tiêu

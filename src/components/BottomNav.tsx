@@ -1,5 +1,7 @@
 import { Home, Wallet, CalendarDays, BarChart2, Plus, type LucideIcon } from "lucide-react";
 import { useAppStore } from "@/stores/appStore";
+import { motion } from "framer-motion";
+import { triggerHaptic } from "@/lib/haptic";
 
 export type TabKey = "home" | "budget" | "calendar" | "overview";
 
@@ -16,21 +18,35 @@ interface NavItemProps {
 }
 
 function NavItem({ icon: Icon, label, active, onClick }: NavItemProps) {
+  const handleClick = () => {
+    triggerHaptic("light");
+    onClick();
+  };
+
   return (
-    <button
+    <motion.button
       type="button"
-      onClick={onClick}
-      className={`relative flex flex-1 h-full flex-col items-center justify-center gap-0.5 transition-all duration-300 pointer-events-auto ${
-        active ? "text-accent" : "text-text-hint hover:text-[#A0A09A]"
+      onClick={handleClick}
+      whileTap={{ scale: 0.9 }}
+      className={`relative flex flex-1 h-full flex-col items-center justify-center gap-0.5 transition-colors duration-300 pointer-events-auto z-10 ${
+        active ? "text-accent" : "text-text-hint hover:text-text-muted"
       }`}
     >
+      {active && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-x-2 inset-y-2 rounded-2xl bg-accent/10 -z-10"
+        />
+      )}
       <div
         className={`transition-transform duration-300 flex items-center justify-center ${active ? "scale-110" : "scale-100"}`}
       >
-        <Icon size={22} strokeWidth={active ? 2.5 : 2} />
+        <Icon size={20} strokeWidth={active ? 2.5 : 2} />
       </div>
-      <span className="text-[10px] font-medium leading-none">{label}</span>
-    </button>
+      <span className="text-[10px] font-bold leading-none">{label}</span>
+    </motion.button>
   );
 }
 
@@ -41,19 +57,22 @@ export function BottomNav({ active, onTab }: BottomNavProps) {
     <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none pb-[calc(0.5rem+env(safe-area-inset-bottom))] px-4">
       {/* Container must be pointer-events-auto for clicks */}
       <div
-        className="relative mx-auto flex h-[64px] w-full max-w-md items-end pointer-events-auto"
-        style={{ filter: "drop-shadow(0 10px 24px rgba(0,0,0,0.08))" }}
+        className="relative mx-auto flex h-[64px] w-full max-w-md items-end pointer-events-auto border-t border-black/5"
       >
         {/* Floating Center FAB */}
         <div className="absolute left-1/2 -top-5 -translate-x-1/2 z-20">
-          <button
+          <motion.button
             type="button"
-            onClick={() => openQuickAdd()}
+            onClick={() => {
+              triggerHaptic("medium");
+              openQuickAdd();
+            }}
+            whileTap={{ scale: 0.92 }}
             aria-label="Thêm chi tiêu"
-            className="flex size-14 items-center justify-center bg-accent shadow-lg shadow- rounded-full transition-transform duration-300 active:scale-95 text-white"
+            className="flex size-14 items-center justify-center bg-accent shadow-lg shadow-accent/40 rounded-full text-white"
           >
-            <Plus size={28} strokeWidth={2.5} />
-          </button>
+            <Plus size={28} strokeWidth={3} />
+          </motion.button>
         </div>
 
         {/* ── Background Layer with Notch ── */}

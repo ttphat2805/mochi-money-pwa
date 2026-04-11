@@ -1,8 +1,11 @@
 import { lazy, Suspense, useState, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { TrendingUp, TrendingDown, BarChart2, PieChart, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
 import { formatVND, formatShort } from '@/lib/utils'
+import { triggerHaptic } from '@/lib/haptic'
 import { StatCards } from './StatCards'
 import type { useDashboard } from '@/hooks/useDashboard'
+import { useAppStore } from '@/stores/appStore'
 
 const ReactApexChart = lazy(() => import('react-apexcharts'))
 
@@ -16,9 +19,8 @@ const ChartSkeleton = ({ height = 220 }: { height?: number }) => (
     style={{ height }}
   />
 )
-
 export function MonthlyTab({ data }: MonthlyTabProps) {
-  const [chartMode, setChartMode] = useState<'distribution' | 'trend'>('distribution')
+  const { dashboardChartMode: chartMode, setDashboardChartMode: setChartMode } = useAppStore()
 
   const { monthTotal, settings, donutData, last4MonthsBar, lastMonthTotal } = data
 
@@ -41,37 +43,21 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
         dynamicAnimation: { enabled: true, speed: 400 },
       },
       dropShadow: {
-        enabled: true,
-        enabledOnSeries: [0],
-        top: 8,
-        left: 0,
-        blur: 16,
-        color: 'var(--color-accent)',
+        enabled: false,
       },
     },
 
     plotOptions: {
       bar: {
-        borderRadius: 12,
+        borderRadius: 8,
         borderRadiusApplication: 'end',
-        columnWidth: '48%',
+        columnWidth: '40%',
         dataLabels: { position: 'top' },
         distributed: true,
       },
     },
 
-    fill: {
-      type: 'gradient',
-      gradient: {
-        shade: 'light',
-        type: 'vertical',
-        shadeIntensity: 0.5,
-        inverseColors: false,
-        opacityFrom: 1,
-        opacityTo: 0.8,
-        stops: [0, 90, 100],
-      },
-    },
+    fill: { opacity: 1 },
 
     colors: barData.map(d =>
       d.isCurrentMonth ? 'var(--color-accent)' : 'var(--color-text-hint)'
@@ -85,9 +71,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
         fontSize: '11px',
         fontWeight: 700,
         fontFamily: 'JetBrains Mono, monospace',
-        colors: barData.map(d =>
-          d.isCurrentMonth ? 'var(--color-accent-dark)' : 'var(--color-text-hint)'
-        ),
+        colors: barData.map(d => d.isCurrentMonth ? 'var(--color-accent)' : 'var(--color-text-hint)'),
       },
       background: {
         enabled: true,
@@ -108,9 +92,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
         style: {
           fontSize: '12px',
           fontFamily: 'JetBrains Mono, monospace',
-          colors: barData.map(d =>
-            d.isCurrentMonth ? 'var(--color-accent)' : 'var(--color-text-hint)'
-          ),
+          colors: barData.map(d => d.isCurrentMonth ? '#1A1A18' : '#88887A'),
           fontWeight: 600,
         },
         offsetY: 4,
@@ -179,12 +161,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
         animateGradually: { enabled: true, delay: 100 },
       },
       dropShadow: {
-        enabled: true,
-        top: 0,
-        left: 0,
-        blur: 16,
-        color: '#000',
-        opacity: 0.1,
+        enabled: false,
       },
     },
     colors: donutData.map(d => d.color),
@@ -196,51 +173,32 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
           background: 'transparent',
           labels: {
             show: true,
-            name: {
-              show: true,
-              fontSize: '12px',
-              color: '#88887A',
-              offsetY: -4,
-              fontFamily: 'inherit',
-            },
+            name: { show: false },
             value: {
               show: true,
               fontSize: '18px',
               fontWeight: '700',
               color: '#1A1A18',
               fontFamily: 'JetBrains Mono, monospace',
-              offsetY: 4,
-              formatter: (val: string) => formatShort(parseInt(val)),
+              offsetY: 8,
+              formatter: () => `${formatShort(monthTotal)}đ`,
             },
             total: {
               show: true,
               showAlways: true,
-              label: 'Tổng chi',
-              fontSize: '11px',
-              color: '#88887A',
-              fontFamily: 'inherit',
-              formatter: (w) => {
-                const total = (w.globals.seriesTotals as number[]).reduce((a, b) => a + b, 0)
-                return formatShort(total)
-              },
+              label: '',
+              formatter: () => `${formatShort(monthTotal)}đ`,
             },
           },
         },
         expandOnClick: false,
+        customScale: 1,
       },
     },
     dataLabels: {
-      enabled: true,
-      formatter: (val: number) => val > 5 ? `${Math.round(val)}%` : '',
-      style: {
-        fontSize: '11px',
-        fontWeight: '600',
-        fontFamily: 'inherit',
-        colors: ['#fff'],
-      },
-      dropShadow: { enabled: true, blur: 3, opacity: 0.25 },
+      enabled: false,
     },
-    stroke: { width: 3, colors: ['#FFFFFF'] },
+    stroke: { width: 4, colors: ['#FFFFFF'] },
     legend: { show: false },
     tooltip: {
       y: { formatter: (val: number) => `${formatVND(val)}đ` },
@@ -255,7 +213,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
         filter: { type: 'darken', value: 0.8 },
       },
     },
-  }), [donutData])
+  }), [donutData, monthTotal])
 
   const donutSeries = useMemo(() => donutData.map(d => d.value), [donutData])
 
@@ -266,101 +224,101 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
         <StatCards monthTotal={monthTotal} settings={settings} />
       </div>
 
-      {/* Income / Expense strip */}
-      <div className="px-4 mt-6">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 rounded-[24px] bg-white/80 shadow-premium border border-white/60 active-scale">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="size-6 rounded-full bg-danger/10 flex items-center justify-center">
-                <ArrowUpCircle size={14} className="text-danger" />
-              </div>
-              <span className="text-[11px] font-bold text-text-hint uppercase tracking-wider">Chi tiêu</span>
-            </div>
-            <p className="font-num text-[20px] font-black text-text leading-tight">
-              {formatVND(monthTotal)}đ
-            </p>
+
+
+      {/* Main Chart Card styled like the reference image */}
+      <div className="mt-8 mx-4 rounded-[32px] bg-white shadow-[0_8px_32px_rgba(0,0,0,0.04)] border border-border/40 overflow-hidden mb-6">
+        {/* Header & Pill Toggle */}
+        <div className="flex items-start justify-between px-6 pt-6 pb-2">
+          <div className="flex flex-col">
+            <span className="text-[14px] text-text-muted font-medium mb-1 tracking-tight">Chi tiêu tháng này</span>
+            <span className="text-[22px] font-bold text-text font-num leading-none">{formatVND(monthTotal)}đ</span>
           </div>
-          <div className="p-4 rounded-[24px] bg-white/80 shadow-premium border border-white/60 active-scale">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="size-6 rounded-full bg-success/10 flex items-center justify-center">
-                <ArrowDownCircle size={14} className="text-success" />
-              </div>
-              <span className="text-[11px] font-bold text-text-hint uppercase tracking-wider">Thu nhập</span>
-            </div>
-            <p className="font-num text-[20px] font-bold text-text leading-tight">
-              {settings?.income ? `${formatVND(settings.income)}đ` : '0đ'}
-            </p>
+
+          {/* D/W/M-style Pill Toggle but for our features */}
+          <div className="flex items-center bg-surface p-1 rounded-full shrink-0 shadow-sm border border-border/60">
+            <button
+              onClick={() => {
+                triggerHaptic('light')
+                setChartMode('trend')
+              }}
+              className="relative px-3.5 py-1.5 rounded-full text-[13px] font-bold z-10 transition-colors"
+            >
+              <span className={chartMode === 'trend' ? "text-white" : "text-text-muted hover:text-text transition-colors"}>Bar</span>
+              {chartMode === 'trend' && (
+                <motion.div 
+                  layoutId="activeTabBg" 
+                  className="absolute inset-0 rounded-full -z-10"
+                  style={{ backgroundColor: 'var(--color-accent)' }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+            </button>
+            <button
+              onClick={() => {
+                triggerHaptic('light')
+                setChartMode('distribution')
+              }}
+              className="relative px-3.5 py-1.5 rounded-full text-[13px] font-bold z-10 transition-colors"
+            >
+              <span className={chartMode === 'distribution' ? "text-white" : "text-text-muted hover:text-text transition-colors"}>Pie</span>
+              {chartMode === 'distribution' && (
+                <motion.div 
+                  layoutId="activeTabBg" 
+                  className="absolute inset-0 rounded-full -z-10"
+                  style={{ backgroundColor: 'var(--color-accent)' }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Chart section */}
-      <div className="mt-6 mx-4 rounded-[32px] bg-white/60 shadow-premium border border-white/80 overflow-hidden backdrop-blur-sm">
-        {/* Toggle header */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-3">
-          <span className="text-[11px] font-medium text-text-hint uppercase tracking-[1px]">
-            {chartMode === 'distribution' ? 'Phân bổ chi tiêu' : 'Xu hướng tháng'}
-          </span>
-          <button
-            type="button"
-            onClick={() => setChartMode(m => m === 'distribution' ? 'trend' : 'distribution')}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-border rounded-full text-[12px] font-medium text-text transition-transform active:scale-95"
-          >
-            {chartMode === 'distribution'
-              ? <><BarChart2 size={12} /> Xu hướng</>
-              : <><PieChart size={12} /> Phân bổ</>
-            }
-          </button>
-        </div>
-
-        {/* Chart with fade */}
-        <div key={chartMode} style={{ animation: 'fadeIn 200ms ease-out' }}>
-
+        {/* Chart Viewport */}
+        <div className="px-2 pb-6 pt-2">
           {/* Distribution — donut */}
           {chartMode === 'distribution' && (
             donutData.length === 0 ? (
-              <div className="flex items-center justify-center h-[220px] text-[13px] text-text-muted">
+              <div className="flex items-center justify-center h-[280px] text-[13px] text-text-muted font-medium">
                 Chưa có chi tiêu tháng này
               </div>
             ) : (
-              <div className="pb-4">
-                <Suspense fallback={<ChartSkeleton height={280} />}>
-                  <ReactApexChart
-                    type="donut"
-                    options={donutOptions}
-                    series={donutSeries}
-                    height={280}
-                    width="100%"
-                  />
-                </Suspense>
+              <div className="animate-in fade-in zoom-in-95 duration-300">
+                <div className="h-[250px] flex items-center justify-center px-4">
+                  <Suspense fallback={<ChartSkeleton height={250} />}>
+                    <ReactApexChart
+                      type="donut"
+                      options={donutOptions}
+                      series={donutSeries}
+                      height="100%"
+                      width="100%"
+                    />
+                  </Suspense>
+                </div>
 
-                {/* Custom legend */}
-                <div className="flex flex-col gap-2.5 px-4 mt-1">
+                {/* Legend matching the tabular image design */}
+                <div className="flex flex-col gap-3 px-6 mt-4">
                   {donutData.map((item) => {
                     const pct = monthTotal > 0 ? Math.round((item.value / monthTotal) * 100) : 0
                     return (
-                      <div key={item.name} className="flex items-center gap-2.5">
-                        <div
-                          className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ background: item.color }}
-                        />
-                        <span className="text-[13px] flex-1 truncate text-text">
-                          {item.icon} {item.name}
-                        </span>
-                        <div className="w-16 h-1.5 bg-surface2 rounded-full overflow-hidden shrink-0">
+                      <div key={item.name} className="flex items-center justify-between group">
+                        <div className="flex items-center gap-3 w-[45%]">
                           <div
-                            className="h-full rounded-full transition-all"
-                            style={{ width: `${pct}%`, background: item.color }}
+                            className="size-[14px] rounded-[5px] shrink-0 shadow-sm"
+                            style={{ background: item.color }}
                           />
+                          <span className="text-[14px] text-text-muted font-medium truncate group-hover:text-text transition-colors">
+                            {item.name}
+                          </span>
                         </div>
+                        <span className="font-num text-[14px] font-bold text-text shrink-0 w-[40%] text-right opacity-90">
+                          {formatShort(item.value)}đ
+                        </span>
                         <span
-                          className="font-num text-[11px] font-semibold w-7 text-right shrink-0"
+                          className="font-num text-[14px] font-bold shrink-0 w-[15%] text-right"
                           style={{ color: item.color }}
                         >
                           {pct}%
-                        </span>
-                        <span className="font-num text-[11px] text-text-hint w-14 text-right shrink-0">
-                          {formatShort(item.value)}
                         </span>
                       </div>
                     )
@@ -372,59 +330,47 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
 
           {/* Trend — bar */}
           {chartMode === 'trend' && (
-          <div
-            className="relative mx-4 mb-4"
-            style={{
-              background: 'white',
-              borderRadius: 20,
-              padding: '16px 8px 12px',
-              boxShadow: `
-                0 2px 8px rgba(0,0,0,0.04),
-                0 8px 24px rgba(232,160,32,0.08),
-                0 1px 0 rgba(255,255,255,0.8) inset
-              `,
-              border: '1px solid rgba(232,160,32,0.1)',
-            }}
-          >
-            <p className="text-xs font-medium text-text-muted uppercase tracking-wider px-2 mb-1">
-              Chi tiêu theo tháng
-            </p>
-
-            <Suspense fallback={<ChartSkeleton height={220} />}>
-              <ReactApexChart
-                type="bar"
-                options={barOptions}
-                series={barSeries}
-                height={220}
-                width="100%"
-              />
-            </Suspense>
-
-            {diff !== 0 && lastMonthTotal > 0 && (
-              <div
-                className="mx-2 mt-1 flex items-center gap-2 px-3 py-2 rounded-xl"
-                style={{
-                  background: isIncrease ? '#FFF0F0' : '#EDFAF4',
-                }}
-              >
-                {isIncrease ? (
-                  <TrendingUp size={13} className="text-danger" />
-                ) : (
-                  <TrendingDown size={13} className="text-success" />
-                )}
-                <span className="text-xs text-text-muted">
-                  {isIncrease ? 'Tăng ' : 'Giảm '}
-                  <span
-                    className="font-semibold font-mono"
-                    style={{ color: isIncrease ? '#D63E3E' : '#2A9D6E' }}
-                  >
-                    {formatVND(Math.abs(diff))}đ
-                  </span>{' '}
-                  so với tháng trước
-                </span>
+            <div className="animate-in fade-in zoom-in-95 duration-300 pt-2 pb-2 px-2 relative">
+              <div className="h-[210px]">
+                <Suspense fallback={<ChartSkeleton height={210} />}>
+                  <ReactApexChart
+                    type="bar"
+                    options={barOptions}
+                    series={barSeries}
+                    height="100%"
+                    width="100%"
+                  />
+                </Suspense>
               </div>
-            )}
-          </div>
+              
+              {diff !== 0 && lastMonthTotal > 0 && (
+                <div
+                  className="mx-2 mt-3 px-4 py-3 rounded-2xl flex items-center gap-3"
+                  style={{
+                    background: isIncrease ? '#FFF5F5' : '#F2FCF7',
+                    border: `1px solid ${isIncrease ? '#FFE5E5' : '#E4F7ED'}`
+                  }}
+                >
+                  <div 
+                    className="size-[34px] rounded-full flex items-center justify-center shrink-0 shadow-sm"
+                    style={{ background: isIncrease ? '#FFE5E5' : '#E4F7ED' }}
+                  >
+                    {isIncrease ? <TrendingUp size={16} color="#D63E3E" /> : <TrendingDown size={16} color="var(--color-success)" />}
+                  </div>
+                  <div className="flex flex-col justify-center">
+                    <p className="text-[12px] text-text-muted font-medium mb-[3px] leading-none">
+                      {isIncrease ? 'Chi nhiều hơn tháng trước' : 'Bạn đã tiết kiệm được'}
+                    </p>
+                    <p 
+                      className="font-num text-[16px] font-black leading-none"
+                      style={{ color: isIncrease ? '#D63E3E' : 'var(--color-success)' }}
+                    >
+                      {formatVND(Math.abs(diff))}đ
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

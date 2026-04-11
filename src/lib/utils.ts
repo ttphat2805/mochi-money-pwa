@@ -139,6 +139,28 @@ export function getDaysInMonth(year: number, month: number): number {
 }
 
 /**
+ * Get the last 7 days as an array of 'YYYY-MM-DD' strings, oldest first, ending today.
+ */
+export function getLast7Days(): string[] {
+  const result: string[] = []
+  for (let i = 6; i >= 0; i--) {
+    result.push(getDateNDaysAgo(i))
+  }
+  return result
+}
+
+/**
+ * Get a short weekday label for a date string (e.g. "T2", "T3", "CN").
+ */
+export function getShortWeekday(dateStr: string): string {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
+  const LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+  return LABELS[dow]
+}
+
+
+/**
  * Format an ISO timestamp to Vietnamese datetime string.
  * e.g. "14:30 · 18/03/2026"
  */

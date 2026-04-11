@@ -49,9 +49,9 @@ export function EmojiPickerSheet({
         <div className="w-full">
           <style>{`
             em-emoji-picker {
-              width: 100vw !important;
-              max-width: 100vw !important;
-              min-width: 100vw !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              min-width: 100% !important;
               display: block;
             }
           `}</style>

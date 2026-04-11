@@ -5,8 +5,15 @@ import { getCurrentMonthString, getDaysLeftInMonth, getDaysInMonth, getTodayStri
 import type { BudgetCategory } from '@/types'
 import { toast } from 'sonner'
 
+function getPrevMonthKey(monthKey: string): string {
+  const [y, m] = monthKey.split('-').map(Number)
+  if (m === 1) return `${y - 1}-12`
+  return `${y}-${String(m - 1).padStart(2, '0')}`
+}
+
 export interface CategoryBudgetItem extends BudgetCategory {
   spent: number
+  lastMonthSpent: number
   pct: number         // 0–100 clamped
   remaining: number   // can be negative (over budget)
   status: 'ok' | 'warning' | 'danger' | 'over'
@@ -14,6 +21,7 @@ export interface CategoryBudgetItem extends BudgetCategory {
 
 export function useBudget() {
   const monthKey = getCurrentMonthString()
+  const prevMonthKey = getPrevMonthKey(monthKey)
   const todayStr = getTodayString()
   const [yr, mo] = todayStr.split('-').map(Number)
   const daysInMonth = getDaysInMonth(yr, mo)
@@ -36,8 +44,6 @@ export function useBudget() {
   const { flexAmount, spentPct, dailyAllowance } = useMemo(() => {
     const income = settings?.income ?? 0
     const saving = settings?.savingTarget ?? 0
-    // We no longer pre-subtract fixed expenses from the flex budget
-    // to avoid double counting when the user adds them as transactions.
     const flex = Math.max(0, income - saving)
     const pct = flex > 0 ? Math.round((totalSpent / flex) * 100) : 0;
     const remaining = flex - totalSpent
@@ -54,12 +60,23 @@ export function useBudget() {
 
     for (const cat of cats) {
       if (cat.id == null) continue
-      const txs = await db.transactions
-        .where('date')
-        .startsWith(monthKey)
-        .filter((tx) => !tx.deletedAt && tx.categoryId === cat.id)
-        .toArray()
-      const spent = txs.reduce((s, t) => s + t.amount, 0)
+      
+      const [currentTxs, prevTxs] = await Promise.all([
+          db.transactions
+            .where('date')
+            .startsWith(monthKey)
+            .filter((tx) => !tx.deletedAt && tx.categoryId === cat.id)
+            .toArray(),
+          db.transactions
+            .where('date')
+            .startsWith(prevMonthKey)
+            .filter((tx) => !tx.deletedAt && tx.categoryId === cat.id)
+            .toArray()
+      ])
+
+      const spent = currentTxs.reduce((s, t) => s + t.amount, 0)
+      const lastMonthSpent = prevTxs.reduce((s, t) => s + t.amount, 0)
+      
       const limit = cat.limitPerMonth
       const pct = limit && limit > 0 ? Math.round((spent / limit) * 100) : 0;
       const remaining = limit ? limit - spent : 0
@@ -72,10 +89,10 @@ export function useBudget() {
         else if (ratio >= 0.6) status = 'warning'
       }
 
-      results.push({ ...cat, spent, pct, remaining, status })
+      results.push({ ...cat, spent, lastMonthSpent, pct, remaining, status })
     }
     return results
-  }, [monthKey])
+  }, [monthKey, prevMonthKey])
 
   const categoriesWithBudget = categoriesWithBudgetRaw ?? []
 

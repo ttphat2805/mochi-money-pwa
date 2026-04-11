@@ -10,7 +10,7 @@ export function TopBar({ onSettingsTap }: TopBarProps) {
   const { settings } = usePersonalization()
 
   return (
-    <header className="flex items-center justify-between px-5 py-3 safe-top">
+    <header className="flex items-center justify-between px-5 py-3 safe-top bg-gradient-to-b from-background to-background/80">
       <div>
         <p className="text-text-hint text-[11px] font-medium tracking-wide">
           {getVietnameseDay()}

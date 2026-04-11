@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { useState, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { formatVND, getDateLabel } from '@/lib/utils'
@@ -7,7 +8,7 @@ import type { Transaction } from '@/types'
 import { useShouldShowSkeleton } from '@/hooks/useShouldShowSkeleton'
 import { HistorySkeleton } from './HistorySkeleton'
 
-import { motion, useMotionValue, useTransform, type PanInfo } from 'framer-motion'
+import { motion, useMotionValue, animate, type PanInfo } from 'framer-motion'
 import { Trash } from 'lucide-react'
 import { useTransactionStore } from '@/stores/transactionStore'
 import { triggerHaptic } from '@/lib/haptic'
@@ -22,39 +23,59 @@ function TxRow({
   onSelect: (tx: Transaction) => void
 }) {
   const { softDelete } = useTransactionStore()
-  
   const x = useMotionValue(0)
-  const deleteOpacity = useTransform(x, [0, -60], [0, 1])
-  const deleteBg = useTransform(x, [0, -80], ['#FEE2E2', '#EF4444'])
+  const [hasDragged, setHasDragged] = React.useState(false)
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    triggerHaptic('heavy')
+    softDelete(tx.id!)
+  }
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
-    if (info.offset.x < -80) {
-      triggerHaptic('heavy')
-      softDelete(tx.id!)
+    if (Math.abs(info.offset.x) > 10) {
+      setHasDragged(true)
+      setTimeout(() => setHasDragged(false), 50)
+    }
+
+    if (info.offset.x < -20 || info.point.x < -20) {
+      animate(x, -64, { type: 'spring', bounce: 0.2, duration: 0.3 })
+    } else {
+      animate(x, 0, { type: 'spring', bounce: 0.2, duration: 0.3 })
     }
   }
 
   return (
-    <div className="relative overflow-hidden w-full rounded-xl">
-      <motion.div 
-        style={{ opacity: deleteOpacity, backgroundColor: deleteBg }}
-        className="absolute inset-y-0 right-0 flex w-full items-center justify-end pr-5 rounded-xl"
-      >
-        <Trash className="text-white size-4" />
-      </motion.div>
+    <div className="relative overflow-hidden w-full rounded-xl bg-[#EF4444]">
+      {/* Background delete button layer */}
+      <div className="absolute inset-y-0 right-0 w-[64px] flex items-center justify-center">
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="w-full h-full flex items-center justify-center text-white active:opacity-70 transition-opacity"
+        >
+          <Trash className="size-4" />
+        </button>
+      </div>
 
       <motion.button
         type="button"
         drag="x"
-        dragConstraints={{ left: -100, right: 0 }}
-        dragElastic={0.1}
-        onDragEnd={handleDragEnd}
+        dragConstraints={{ left: -64, right: 0 }}
+        dragElastic={0.05}
         style={{ x }}
-        onClick={() => {
-          if (x.get() > -10 && x.get() < 10) onSelect(tx)
+        onDragEnd={handleDragEnd}
+        onClick={(e) => {
+          if (hasDragged) return
+          if (Math.abs(x.get()) > 5) {
+            animate(x, 0, { type: 'spring', bounce: 0, duration: 0.3 })
+            e.preventDefault()
+            return
+          }
+          onSelect(tx)
         }}
-        whileTap={{ scale: 0.98 }}
-        className="flex min-h-[52px] items-center gap-3 rounded-xl px-3 py-2.5 bg-white active:bg-surface transition-colors cursor-grab active:cursor-grabbing text-left w-full relative z-10"
+        whileTap={{ scale: Math.abs(x.get()) < 5 ? 0.98 : 1 }}
+        className="flex min-h-[52px] items-center gap-3 rounded-xl px-3 py-2.5 bg-white transition-colors cursor-grab active:cursor-grabbing text-left w-full relative z-10"
       >
         <div
           style={{
