@@ -51,7 +51,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
             >
               <span className={chartMode === 'trend' ? "text-white flex items-center gap-1.5" : "text-text-muted hover:text-text transition-colors flex items-center gap-1.5"}>
                 <BarChart3 size={13} strokeWidth={2.5} />
-                <span>Xu hướng</span>
+                <span className="hidden sm:inline">Xu hướng</span>
               </span>
               {chartMode === 'trend' && (
                 <motion.div 
@@ -71,7 +71,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
             >
               <span className={chartMode === 'distribution' ? "text-white flex items-center gap-1.5" : "text-text-muted hover:text-text transition-colors flex items-center gap-1.5"}>
                 <PieChartIcon size={13} strokeWidth={2.5} />
-                <span>Cơ cấu</span>
+                <span className="hidden sm:inline">Cơ cấu</span>
               </span>
               {chartMode === 'distribution' && (
                 <motion.div 
