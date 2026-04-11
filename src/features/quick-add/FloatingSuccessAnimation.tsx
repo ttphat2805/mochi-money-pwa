@@ -11,7 +11,7 @@ const POP_SPRING = {
   stiffness: 400,
   damping: 25,
   mass: 1.2
-}
+} as const
 
 export function FloatingSuccessAnimation({ isVisible, amount }: FloatingSuccessAnimationProps) {
   return (

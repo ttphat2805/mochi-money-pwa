@@ -80,7 +80,7 @@ export const SummaryRow = React.memo(({
 
   return (
     <div className="px-4 grid grid-cols-3 gap-2">
-      {stats.map((stat, i) => (
+      {stats.map((stat) => (
         <div
           key={stat.label}
           className="rounded-xl p-3 bg-white border border-border/60 shadow-sm"

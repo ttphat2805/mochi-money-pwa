@@ -32,7 +32,7 @@ const DayCell = React.memo(function DayCell({
   heat: 0 | 1 | 2 | 3 | 4
   onSelect: (date: string) => void
 }) {
-  const { date, day, isToday, isFuture } = cell
+  const { date, day, isToday } = cell
 
   return (
     <button

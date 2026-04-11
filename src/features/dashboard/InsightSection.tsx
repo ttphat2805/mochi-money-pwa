@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, TrendingUp, TrendingDown, Info, ChevronRight, type LucideIcon } from 'lucide-react'
+import { Sparkles, TrendingUp, TrendingDown, Info, ChevronRight } from 'lucide-react'
 import { useFinancialInsights, type FinancialInsight } from '@/hooks/useFinancialInsights'
 import { triggerHaptic } from '@/lib/haptic'
 

@@ -15,12 +15,6 @@ function ChartSkeleton() {
   return <div className="h-[200px] bg-surface rounded-2xl animate-pulse" />;
 }
 
-function getStatusColor(status: string, fallback: string) {
-  if (status === "over") return "var(--color-danger)";
-  if (status === "danger") return "var(--color-accent)";
-  return fallback;
-}
-
 // ── Budget Tab ─────────────────────────────────────────────────
 
 export function BudgetTab() {
@@ -175,8 +169,7 @@ export function BudgetTab() {
             const isIncrease = diff > 0;
             const diffAbs = Math.abs(diff);
             
-            const color = isOver ? "var(--color-danger)" : isFull ? "var(--color-accent)" : getStatusColor(cat.status, "var(--color-success)");
-
+            
             return (
               <div
                 key={cat.id}
