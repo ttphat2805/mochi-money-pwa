@@ -244,21 +244,21 @@ export function TransactionDetailSheet({
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 mt-4 items-center">
+              <div className="grid grid-cols-12 gap-3 mt-4">
                 <button
                   type="button"
                   onClick={() => setDeleteConfirmOpen(true)}
-                  className="size-12 rounded-xl bg-danger-bg text-danger transition-all active:scale-[0.92] flex items-center justify-center shrink-0 shadow-sm shadow-danger/5"
-                  title="Xoá giao dịch"
+                  className="col-span-4 h-12 rounded-xl bg-danger-bg text-danger transition-all active:scale-[0.92] flex items-center justify-center gap-2 shadow-sm shadow-danger/5 text-[14px] font-medium"
                 >
-                  <Trash2 size={20} />
+                  <Trash2 size={16} />
+                  <span>Xoá</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleSave}
                   disabled={saving || amount === 0 || !categoryId}
-                  className="h-12 flex-1 rounded-xl bg-text text-white text-[15px] font-semibold disabled:opacity-40 transition-all active:scale-[0.98] shadow-lg shadow-black/5"
+                  className="col-span-8 h-12 rounded-xl bg-text text-white text-[15px] font-semibold disabled:opacity-40 transition-all active:scale-[0.98] shadow-lg shadow-black/5"
                 >
                   {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
                 </button>
