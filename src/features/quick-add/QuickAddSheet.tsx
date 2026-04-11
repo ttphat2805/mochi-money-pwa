@@ -106,12 +106,12 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
           showCloseButton={false}
           className={cn(
             "bg-bg rounded-t-[40px] p-0 transition-all duration-400 ease-[cubic-bezier(0.32,0.72,0,1)] shadow-2xl overflow-hidden border-none flex flex-col",
-            isKeyboardOpen ? "h-[94dvh]" : "h-[82dvh] max-h-[92dvh]"
+            isKeyboardOpen ? "h-[92vh]" : "h-[85vh] max-h-[85vh]"
           )}
         >
           <div className="flex flex-col h-full relative">
             {/* Header / Amount Branding */}
-            <div className="px-6 pt-4 pb-1 flex flex-col items-center bg-bg relative">
+            <div className="px-6 pt-3 pb-1 flex flex-col items-center bg-bg relative shrink-0">
                <div className="absolute top-2 w-12 h-1 rounded-full bg-border/30 mb-4" />
                 <div className="w-full flex justify-between items-center mb-0 mt-2">
                   <span className="text-[10px] font-black tracking-[2px] text-text-hint/70 uppercase">Số Tiền</span>
@@ -123,7 +123,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
             </div>
 
             {/* Middle Section: Swipable Categories & Intel */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide px-6 space-y-4 pb-4">
+            <div className="flex-1 overflow-y-auto scrollbar-hide px-6 space-y-4 pb-4 min-h-0">
                 <div className="space-y-4">
                    <div className="flex items-center justify-between">
                      <span className="text-text-muted text-[10px] font-black uppercase tracking-[1.5px]">Danh mục</span>
@@ -161,7 +161,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
             </div>
 
             <div className={cn(
-              "px-6 pb-[calc(8px+env(safe-area-inset-bottom))]",
+              "px-6 pb-[calc(16px+env(safe-area-inset-bottom))] shrink-0 bg-bg",
               isKeyboardOpen ? "hidden" : "block"
             )}>
               <Numpad

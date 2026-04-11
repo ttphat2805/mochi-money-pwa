@@ -58,7 +58,7 @@ function SheetContent({
       <Drawer.Content
         data-slot="sheet-content"
         className={cn(
-          "fixed bottom-0 inset-x-0 z-50 flex h-auto max-w-[480px] mx-auto flex-col rounded-t-[24px] bg-background border-t shadow-2xl outline-none w-full",
+          "fixed bottom-0 inset-x-0 z-50 flex max-w-[480px] mx-auto flex-col rounded-t-[24px] bg-background border-t shadow-2xl outline-none w-full",
           className,
         )}
         {...props}
@@ -66,7 +66,7 @@ function SheetContent({
         {/* Handle for swipe-to-close hint */}
         <div className="mx-auto mt-3 h-1.5 w-12 flex-shrink-0 rounded-full bg-surface2" />
         
-        <div className="flex flex-col">
+        <div className="flex flex-col flex-1 min-h-0">
           {children}
         </div>
 
