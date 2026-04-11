@@ -243,24 +243,27 @@ export function TransactionDetailSheet({
                 </div>
               </div>
 
-              {/* Save */}
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={saving || amount === 0 || !categoryId}
-                className="h-12 w-full rounded-xl bg-text text-white text-[15px] font-semibold disabled:opacity-40 transition-all active:scale-[0.98] mt-2"
-              >
-                {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => setDeleteConfirmOpen(true)}
-                className="h-12 w-full rounded-xl bg-danger-bg text-danger text-[15px] font-medium transition-all active:scale-[0.98] mt-1 flex items-center justify-center gap-2"
-              >
-                <Trash2 size={16} />
-                Xoá giao dịch
-              </button>
+              {/* Actions */}
+              <div className="flex gap-3 mt-4 items-center">
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirmOpen(true)}
+                  className="size-12 rounded-xl bg-danger-bg text-danger transition-all active:scale-[0.92] flex items-center justify-center shrink-0 shadow-sm shadow-danger/5"
+                  title="Xoá giao dịch"
+                >
+                  <Trash2 size={20} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving || amount === 0 || !categoryId}
+                  className="h-12 flex-1 rounded-xl bg-text text-white text-[15px] font-semibold disabled:opacity-40 transition-all active:scale-[0.98] shadow-lg shadow-black/5"
+                >
+                  {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
+                </button>
+              </div>
+
             </div>
           </div>
         </SheetContent>
