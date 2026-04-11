@@ -11,8 +11,8 @@ export function NoteInput({ value, onChange }: NoteInputProps) {
   const [isFocused, setIsFocused] = useState(false)
 
   return (
-    <div className="relative flex flex-1 items-center gap-2 rounded-xl bg-white px-3 py-2 border border-border/30 shadow-none transition-colors">
-      <Pencil className={`size-3.5 shrink-0 transition-colors ${isFocused ? 'text-accent' : 'text-text-hint/60'}`} />
+    <div className="relative flex items-center gap-2 rounded-xl bg-white px-3 py-1.5 border border-border/30 shadow-none transition-colors">
+      <Pencil className={`size-3 shrink-0 transition-colors ${isFocused ? 'text-accent' : 'text-text-hint/60'}`} />
       <input
         type="text"
         value={value}
