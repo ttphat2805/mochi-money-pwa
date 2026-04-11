@@ -48,13 +48,11 @@ export function HomePage({ onNavigate, onSettings }: HomePageProps) {
       />
       <SummaryRow
         todaySpent={home.todaySpent}
-        yesterdaySpent={home.yesterdaySpent}
         monthSpent={home.monthSpent}
         remainingBudget={home.remainingBudget}
-        lastMonthSpent={home.lastMonthTotal}
       />
     </div>
-  ), [home.monthSpent, home.lastMonthTotal, home.todaySpent, home.yesterdaySpent, home.remainingBudget, onNavigate]);
+  ), [home.monthSpent, home.lastMonthTotal, home.todaySpent, home.remainingBudget, onNavigate]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-surface">

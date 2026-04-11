@@ -1,13 +1,12 @@
 import * as React from "react";
-import { formatShort } from "@/lib/utils";
-import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { cn, formatShort } from "@/lib/utils";
+import { CalendarDays, Wallet, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface SummaryRowProps {
   todaySpent: number;
-  yesterdaySpent?: number;
   monthSpent: number;
   remainingBudget: number | null;
-  lastMonthSpent?: number;
 }
 
 // Optimized AnimatedNumber using React.memo and simple increments for tiny numbers
@@ -26,13 +25,13 @@ const AnimatedNumber = React.memo(({
     if (value === prevValue.current) return;
     const start = prevValue.current;
     const end = value;
-    const duration = 300; // Faster transition
+    const duration = 400; 
     const startTime = performance.now();
 
     const tick = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      const eased = progress * (2 - progress); // Simple easeOutQuad
+      const eased = progress * (2 - progress); 
       setDisplay(Math.round(start + (end - start) * eased));
       if (progress < 1) rafRef.current = requestAnimationFrame(tick);
     };
@@ -45,62 +44,84 @@ const AnimatedNumber = React.memo(({
   return <>{formatFn(display)}</>;
 });
 
+/**
+ * Senior UX Architecture: Glassy Summary Cards
+ * Implements the Asymmetric Rounded Radii and Vibrant Gradients from the reference UI.
+ */
 export const SummaryRow = React.memo(({
   todaySpent,
-  yesterdaySpent = 0,
   monthSpent,
   remainingBudget,
-  lastMonthSpent = 0,
 }: SummaryRowProps) => {
-  const isUpToday = todaySpent > yesterdaySpent;
-  const isUpMonth = monthSpent > lastMonthSpent;
 
-  // Static items to avoid recreation on every render
   const stats = React.useMemo(() => [
     {
-      label: "HÔM NAY",
+      label: "Hôm nay",
       value: todaySpent,
-      icon: todaySpent > 0 ? (
-        isUpToday ? <ArrowUpRight size={10} className="text-danger" /> : <ArrowDownRight size={10} className="text-success" />
-      ) : null,
+      sub: "Chi tiêu",
+      icon: <Sparkles size={16} />,
+      color: "#FF6B8B", // Pink
+      gradient: "from-[#FF8BA7] to-[#FF6B8B]",
+      shadow: "shadow-[0_10px_20px_-5px_rgba(255,107,139,0.3)]"
     },
     {
-      label: "THÁNG NÀY",
+      label: "Tháng này",
       value: monthSpent,
-      icon: monthSpent > 0 ? (
-        isUpMonth ? <ArrowUpRight size={10} className="text-danger" /> : <ArrowDownRight size={10} className="text-success" />
-      ) : null,
+      sub: "Tổng chi",
+      icon: <CalendarDays size={16} />,
+      color: "#6A89FF", // Blue/Purple
+      gradient: "from-[#8AA2FF] to-[#6A89FF]",
+      shadow: "shadow-[0_10px_20px_-5px_rgba(106,137,255,0.3)]"
     },
     {
-      label: "CÒN LẠI",
+      label: "Còn lại",
       value: remainingBudget ?? 0,
-      hide: remainingBudget === null,
+      sub: "Ngân sách",
+      icon: <Wallet size={16} />,
+      color: "#FFB067", // Orange
+      gradient: "from-[#FFC187] to-[#FFB067]",
+      shadow: "shadow-[0_10px_20px_-5px_rgba(255,176,103,0.3)]"
     },
-  ], [todaySpent, isUpToday, monthSpent, isUpMonth, remainingBudget]);
+  ], [todaySpent, monthSpent, remainingBudget]);
 
   return (
-    <div className="px-4 grid grid-cols-3 gap-2">
+    <div className="px-4 grid grid-cols-3 gap-3">
       {stats.map((stat) => (
-        <div
+        <motion.div
           key={stat.label}
-          className="rounded-xl p-3 bg-white border border-border/60 shadow-sm"
+          whileTap={{ scale: 0.96 }}
+          className={cn(
+            "relative flex flex-col p-3 rounded-[24px] overflow-hidden",
+            stat.gradient,
+            "bg-gradient-to-br",
+            stat.shadow
+          )}
         >
-          <div className="relative flex flex-col items-center text-center">
-            <div className="flex items-center gap-1 mb-1">
-              <span className="text-[10px] font-bold tracking-widest text-text-hint uppercase">
-                {stat.label}
-              </span>
-              {stat.icon}
-            </div>
+          {/* Glass Overlay Shine */}
+          <div className="absolute top-0 left-0 w-full h-1/2 bg-white/10 blur-xl -translate-y-1/2 rounded-full" />
 
-            <p className="font-num font-bold text-[13px] text-text">
+          {/* Icon in specific circular tint */}
+          <div className="size-8 rounded-full bg-white/20 flex items-center justify-center text-white mb-3 shadow-inner">
+             {stat.icon}
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-[14px] font-bold text-white tracking-tight leading-tight">
+                {stat.label}
+            </span>
+            <span className="text-[9px] font-medium text-white/70 uppercase tracking-widest mb-1 mt-0.5">
+                {stat.sub}
+            </span>
+
+            <p className="font-mono font-black text-[15px] text-white flex items-baseline gap-0.5">
               <AnimatedNumber
                 value={Math.abs(stat.value)}
                 formatFn={formatShort}
               />
+              <span className="text-[10px] opacity-70">đ</span>
             </p>
           </div>
-        </div>
+        </motion.div>
       ))}
     </div>
   );

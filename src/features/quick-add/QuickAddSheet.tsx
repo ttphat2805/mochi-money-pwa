@@ -111,9 +111,9 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
         >
           <div className="flex flex-col h-full relative">
             {/* Header / Amount Branding */}
-            <div className="px-6 pt-5 pb-2 flex flex-col items-center bg-bg relative">
-               <div className="absolute top-2 w-12 h-1.5 rounded-full bg-border/40 mb-4" />
-               <div className="w-full flex justify-between items-center mb-1 mt-4">
+            <div className="px-6 pt-4 pb-1 flex flex-col items-center bg-bg relative">
+               <div className="absolute top-2 w-12 h-1 rounded-full bg-border/30 mb-4" />
+               <div className="w-full flex justify-between items-center mb-0 mt-3">
                   <span className="text-[10px] font-black tracking-[2px] text-text-hint/70 uppercase">Số Tiền</span>
                   <button onClick={close} className="size-8 rounded-full bg-surface items-center justify-center flex active:scale-90 transition-transform">
                     <X size={14} className="text-text-muted" />
@@ -161,7 +161,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
             </div>
 
             <div className={cn(
-              "px-6 pb-[calc(16px+env(safe-area-inset-bottom))]",
+              "px-6 pb-[calc(8px+env(safe-area-inset-bottom))]",
               isKeyboardOpen ? "hidden" : "block"
             )}>
               <Numpad
