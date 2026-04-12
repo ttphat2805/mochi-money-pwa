@@ -7,10 +7,9 @@ import { usePersonalization } from '@/hooks/usePersonalization'
 interface NoteInputProps {
   value: string
   onChange: (value: string) => void
-  onFocusChange?: (focused: boolean) => void
 }
 
-export function NoteInput({ value, onChange, onFocusChange }: NoteInputProps) {
+export function NoteInput({ value, onChange }: NoteInputProps) {
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const { settings } = usePersonalization()
@@ -38,14 +37,8 @@ export function NoteInput({ value, onChange, onFocusChange }: NoteInputProps) {
         ref={inputRef}
         type="text"
         value={value}
-        onFocus={() => {
-          setIsFocused(true)
-          onFocusChange?.(true)
-        }}
-        onBlur={() => {
-          setIsFocused(false)
-          onFocusChange?.(false)
-        }}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Ghi chú (tùy chọn)"
         className="w-full bg-transparent text-[12px] font-medium outline-none text-text leading-none"

@@ -164,12 +164,8 @@ export function HistoryTab() {
             <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-bg to-transparent z-10 pointer-events-none" />
 
             <div
-              className="flex gap-2.5 overflow-x-auto px-4 pb-1 snap-x scrollbar-hide"
-              style={{ 
-                WebkitOverflowScrolling: 'touch', 
-                overscrollBehavior: 'contain',
-                touchAction: 'pan-x'
-              }}
+              className="flex gap-2.5 overflow-x-auto px-4 pb-1 snap-x scrollbar-hide touch-pan-x"
+              style={{ WebkitOverflowScrolling: 'touch', overscrollBehaviorX: 'contain' }}
             >
               {/* All chip */}
               <motion.button
