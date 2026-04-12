@@ -4,6 +4,7 @@ import { triggerHaptic } from "@/lib/haptic";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { AmountDisplay } from "./AmountDisplay";
 import { BudgetWarningDialog } from "./BudgetWarningDialog";
@@ -27,6 +28,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
   const [initialCategoryId, setInitialCategoryId] = useState<number | null>(
     null,
   );
+  const [isNoteFocused, setIsNoteFocused] = useState(false);
 
   const {
     amount,
@@ -101,10 +103,10 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
           showCloseButton={false}
           className={cn(
             "bg-[#F7F5F0] rounded-t-[32px] p-0 shadow-2xl overflow-hidden border-none flex flex-col transition-all duration-300",
-            "h-[82vh] max-h-[82vh]",
+            "h-[82dvh] max-h-[82dvh]",
           )}
         >
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-full overflow-hidden">
             {/* ── HEADER: close + amount + date ── */}
             <div className="px-5 pt-3 pb-3 shrink-0 bg-[#F7F5F0]">
               {/* Top row */}
@@ -162,15 +164,31 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
               className="px-5 pb-[calc(10px+env(safe-area-inset-bottom))] shrink-0 bg-[#F7F5F0] pt-2 border-t border-black/5"
             >
               <div className="mb-3">
-                <NoteInput value={note} onChange={setNote} />
+                <NoteInput value={note} onChange={setNote} onFocusChange={(focused) => {
+                  // Small delay to ensure smooth transition
+                  setIsNoteFocused(focused);
+                }} />
               </div>
-              <Numpad
-                onDigit={appendDigit}
-                onDelete={deleteDigit}
-                onConfirm={handleSave}
-                canConfirm={canSave}
-                isSaving={isSaving}
-              />
+              
+              <AnimatePresence initial={false}>
+                {!isNoteFocused && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <Numpad
+                      onDigit={appendDigit}
+                      onDelete={deleteDigit}
+                      onConfirm={handleSave}
+                      canConfirm={canSave}
+                      isSaving={isSaving}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
           </div>
