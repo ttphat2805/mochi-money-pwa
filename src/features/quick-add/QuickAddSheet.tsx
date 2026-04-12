@@ -103,7 +103,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
           showCloseButton={false}
           className={cn(
             "bg-[#F7F5F0] rounded-t-[32px] p-0 shadow-2xl overflow-hidden border-none flex flex-col transition-all duration-300",
-            isNoteFocused ? "h-[100dvh] max-h-[100dvh]" : "h-[85dvh] max-h-[85dvh]",
+            "h-[82dvh] max-h-[82dvh]",
           )}
         >
           <div className="flex flex-col h-full overflow-hidden">
@@ -112,69 +112,52 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
               {/* Top row */}
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-black tracking-[2px] text-black/30 uppercase">
-                  {isNoteFocused ? 'Ghi chú' : 'Chi tiêu'}
+                  Chi tiêu
                 </span>
                 <div className="flex items-center gap-2">
-                  {!isNoteFocused ? (
-                    <>
-                      <DateSelector
-                        dateLabel={dateLabel}
-                        onTap={() => setDatePickerOpen(true)}
-                      />
-                      <button
-                        onClick={close}
-                        className="!min-h-7 size-7 rounded-full bg-black/6 flex items-center justify-center active:scale-90 transition-transform"
-                      >
-                        <X size={13} className="text-black/40" />
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        if (document.activeElement instanceof HTMLElement) {
-                          document.activeElement.blur();
-                        }
-                      }}
-                      className="px-4 py-1.5 rounded-full bg-accent text-white font-bold text-[12px] active:scale-95 transition-transform"
-                    >
-                      Xong
-                    </button>
-                  )}
+                  <DateSelector
+                    dateLabel={dateLabel}
+                    onTap={() => setDatePickerOpen(true)}
+                  />
+                  <button
+                    onClick={close}
+                    className="!min-h-7 size-7 rounded-full bg-black/6 flex items-center justify-center active:scale-90 transition-transform"
+                  >
+                    <X size={13} className="text-black/40" />
+                  </button>
                 </div>
               </div>
 
-              {/* Big amount display - hide when focused to save space */}
-              {!isNoteFocused && (
-                <AmountDisplay
-                  display={amountDisplay}
-                  hasValue={amount > 0}
-                  onClear={clearAmount}
-                />
-              )}
+              {/* Big amount display */}
+              <AmountDisplay
+                display={amountDisplay}
+                hasValue={amount > 0}
+                onClear={clearAmount}
+              />
             </div>
 
-            {/* ── Scrollable: Categories ONLY — hide when focused to save space ── */}
-            {!isNoteFocused && (
-              <div className="flex-1 overflow-y-auto scrollbar-hide px-5 min-h-0">
-                {/* Category label */}
-                <span className="text-text-muted text-[10px] font-black uppercase tracking-[1.5px] block mb-2">
-                  Danh mục
-                </span>
-                <CategoryGrid
-                  categories={sortedForDisplay}
-                  selectedId={selectedCategoryId}
-                  onSelect={(id) => {
-                    selectCategory(id);
-                    triggerHaptic("light");
-                    if (document.activeElement instanceof HTMLElement) {
-                      document.activeElement.blur();
-                    }
-                  }}
-                />
-                {/* Extra space for scrolling */}
-                <div className="h-4" />
-              </div>
-            )}
+            {/* ── Scrollable: Categories ONLY ── */}
+            <div className="flex-1 overflow-y-auto scrollbar-hide px-5 min-h-0">
+              {/* Category label */}
+              <span className="text-text-muted text-[10px] font-black uppercase tracking-[1.5px] block mb-2">
+                Danh mục
+              </span>
+
+              {/* Category grid */}
+              <CategoryGrid
+                categories={sortedForDisplay}
+                selectedId={selectedCategoryId}
+                onSelect={(id) => {
+                  selectCategory(id);
+                  triggerHaptic("light");
+                  if (document.activeElement instanceof HTMLElement) {
+                    document.activeElement.blur();
+                  }
+                }}
+              />
+              {/* Extra space for scrolling */}
+              <div className="h-4" />
+            </div>
 
             {/* ── Fixed Bottom Area: Note + Numpad ── */}
             <div

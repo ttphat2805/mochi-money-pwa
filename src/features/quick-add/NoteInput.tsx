@@ -22,16 +22,14 @@ export function NoteInput({ value, onChange, onFocusChange }: NoteInputProps) {
     <motion.div
       onClick={() => inputRef.current?.focus()}
       className={cn(
-        "flex items-center gap-3 px-4 rounded-[20px] cursor-text transition-all duration-300",
-        isFocused
-          ? "bg-white border-2 border-accent shadow-lg py-4"
-          : hasValue
-            ? "bg-white border border-border/40 py-3"
-            : "bg-white/50 border border-dashed border-border/30 py-3"
+        "flex items-center gap-2 px-3 rounded-xl cursor-text transition-all duration-200",
+        isFocused || hasValue
+          ? "bg-white border border-border/40"
+          : "bg-white/50 border border-dashed border-border/30"
       )}
     >
       <Pencil
-        size={isFocused ? 16 : 12}
+        size={12}
         className="shrink-0 transition-colors duration-200"
         style={{ color: isFocused ? accent : '#9CA3AF' }}
       />
@@ -50,10 +48,7 @@ export function NoteInput({ value, onChange, onFocusChange }: NoteInputProps) {
         }}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Ghi chú (tùy chọn)"
-        className={cn(
-          "w-full bg-transparent font-medium outline-none text-text leading-tight",
-          isFocused ? "text-[16px]" : "text-[14px]"
-        )}
+        className="w-full bg-transparent text-[12px] font-medium outline-none text-text leading-none"
         style={{
           '--placeholder-color': '#C0BDB5',
         } as React.CSSProperties}
