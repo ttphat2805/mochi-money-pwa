@@ -118,7 +118,6 @@ export const SummaryRow = React.memo(({
                 value={Math.abs(stat.value)}
                 formatFn={formatShort}
               />
-              <span className="text-[10px] opacity-70">đ</span>
             </p>
           </div>
         </motion.div>

@@ -3,9 +3,11 @@ import { db } from '@/lib/db'
 import type { BudgetCategory } from '@/types'
 
 export const CATEGORY_COLORS = [
-  '#E8A020','#2A9D6E','#D63E3E','#378ADD',
-  '#7C3AED','#D97706','#0891B2','#DB2777',
-  '#65A30D','#6B7280','#F59E0B','#10B981',
+  '#F59E0B', '#10B981', '#3B82F6', '#EF4444', 
+  '#8B5CF6', '#EC4899', '#06B6D4', '#F97316',
+  '#14B8A6', '#6366F1', '#D946EF', '#84CC16',
+  '#0EA5E9', '#F43F5E', '#A855F7', '#10B981',
+  '#FCD34D', '#34D399', '#60A5FA', '#F87171'
 ]
 
 interface CategoryState {

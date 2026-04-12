@@ -1,11 +1,11 @@
-import { motion } from 'framer-motion'
-import { BarChart3, PieChart as PieChartIcon, TrendingUp, TrendingDown } from 'lucide-react'
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, BarChart, Bar, XAxis, CartesianGrid } from 'recharts'
-import { formatVND, formatShort } from '@/lib/utils'
-import { triggerHaptic } from '@/lib/haptic'
-import { StatCards } from './StatCards'
 import type { useDashboard } from '@/hooks/useDashboard'
+import { triggerHaptic } from '@/lib/haptic'
+import { cn, formatShort, formatVND } from '@/lib/utils'
 import { useAppStore } from '@/stores/appStore'
+import { motion } from 'framer-motion'
+import { Activity, BarChart3, PieChart as PieChartIcon, TrendingDown, TrendingUp } from 'lucide-react'
+import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, Tooltip as RechartsTooltip, ResponsiveContainer, XAxis } from 'recharts'
+import { StatCards } from './StatCards'
 
 
 interface MonthlyTabProps {
@@ -22,6 +22,11 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
 
   const barData = last4MonthsBar
 
+  const currentDay = new Date().getDate()
+  const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()
+  const averageDaily = monthTotal / Math.max(1, currentDay)
+  const forecastTotal = averageDaily * daysInMonth
+
   return (
     <div className="flex flex-col pb-32 pt-2 animate-in fade-in duration-150 mesh-gradient min-h-full">
       {/* Stat cards */}
@@ -37,7 +42,12 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
         <div className="flex flex-wrap items-start justify-between px-6 pt-6 pb-2 gap-y-3">
           <div className="flex flex-col pr-2">
             <span className="text-[14px] text-text-muted font-medium mb-1 tracking-tight">Chi tiêu tháng này</span>
-            <span className="text-[22px] font-bold text-text font-num leading-none">{formatVND(monthTotal)}đ</span>
+            <span className={cn(
+              "font-bold text-text font-num leading-none tracking-tight",
+              formatVND(monthTotal).length > 10 ? "text-[18px]" : "text-[22px]"
+            )}>
+              {formatVND(monthTotal)}đ
+            </span>
           </div>
 
           {/* D/W/M-style Pill Toggle but for our features */}
@@ -102,12 +112,12 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                             return (
                               <linearGradient key={gradId} id={gradId} x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="0%" stopColor={d.color} stopOpacity={1} />
-                                <stop offset="100%" stopColor={d.color} stopOpacity={0.72} />
+                                <stop offset="100%" stopColor={d.color} stopOpacity={0.65} />
                               </linearGradient>
                             );
                           })}
-                          <filter id="pie-shadow" x="-30%" y="-30%" width="160%" height="160%">
-                            <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#000" floodOpacity="0.1" />
+                          <filter id="pie-3d-shadow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#000" floodOpacity="0.12" />
                           </filter>
                         </defs>
                         <RechartsTooltip
@@ -130,35 +140,90 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                           data={donutData}
                           cx="50%"
                           cy="50%"
-                          innerRadius="55%"
-                          outerRadius="82%"
+                          innerRadius="68%"
+                          outerRadius="94%"
                           paddingAngle={5}
                           dataKey="value"
-                          cornerRadius={12}
+                          cornerRadius={20}
                           stroke="none"
                           isAnimationActive={true}
                           animationBegin={0}
-                          animationDuration={600}
+                          animationDuration={800}
                           style={{ outline: 'none' }}
                         >
                           {donutData.map((_d, i) => (
                             <Cell
                               key={`cell-${i}`}
                               fill={`url(#pie-grad-${i})`}
-                              filter="url(#pie-shadow)"
+                              filter="url(#pie-3d-shadow)"
                               style={{ outline: 'none', cursor: 'default' }}
                             />
+                          ))}
+                        </Pie>
+
+                        {/* 3D Glass Reflection Overlay — Outer Rim */}
+                        <Pie
+                          data={donutData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius="88%"
+                          outerRadius="91%"
+                          paddingAngle={5}
+                          dataKey="value"
+                          cornerRadius={20}
+                          stroke="none"
+                          isAnimationActive={true}
+                          animationBegin={0}
+                          animationDuration={800}
+                          style={{ outline: 'none', pointerEvents: 'none' }}
+                        >
+                          {donutData.map((_d, i) => (
+                            <Cell key={`outer-rim-${i}`} fill="rgba(255,255,255,0.25)" style={{ outline: 'none' }} />
+                          ))}
+                        </Pie>
+
+                        {/* 3D Glass Reflection Overlay — Inner Rim */}
+                        <Pie
+                          data={donutData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius="71%"
+                          outerRadius="74%"
+                          paddingAngle={5}
+                          dataKey="value"
+                          cornerRadius={20}
+                          stroke="none"
+                          isAnimationActive={true}
+                          animationBegin={0}
+                          animationDuration={800}
+                          style={{ outline: 'none', pointerEvents: 'none' }}
+                        >
+                          {donutData.map((_d, i) => (
+                            <Cell key={`inner-rim-${i}`} fill="rgba(255,255,255,0.12)" style={{ outline: 'none' }} />
                           ))}
                         </Pie>
                       </PieChart>
                     </ResponsiveContainer>
 
-                    {/* Center label overlay */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <span className="text-[9px] font-bold text-text-hint tracking-widest uppercase mb-0.5">Tổng cộng</span>
-                      <div className="flex items-baseline gap-[1px]">
-                        <span className="text-[18px] font-black text-text font-num leading-tight tracking-tight">{formatVND(monthTotal)}</span>
-                        <span className="text-[12px] text-text-muted font-bold">đ</span>
+                    {/* Center label overlay with dynamic font scaling */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ paddingTop: '4px' }}>
+                      <span className="text-[10px] font-black text-text-hint tracking-[0.2em] uppercase mb-1 opacity-60">Tổng cộng</span>
+                      <div className="flex items-baseline justify-center w-full px-10">
+                        {(() => {
+                          const totalStr = formatVND(monthTotal);
+                          const fontSize = totalStr.length > 12 ? '14px' : totalStr.length > 10 ? '17px' : totalStr.length > 8 ? '20px' : '22px';
+                          return (
+                            <>
+                              <span 
+                                className="font-black text-text font-num leading-tight tracking-tight text-center"
+                                style={{ fontSize }}
+                              >
+                                {totalStr}
+                              </span>
+                              <span className="text-text-muted font-bold ml-0.5" style={{ fontSize: totalStr.length > 10 ? '11px' : '14px' }}>đ</span>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -168,19 +233,19 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                     {donutData.map((item) => {
                       const pct = monthTotal > 0 ? Math.round((item.value / monthTotal) * 100) : 0
                       return (
-                        <div key={item.name} className="flex items-center gap-3 py-2.5 px-3 rounded-2xl bg-surface/60 hover:bg-surface transition-colors">
+                        <div key={item.name} className="flex items-center gap-3.5 py-3.5 px-4 rounded-[22px] bg-white border border-border/40 shadow-[0_4px_12px_rgba(0,0,0,0.03)] transition-all active:scale-[0.98]">
                           {/* Color dot */}
                           <div
-                            className="size-3 rounded-full shrink-0 shadow-sm"
+                            className="size-3.5 rounded-full shrink-0 shadow-sm"
                             style={{ background: item.color }}
                           />
                           {/* Name */}
-                          <span className="text-[13px] text-text font-medium flex-1 truncate">{item.name}</span>
+                          <span className="text-[14px] text-text font-bold flex-1 truncate">{item.name}</span>
                           {/* Amount */}
-                          <span className="font-num text-[13px] font-bold text-text shrink-0 opacity-80">{formatShort(item.value)}</span>
+                          <span className="font-num text-[14px] font-bold text-text-muted shrink-0 opacity-80">{formatShort(item.value)}</span>
                           {/* Percentage badge */}
                           <span
-                            className="font-num text-[12px] font-black shrink-0 min-w-[36px] text-right"
+                            className="font-num text-[13px] font-black shrink-0 min-w-[36px] text-right"
                             style={{ color: item.color }}
                           >
                             {pct}%
@@ -269,33 +334,53 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                 </ResponsiveContainer>
               </div>
               
-              {diff !== 0 && lastMonthTotal > 0 && (
-                <div
-                  className="mx-2 mt-3 px-4 py-3 rounded-2xl flex items-center gap-3"
-                  style={{
-                    background: isIncrease ? '#FFF5F5' : '#F2FCF7',
-                    border: `1px solid ${isIncrease ? '#FFE5E5' : '#E4F7ED'}`
-                  }}
-                >
-                  <div 
-                    className="size-[34px] rounded-full flex items-center justify-center shrink-0 shadow-sm"
-                    style={{ background: isIncrease ? '#FFE5E5' : '#E4F7ED' }}
+              <div className="mx-2 mt-3 flex flex-col gap-2">
+                {diff !== 0 && lastMonthTotal > 0 && (
+                  <div
+                    className="px-4 py-3 rounded-2xl flex items-center gap-3 transition-all active:scale-[0.98]"
+                    style={{
+                      background: isIncrease ? '#FFF5F5' : '#F2FCF7',
+                      border: `1px solid ${isIncrease ? '#FFE5E5' : '#E4F7ED'}`
+                    }}
                   >
-                    {isIncrease ? <TrendingUp size={16} color="#D63E3E" /> : <TrendingDown size={16} color="var(--color-success)" />}
-                  </div>
-                  <div className="flex flex-col justify-center">
-                    <p className="text-[12px] text-text-muted font-medium mb-[3px] leading-none">
-                      {isIncrease ? 'Chi nhiều hơn tháng trước' : 'Bạn đã tiết kiệm được'}
-                    </p>
-                    <p 
-                      className="font-num text-[16px] font-black leading-none"
-                      style={{ color: isIncrease ? '#D63E3E' : 'var(--color-success)' }}
+                    <div 
+                      className="size-[34px] rounded-full flex items-center justify-center shrink-0 shadow-sm"
+                      style={{ background: isIncrease ? '#FFE5E5' : '#E4F7ED' }}
                     >
-                      {formatVND(Math.abs(diff))}đ
-                    </p>
+                      {isIncrease ? <TrendingUp size={16} color="#D63E3E" /> : <TrendingDown size={16} color="var(--color-success)" />}
+                    </div>
+                    <div className="flex-1 flex flex-col justify-center">
+                      <p className="text-[12px] text-text-muted font-medium mb-[3px] leading-none">
+                        {isIncrease ? 'Chi nhiều hơn tháng trước' : 'Bạn đã tiết kiệm được'}
+                      </p>
+                      <p 
+                        className="font-num text-[16px] font-black leading-none"
+                        style={{ color: isIncrease ? '#D63E3E' : 'var(--color-success)' }}
+                      >
+                        {formatVND(Math.abs(diff))}đ
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+
+                {monthTotal > 0 && (
+                  <div className="px-4 py-3 rounded-2xl flex items-center gap-3 bg-surface/50 border border-border/40 transition-all active:scale-[0.98]">
+                    <div className="size-[34px] rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-border/20 text-(--color-accent)">
+                      <Activity size={16} />
+                    </div>
+                    <div className="flex-1 flex flex-col justify-center">
+                      <p className="text-[12px] text-text-muted font-medium mb-[3px] leading-none uppercase tracking-widest text-[10px]">Dự báo chi tiêu</p>
+                      <p className="font-num text-[16px] font-black leading-none text-text">
+                        ~{formatShort(forecastTotal)} <span className="text-[11px] font-bold text-text-muted">tháng này</span>
+                      </p>
+                    </div>
+                    <div className="text-right">
+                       <p className="text-[10px] text-text-hint font-bold uppercase tracking-tight mb-0.5">Trung bình</p>
+                       <p className="text-[13px] font-black text-(--color-accent) font-num leading-none">{formatShort(averageDaily)}/n</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
