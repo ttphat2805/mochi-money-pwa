@@ -52,6 +52,8 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
     dateLabel,
   } = quickAdd;
 
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
   // Lock selected category position to prevent grid jumping on re-select
   useEffect(() => {
     if (isOpen && initialCategoryId === null) {
@@ -101,7 +103,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
           showCloseButton={false}
           className={cn(
             "bg-[#F7F5F0] rounded-t-[32px] p-0 shadow-2xl overflow-hidden border-none flex flex-col transition-all duration-300",
-            "h-[82vh] max-h-[82vh]",
+            isInputFocused ? "h-[92vh] max-h-[92vh]" : "h-[82vh] max-h-[82vh]",
           )}
         >
           <div className="flex flex-col h-full">
@@ -162,15 +164,32 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
               className="px-5 pb-[calc(10px+env(safe-area-inset-bottom))] shrink-0 bg-[#F7F5F0] pt-2 border-t border-black/5"
             >
               <div className="mb-3">
-                <NoteInput value={note} onChange={setNote} />
+                <NoteInput 
+                  value={note} 
+                  onChange={setNote} 
+                  onFocusChange={setIsInputFocused}
+                />
               </div>
-              <Numpad
-                onDigit={appendDigit}
-                onDelete={deleteDigit}
-                onConfirm={handleSave}
-                canConfirm={canSave}
-                isSaving={isSaving}
-              />
+              {!isInputFocused && (
+                <Numpad
+                  onDigit={appendDigit}
+                  onDelete={deleteDigit}
+                  onConfirm={handleSave}
+                  canConfirm={canSave}
+                  isSaving={isSaving}
+                />
+              )}
+              {isInputFocused && (
+                <button
+                  onClick={() => {
+                    if (document.activeElement instanceof HTMLElement) 
+                      document.activeElement.blur();
+                  }}
+                  className="w-full h-12 bg-text text-white rounded-xl font-bold active:scale-95 transition-transform"
+                >
+                  Xong
+                </button>
+              )}
             </div>
 
           </div>

@@ -37,6 +37,7 @@ import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { checkAndCreateFixedTransactions } from "@/hooks/useFixedExpenses";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { usePersonalization } from "@/hooks/usePersonalization";
+import { useIOSKeyboard } from "@/hooks/useIOSKeyboard";
 
 // ── Navigation types ──────────────────────────────────────────
 
@@ -60,6 +61,7 @@ function App() {
   const { loadCategories } = useCategoryStore();
   const quickAdd = useQuickAdd();
   const { settings } = usePersonalization();
+  useIOSKeyboard();
 
   useEffect(() => {
     document.title = settings.appName;

@@ -323,6 +323,7 @@ export function BudgetTab() {
                           type="text"
                           pattern="[0-9]*"
                           inputMode="numeric"
+                          enterKeyHint="done"
                           autoFocus
                           placeholder="Nhập số tiền..."
                           value={budget.limitInput}
@@ -331,20 +332,20 @@ export function BudgetTab() {
                             if (e.key === "Enter") budget.saveLimit(cat.id!, budget.limitAmount);
                             if (e.key === "Escape") budget.setSettingLimitFor(null);
                           }}
-                          className="flex-1 bg-transparent px-3 py-2 text-[14px] font-bold text-text focus:outline-none"
+                          className="flex-1 min-w-0 bg-transparent px-3 py-2 text-[14px] font-bold text-text focus:outline-none"
                         />
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 shrink-0">
                           <button
                             type="button"
                             onClick={() => budget.setSettingLimitFor(null)}
-                            className="px-3 py-2 text-[12px] font-bold text-text-hint"
+                            className="px-2 py-2 text-[12px] font-bold text-text-hint active:scale-95 transition-transform"
                           >
                             Huỷ
                           </button>
                           <button
                             type="button"
                             onClick={() => budget.saveLimit(cat.id!, budget.limitAmount)}
-                            className="px-5 py-2 bg-text text-white text-[12px] font-bold rounded-xl shadow-sm"
+                            className="px-4 py-2 bg-text text-white text-[12px] font-bold rounded-xl shadow-sm whitespace-nowrap active:scale-95 transition-transform"
                           >
                             Lưu
                           </button>

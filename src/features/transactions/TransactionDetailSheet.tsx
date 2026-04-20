@@ -161,6 +161,7 @@ export function TransactionDetailSheet({
                   <input
                     type="text"
                     inputMode="numeric"
+                    enterKeyHint="done"
                     value={amountDisplay}
                     onChange={handleAmountChange}
                     className="flex-1 bg-transparent text-[20px] font-mono font-semibold outline-none text-text placeholder:text-text-hint"
@@ -193,6 +194,7 @@ export function TransactionDetailSheet({
                 </label>
                 <input
                   type="text"
+                  enterKeyHint="done"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Ghi chú (tùy chọn)"
@@ -258,12 +260,12 @@ export function TransactionDetailSheet({
                   type="button"
                   onClick={handleSave}
                   disabled={saving || amount === 0 || !categoryId}
-                  className="col-span-8 h-12 rounded-xl bg-text text-white text-[15px] font-semibold disabled:opacity-40 transition-all active:scale-[0.98] shadow-lg shadow-black/5"
-                >
-                  {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
+                  className="col-span-8 h-12 rounded-xl bg-text text-white text-[15px] font-semibold disabled:opacity-40 transition-all active:scale-[0.98] shadow-lg shadow-black/5">
                 </button>
               </div>
 
+              {/* Safe area spacer for iOS */}
+              <div className="h-[env(safe-area-inset-bottom,20px)]" />
             </div>
           </div>
         </SheetContent>

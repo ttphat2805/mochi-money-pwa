@@ -7,9 +7,10 @@ import { usePersonalization } from '@/hooks/usePersonalization'
 interface NoteInputProps {
   value: string
   onChange: (value: string) => void
+  onFocusChange?: (isFocused: boolean) => void
 }
 
-export function NoteInput({ value, onChange }: NoteInputProps) {
+export function NoteInput({ value, onChange, onFocusChange }: NoteInputProps) {
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const { settings } = usePersonalization()
@@ -36,10 +37,25 @@ export function NoteInput({ value, onChange }: NoteInputProps) {
       <input
         ref={inputRef}
         type="text"
+        inputMode="text"
+        enterKeyHint="done"
         value={value}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
+        onFocus={() => {
+          setIsFocused(true)
+          onFocusChange?.(true)
+        }}
+        onBlur={() => {
+          setIsFocused(false)
+          onFocusChange?.(false)
+        }}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          // Pressing "Done" / Enter on iOS blur the input → keyboard closes cleanly
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            inputRef.current?.blur()
+          }
+        }}
         placeholder="Ghi chú (tùy chọn)"
         className="w-full bg-transparent text-[12px] font-medium outline-none text-text leading-none"
         style={{
