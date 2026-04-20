@@ -21,11 +21,12 @@ export function useBackup() {
     try {
       await exportBackup()
       toast.success('Đã xuất dữ liệu thành công')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Export error:', err)
       // Web Share cancelled by user — don't show error toast
       if (err instanceof Error && err.name === 'AbortError') return
-      toast.error(`Xuất dữ liệu thất bại: ${err?.message || 'Lỗi không xác định'}`)
+      const errorMessage = err instanceof Error ? err.message : 'Lỗi không xác định'
+      toast.error(`Xuất dữ liệu thất bại: ${errorMessage}`)
     } finally {
       setIsExporting(false)
     }

@@ -11,12 +11,12 @@ interface TrendBadgeProps {
 }
 
 export function TrendBadge({ monthSpent, lastMonthSpent, onClick }: TrendBadgeProps) {
+  const { setDashboardChartMode } = useAppStore()
+
   if (lastMonthSpent === 0) return null
 
   const diff = monthSpent - lastMonthSpent
   const isIncrease = diff > 0
-  
-  const { setDashboardChartMode } = useAppStore()
   
   const handleClick = () => {
     triggerHaptic('light')

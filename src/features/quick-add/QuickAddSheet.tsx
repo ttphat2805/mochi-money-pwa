@@ -3,7 +3,7 @@ import { useQuickAdd } from "@/hooks/useQuickAdd";
 import { triggerHaptic } from "@/lib/haptic";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { AmountDisplay } from "./AmountDisplay";
 import { BudgetWarningDialog } from "./BudgetWarningDialog";
@@ -19,6 +19,7 @@ interface QuickAddSheetProps {
 }
 
 export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
+  const { isOpen } = quickAdd;
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [successAnim, setSuccessAnim] = useState({
     isVisible: false,
@@ -27,6 +28,18 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
   const [initialCategoryId, setInitialCategoryId] = useState<number | null>(
     null,
   );
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+  // Sync initialCategoryId during render when the sheet opens/closes.
+  // This is the recommended React 18+ pattern for 'adjusting state based on props'.
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) {
+      setInitialCategoryId(quickAdd.selectedCategoryId);
+    } else {
+      setInitialCategoryId(null);
+    }
+  }
 
   const {
     amount,
@@ -34,7 +47,6 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
     selectedCategoryId,
     selectedDate,
     note,
-    isOpen,
     isSaving,
     budgetWarning,
     sortedCategories,
@@ -53,15 +65,6 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
   } = quickAdd;
 
   const [isInputFocused, setIsInputFocused] = useState(false);
-
-  // Lock selected category position to prevent grid jumping on re-select
-  useEffect(() => {
-    if (isOpen && initialCategoryId === null) {
-      setInitialCategoryId(selectedCategoryId);
-    } else if (!isOpen) {
-      setInitialCategoryId(null);
-    }
-  }, [isOpen, selectedCategoryId]);
 
   const handleSave = async () => {
     if (document.activeElement instanceof HTMLElement)

@@ -38,7 +38,7 @@ export function CategoryGrid({
                 whileTap={{ scale: 0.96, transition: { duration: 0.1 } }}
                 animate={isSelected ? { scale: 1.02 } : { scale: 1 }}
                 onClick={() => {
-                  category.id != null && onSelect(category.id);
+                  if (category.id != null) onSelect(category.id);
                 }}
                 className={cn(
                   "relative flex flex-col items-center justify-center gap-1 rounded-2xl border transition-all duration-200 text-center min-h-[84px] touch-none px-1 py-2",

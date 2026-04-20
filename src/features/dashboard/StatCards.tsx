@@ -83,7 +83,17 @@ const itemVariant: Variants = {
   show: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } }
 }
 
-function StatCard({ stat }: { stat: any }) {
+interface StatItem {
+  label: string;
+  sub: string;
+  value: number | null;
+  icon: React.ReactNode;
+  gradient: string;
+  shadow: string;
+  show: boolean;
+}
+
+function StatCard({ stat }: { stat: StatItem }) {
   const { show, value, label, sub, icon, gradient, shadow } = stat;
 
   return (

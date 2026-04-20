@@ -55,7 +55,7 @@ export function TransactionDetailSheet({
     } else if (!open) {
       setInitialCategoryId(null)
     }
-  }, [open, transaction?.id, initialCategoryId])
+  }, [open, transaction, initialCategoryId])
 
   const categories = useLiveQuery(() => db.categories.orderBy('sortOrder').toArray()) ?? []
 
@@ -68,7 +68,7 @@ export function TransactionDetailSheet({
     setNote(transaction.note ?? '')
     setDate(transaction.date)
     setPaymentMethod(transaction.paymentMethod)
-  }, [transaction?.id, open]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [transaction, open])
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const digits = e.target.value.replace(/\D/g, '')
