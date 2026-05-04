@@ -138,7 +138,7 @@ export function useHomeData(): HomeData {
         .orderBy('id')
         .reverse()
         .filter((tx) => !tx.deletedAt)
-        .limit(5)
+        .limit(8)
         .toArray(),
     [],
   ) ?? EMPTY_TXS

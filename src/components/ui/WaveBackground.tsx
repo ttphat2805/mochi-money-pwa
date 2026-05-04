@@ -2,7 +2,7 @@ import { memo } from "react";
 
 export const WaveBackground = memo(() => {
   return (
-    <div className="absolute top-0 left-0 w-full h-[250px] pointer-events-none z-0 overflow-hidden">
+    <div className="absolute top-0 left-0 w-full h-[300px] pointer-events-none z-0 overflow-hidden">
       <svg
         viewBox="0 0 1440 250"
         preserveAspectRatio="none"

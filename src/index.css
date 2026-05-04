@@ -18,6 +18,12 @@
   --color-border: #E2E0D8;
   --color-border2: #D0CEC4;
 
+  /* ── Heatmap colors for calendar ── */
+  --color-accent-h1: #FFF7EB;
+  --color-accent-h2: #FFEDD5;
+  --color-accent-h3: #FED7AA;
+  --color-accent-h4: var(--color-accent);
+
   /* ── Fonts ── */
   --font-num: 'JetBrains Mono', monospace;
   --font-ui: 'Geist', sans-serif;

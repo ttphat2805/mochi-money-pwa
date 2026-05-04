@@ -1,5 +1,6 @@
-import { formatVND } from '@/lib/utils'
+import { formatShort } from '@/lib/utils'
 import type { MonthStats } from '@/hooks/useCalendar'
+import { Wallet, Sparkles, TrendingUp } from 'lucide-react'
 
 interface MonthSummaryProps {
   stats: MonthStats
@@ -8,32 +9,41 @@ interface MonthSummaryProps {
 export function MonthSummary({ stats }: MonthSummaryProps) {
   const { total, avgPerDay, maxDay, maxDayAmount } = stats
 
-  const formattedTotal = `${formatVND(total)}đ`
-  const formattedAvg = avgPerDay > 0 ? `${formatVND(avgPerDay)}đ` : '—'
   const maxDayLabel = maxDay ? `${maxDay.slice(8)}/${maxDay.slice(5, 7)}` : '—'
-  const formattedMax = maxDay ? `${formatVND(maxDayAmount)}đ` : '—'
 
   return (
-    <div className="mx-4 grid grid-cols-3 gap-2.5">
+    <div className="px-4 grid grid-cols-3 gap-3">
       {/* Total month */}
-      <div className="bg-white rounded-2xl p-3 border border-border shadow-sm flex flex-col items-center justify-center min-h-[64px]">
-        <span className="text-[9px] font-bold text-text-hint uppercase tracking-widest mb-1.5 opacity-80">Tổng chi</span>
-        <span className="font-num text-[14px] font-bold text-text truncate w-full text-center tracking-tight">{formattedTotal}</span>
+      <div className="bg-white rounded-[24px] p-3.5 border border-border/60 shadow-sm flex flex-col relative overflow-hidden group">
+        <div className="size-7 rounded-full bg-accent/10 flex items-center justify-center text-accent mb-2.5">
+           <Wallet size={14} />
+        </div>
+        <p className="text-[9px] font-black text-text-hint uppercase tracking-widest leading-none mb-1">Tổng chi</p>
+        <p className="font-num text-[15px] font-black text-text tracking-tighter leading-none">
+          {formatShort(total)}<span className="text-[10px] font-medium opacity-60 ml-0.5">đ</span>
+        </p>
       </div>
       
       {/* Highest day */}
-      <div className="bg-white rounded-2xl p-3 border border-border shadow-sm flex flex-col items-center justify-center min-h-[64px]">
-        <span className="text-[9px] font-bold text-text-hint uppercase tracking-widest mb-1.5 opacity-80">Cao nhất</span>
-        <div className="flex flex-col items-center leading-tight">
-            <span className="text-[10px] text-text-muted font-medium mb-0.5">{maxDayLabel}</span>
-            <span className="font-num text-[11px] font-bold text-danger">{formattedMax}</span>
+      <div className="bg-white rounded-[24px] p-3.5 border border-border/60 shadow-sm flex flex-col relative overflow-hidden group">
+        <div className="size-7 rounded-full bg-danger/10 flex items-center justify-center text-danger mb-2.5">
+           <TrendingUp size={14} />
         </div>
+        <p className="text-[9px] font-black text-text-hint uppercase tracking-widest leading-none mb-1">Tối đa ({maxDayLabel})</p>
+        <p className="font-num text-[15px] font-black text-danger tracking-tighter leading-none">
+          {formatShort(maxDayAmount)}<span className="text-[10px] font-medium opacity-60 ml-0.5">đ</span>
+        </p>
       </div>
 
       {/* Avg daily */}
-      <div className="bg-white rounded-2xl p-3 border border-border shadow-sm flex flex-col items-center justify-center min-h-[64px]">
-        <span className="text-[9px] font-bold text-text-hint uppercase tracking-widest mb-1.5 opacity-80">Trung bình</span>
-        <span className="font-num text-[14px] font-bold text-accent truncate w-full text-center tracking-tight">{formattedAvg}</span>
+      <div className="bg-white rounded-[24px] p-3.5 border border-border/60 shadow-sm flex flex-col relative overflow-hidden group">
+        <div className="size-7 rounded-full bg-success/10 flex items-center justify-center text-success mb-2.5">
+           <Sparkles size={14} />
+        </div>
+        <p className="text-[9px] font-black text-text-hint uppercase tracking-widest leading-none mb-1">Trung bình</p>
+        <p className="font-num text-[15px] font-black text-success tracking-tighter leading-none">
+          {formatShort(Math.round(avgPerDay))}<span className="text-[10px] font-medium opacity-60 ml-0.5">đ</span>
+        </p>
       </div>
     </div>
   )

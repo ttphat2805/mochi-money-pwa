@@ -4,6 +4,7 @@ import { formatVND } from '@/lib/utils'
 import { TransactionDetailSheet } from '@/features/transactions/TransactionDetailSheet'
 import type { BudgetCategory, Transaction } from '@/types'
 
+
 interface TxWithCategory extends Transaction {
   category: BudgetCategory | undefined
 }
@@ -15,13 +16,13 @@ interface DayDetailPanelProps {
   onAddTransaction: () => void
 }
 
-const WEEKDAYS_SHORT = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+const WEEKDAYS_SHORT = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
 
 function getDayLabel(dateStr: string): string {
   const [year, month, day] = dateStr.split('-').map(Number)
   const date = new Date(year, month - 1, day)
   const dow = date.getDay()
-  return `${WEEKDAYS_SHORT[dow]}, ${day} tháng ${month}`
+  return `${WEEKDAYS_SHORT[dow]}, ngày ${day}`
 }
 
 export function DayDetailPanel({
@@ -30,104 +31,95 @@ export function DayDetailPanel({
   today,
   onAddTransaction,
 }: DayDetailPanelProps) {
-  const isOpen = !!selectedDay
   const total = transactions.reduce((s, tx) => s + tx.amount, 0)
   const isPastOrToday = !!selectedDay && selectedDay <= today
   const [selectedTx, setSelectedTx] = useState<TxWithCategory | null>(null)
 
+  if (!selectedDay) return null
+
   return (
     <>
-      {/* Slide-up container */}
-      <div
-        className="overflow-hidden transition-all duration-300 ease-out"
-        style={{ maxHeight: isOpen ? '500px' : '0px', opacity: isOpen ? 1 : 0 }}
-      >
-        <div
-          key={selectedDay ?? 'none'} // triggers remount animation on day change
-          className="mx-4 mt-3 rounded-[24px] border border-white/60 bg-white/90 shadow-premium"
-          style={{ animation: isOpen ? 'dayPanelSlideUp 200ms ease-out' : 'none' }}
-        >
-          {/* Panel header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-            <span className="text-[13px] font-semibold">
-              {selectedDay ? getDayLabel(selectedDay) : ''}
-            </span>
+      <div className="px-4 mt-2">
+        <div className="bg-white rounded-[28px] border border-border/60 shadow-premium overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border/50 bg-surface/30">
+            <div>
+              <p className="text-[10px] font-black text-text-hint uppercase tracking-widest mb-0.5">Chi tiết ngày</p>
+              <h3 className="text-[15px] font-black text-text leading-tight">{getDayLabel(selectedDay)}</h3>
+            </div>
             {total > 0 && (
-              <span className="font-num text-[13px] font-bold text-accent">
-                −{formatVND(total)}đ
-              </span>
+              <div className="text-right">
+                <p className="text-[10px] font-black text-text-hint uppercase tracking-widest mb-0.5">Tổng cộng</p>
+                <p className="font-num text-[16px] font-black text-accent leading-tight">−{formatVND(total)}đ</p>
+              </div>
             )}
           </div>
 
-          {/* Transactions — scrollable if many */}
-          <div
-            className="max-h-[280px] overflow-y-auto"
-            style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
-          >
+          {/* Transaction list */}
+          <div className="max-h-[320px] overflow-y-auto scrollbar-hide">
             {transactions.length === 0 ? (
-              <div className="px-4 py-4">
-                <p className="text-text-muted text-[13px]">Không có chi tiêu hôm này</p>
+              <div className="px-6 py-8 text-center flex flex-col items-center gap-3">
+                <div className="size-12 rounded-full bg-surface flex items-center justify-center text-xl">☕️</div>
+                <p className="text-text-muted text-[13px] font-medium italic opacity-80">
+                  Không có chi tiêu cho ngày này
+                </p>
                 {isPastOrToday && (
                   <button
                     type="button"
                     onClick={onAddTransaction}
-                    className="bg-accent mt-3 flex h-10 items-center justify-center gap-2 rounded-2xl px-5 text-[14px] font-bold text-white shadow-accent active-scale btn-premium"
+                    className="mt-1 h-9 px-4 rounded-full bg-accent text-white text-[12px] font-bold shadow-sm active:scale-95 transition-transform"
                   >
-                    <Plus className="size-4" />
-                    Thêm chi tiêu
+                    Thêm ngay
                   </button>
                 )}
               </div>
             ) : (
-              <div className="flex flex-col divide-y divide-border">
+              <div className="flex flex-col">
                 {transactions.map((tx) => (
                   <button
                     key={tx.id}
                     type="button"
                     onClick={() => setSelectedTx(tx)}
-                    className="flex items-center gap-3 px-4 py-3 w-full text-left active:bg-surface transition-colors"
+                    className="flex items-center gap-4 px-5 py-4 w-full text-left active:bg-surface/50 transition-colors border-b border-border/40 last:border-0"
                   >
-                    {/* Emoji container — fixed size, never inherits parent font */}
                     <div
+                      className="shrink-0 flex items-center justify-center rounded-[14px] text-[18px] leading-none"
                       style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 10,
-                        background: '#F2F0EC',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
+                        width: 42,
+                        height: 42,
+                        background: (tx.category?.color ?? '#88887A') + '15',
                       }}
                     >
-                      <span style={{ fontSize: 18, lineHeight: 1 }}>
-                        {tx.category?.icon ?? '📦'}
-                      </span>
+                      {tx.category?.icon ?? '📦'}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13px] font-medium">
+
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-[14px] font-bold text-text leading-tight mb-0.5">
                         {tx.category?.name ?? 'Không rõ'}
                       </p>
                       {tx.note && (
-                        <p className="text-text-muted text-[11px]">{tx.note}</p>
+                        <p className="text-text-hint text-[11px] truncate">{tx.note}</p>
                       )}
                     </div>
-                    <span className="font-num shrink-0 text-[13px] font-semibold">
-                      −{formatVND(tx.amount)}đ
-                    </span>
+
+                    <div className="shrink-0 text-right">
+                       <p className="font-num text-[14px] font-black text-text leading-none mb-0.5">
+                         −{formatVND(tx.amount)}đ
+                       </p>
+                       <p className="text-[10px] text-text-hint font-medium uppercase">đã ghi</p>
+                    </div>
                   </button>
                 ))}
+                
                 {isPastOrToday && (
-                  <div className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={onAddTransaction}
-                      className="text-accent flex items-center gap-1.5 text-[13px] font-medium"
-                    >
-                      <Plus className="size-3.5" />
-                      Thêm chi tiêu
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={onAddTransaction}
+                    className="flex items-center justify-center gap-2 py-4 w-full text-accent text-[13px] font-bold active:bg-surface/50 transition-colors"
+                  >
+                    <Plus size={14} strokeWidth={3} />
+                    <span>Thêm chi tiêu khác</span>
+                  </button>
                 )}
               </div>
             )}
@@ -142,13 +134,6 @@ export function DayDetailPanel({
         onUpdated={() => setSelectedTx(null)}
         onDeleted={() => setSelectedTx(null)}
       />
-
-      <style>{`
-        @keyframes dayPanelSlideUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </>
   )
 }

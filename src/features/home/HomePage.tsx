@@ -3,9 +3,7 @@ import { useHomeData } from "@/hooks/useHomeData";
 import { TopBar } from "./TopBar";
 import { HeroSection } from "./HeroSection";
 import { RecurringSection } from "./RecurringSection";
-import { SummaryRow } from "./SummaryRow";
 import { RecentTransactions } from "./RecentTransactions";
-import { TrendBadge } from "./TrendBadge";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import type { TabKey } from "@/components/BottomNav";
 import { useShouldShowSkeleton } from "@/hooks/useShouldShowSkeleton";
@@ -37,23 +35,9 @@ export function HomePage({ onNavigate, onSettings }: HomePageProps) {
       dailyAllowance={home.dailyAllowance}
       spentPct={home.spentPct}
       daysLeft={home.daysLeft}
+      lastMonthSpent={home.lastMonthTotal}
     />
-  ), [home.settings, home.todaySpent, home.monthSpent, home.remainingBudget, home.dailyAllowance, home.spentPct, home.daysLeft]);
-
-  const renderStats = React.useMemo(() => (
-    <div className="flex flex-col gap-3">
-      <TrendBadge
-        monthSpent={home.monthSpent}
-        lastMonthSpent={home.lastMonthTotal}
-        onClick={() => onNavigate("overview")}
-      />
-      <SummaryRow
-        todaySpent={home.todaySpent}
-        monthSpent={home.monthSpent}
-        remainingBudget={home.remainingBudget}
-      />
-    </div>
-  ), [home.monthSpent, home.lastMonthTotal, home.todaySpent, home.remainingBudget, onNavigate]);
+  ), [home.settings, home.todaySpent, home.monthSpent, home.remainingBudget, home.dailyAllowance, home.spentPct, home.daysLeft, home.lastMonthTotal]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-surface relative">
@@ -71,15 +55,16 @@ export function HomePage({ onNavigate, onSettings }: HomePageProps) {
               <p className="text-text-muted text-[14px]">Bắt đầu bằng cách thêm chi tiêu đầu tiên</p>
             </div>
           ) : (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="flex flex-col gap-3 pb-8 pt-1"
+              className="flex flex-col gap-4 pb-8 pt-1"
             >
+              {/* Hero: remaining budget + today spend + daily allowance */}
               {renderHero}
-              {renderStats}
-  
+
+              {/* Recurring items for today */}
               {(!home.hasAnyRecurring || home.recurringItems.length > 0) && (
                 <RecurringSection
                   items={home.recurringItems}
@@ -88,7 +73,8 @@ export function HomePage({ onNavigate, onSettings }: HomePageProps) {
                   onSettingsTap={onSettings}
                 />
               )}
-  
+
+              {/* Recent transactions — grouped by date */}
               <RecentTransactions
                 transactions={home.recentTransactions}
                 onViewAll={() => onNavigate("calendar")}

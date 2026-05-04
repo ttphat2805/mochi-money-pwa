@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react'
 import { useCalendar } from '@/hooks/useCalendar'
 import { useAppStore } from '@/stores/appStore'
 import { CalendarGrid } from './CalendarGrid'
@@ -7,6 +7,7 @@ import { MonthSummary } from './MonthSummary'
 import { DayDetailPanel } from './DayDetailPanel'
 import { useShouldShowSkeleton } from '@/hooks/useShouldShowSkeleton'
 import { CalendarSkeleton } from './CalendarSkeleton'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export function CalendarPage() {
   const cal = useCalendar()
@@ -30,82 +31,104 @@ export function CalendarPage() {
   }
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Header */}
-      <header className="flex items-center justify-between px-5 py-3 safe-top">
-        <h1 className="text-[22px] font-semibold tracking-tight">Lịch chi tiêu</h1>
-        <span className="text-text-muted text-[13px]">{cal.monthLabel}</span>
-      </header>
+    <div className="flex h-full flex-col bg-surface relative overflow-hidden">
+      
+      {/* Header & Month Navigation */}
+      <header className="relative z-10 px-5 pt-4 pb-2 safe-top">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="size-9 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+               <CalendarIcon className="size-5 text-accent" />
+            </div>
+            <div>
+              <h1 className="text-[22px] font-black text-text tracking-tight leading-none drop-shadow-sm">
+                Lịch chi tiêu
+              </h1>
+            </div>
+          </div>
+        </div>
 
-      {/* Scrollable body */}
-      <div className="flex-1 overflow-y-auto pb-6">
-        {/* Month navigation */}
-        <div className="flex items-center justify-between px-5 pb-2">
+        {/* Month Navigation Pill */}
+        <div className="bg-white rounded-2xl p-1 border border-border/60 shadow-sm flex items-center justify-between">
           <button
             type="button"
             onClick={goPrev}
-            className="bg-surface active:bg-surface2 flex size-8 items-center justify-center rounded-full transition-colors"
+            className="flex h-10 w-12 items-center justify-center rounded-xl active:bg-surface transition-all active:scale-95"
             aria-label="Tháng trước"
           >
-            <ChevronLeft className="size-4" />
+            <ChevronLeft className="size-5 text-text-muted" />
           </button>
 
-          <span className="text-[14px] font-semibold">{cal.monthLabel}</span>
+          <div className="flex-1 text-center">
+            <span className="text-[15px] font-bold text-text tracking-tight uppercase">{cal.monthLabel}</span>
+          </div>
 
           <button
             type="button"
             onClick={goNext}
             disabled={!cal.canGoNext}
-            className="bg-surface active:bg-surface2 flex size-8 items-center justify-center rounded-full transition-colors disabled:opacity-30"
+            className="flex h-10 w-12 items-center justify-center rounded-xl active:bg-surface transition-all active:scale-95 disabled:opacity-30"
             aria-label="Tháng sau"
           >
-            <ChevronRight className="size-4" />
+            <ChevronRight className="size-5 text-text-muted" />
           </button>
         </div>
+      </header>
 
-        {showSkeleton ? (
-          <CalendarSkeleton />
-        ) : (
-          <>
-            {/* Calendar grid — handles swipe internally */}
-            <CalendarGrid
-          days={cal.calendarDays}
-          dailyTotals={cal.dailyTotals}
-          maxDailyAmount={cal.maxDailyAmount}
-          selectedDay={cal.selectedDay}
-          onSelectDay={cal.setSelectedDay}
-          onSwipeLeft={goNext}
-          onSwipeRight={goPrev}
-          monthKey={cal.viewMonthKey}
-          slideDir={slideDir}
-        />
+      {/* Scrollable body */}
+      <div className="flex-1 min-h-0 relative z-10 overflow-y-auto scrollbar-hide pb-20">
+        <div className="flex flex-col gap-4 pt-2">
+          {showSkeleton ? (
+            <CalendarSkeleton />
+          ) : (
+            <>
+              {/* Calendar grid */}
+              <CalendarGrid
+                days={cal.calendarDays}
+                dailyTotals={cal.dailyTotals}
+                maxDailyAmount={cal.maxDailyAmount}
+                selectedDay={cal.selectedDay}
+                onSelectDay={cal.setSelectedDay}
+                onSwipeLeft={goNext}
+                onSwipeRight={goPrev}
+                monthKey={cal.viewMonthKey}
+                slideDir={slideDir}
+              />
 
-        {/* Month summary strip — fade transition on month change */}
-        <div
-          key={cal.viewMonthKey}
-          className="mt-3"
-          style={{ animation: 'fadeIn 250ms ease-out' }}
-        >
-          <MonthSummary stats={cal.monthStats} />
+              {/* Month summary cards */}
+              <motion.div
+                key={cal.viewMonthKey}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="mt-1"
+              >
+                <MonthSummary stats={cal.monthStats} />
+              </motion.div>
+
+              {/* Day detail panel */}
+              <AnimatePresence mode="wait">
+                {cal.selectedDay && (
+                  <motion.div
+                    key="day-detail"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-visible" 
+                  >
+                    <DayDetailPanel
+                      selectedDay={cal.selectedDay}
+                      transactions={cal.selectedDayTxs}
+                      today={cal.today}
+                      onAddTransaction={handleAddForDay}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
+          )}
         </div>
-
-        {/* Day detail panel — slides in on day selection */}
-        <DayDetailPanel
-          selectedDay={cal.selectedDay}
-          transactions={cal.selectedDayTxs}
-            today={cal.today}
-            onAddTransaction={handleAddForDay}
-          />
-        </>
-        )}
       </div>
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to   { opacity: 1; }
-        }
-      `}</style>
     </div>
   )
 }

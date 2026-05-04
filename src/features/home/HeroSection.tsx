@@ -2,6 +2,7 @@ import { formatVND, formatShort } from '@/lib/utils'
 import type { FinancialSettings } from '@/types'
 import { motion } from 'framer-motion'
 import * as React from 'react'
+import { usePersonalization } from '@/hooks/usePersonalization'
 
 interface HeroSectionProps {
   settings: FinancialSettings | null
@@ -11,89 +12,128 @@ interface HeroSectionProps {
   dailyAllowance: number | null
   spentPct: number | null
   daysLeft?: number
+  lastMonthSpent?: number
 }
 
 export const HeroSection = React.memo(({
   settings,
+  todaySpent,
+  monthSpent,
   remainingBudget,
   dailyAllowance,
   spentPct,
   daysLeft = 0,
+  lastMonthSpent = 0,
 }: HeroSectionProps) => {
+  const { settings: appSettings } = usePersonalization()
+  const accent = appSettings.accentColor || '#E8A020'
   const hasIncome = !!settings?.income
+  const pctInt = spentPct !== null ? Math.round(spentPct * 100) : null
+  const isOver = (remainingBudget ?? 0) < 0
 
-  // Simple render for no income
-  if (!hasIncome || remainingBudget === null || dailyAllowance === null || spentPct === null) {
-      return (
-        <div className="px-5 py-2">
-          <p className="text-text text-[15px] font-semibold italic opacity-80">Mochi Money 🍡</p>
-        </div>
-      )
-  }
-
-  const pctInt = Math.round(spentPct * 100)
-  const isOver = remainingBudget < 0
+  // Trend vs last month
+  const hasTrend = lastMonthSpent > 0
+  const diff = monthSpent - lastMonthSpent
+  const isIncrease = diff > 0
 
   return (
     <div className="px-4 z-10 relative">
-      <div className="rounded-[32px] p-6 relative overflow-hidden bg-white/60 border border-white/60 shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-        {/* Soft inner gloss light top */}
-        <div className="absolute top-0 inset-x-0 h-[60%] bg-gradient-to-b from-white/80 to-transparent opacity-60 pointer-events-none z-0" />
-        
-        {/* Modern UI Bubbles / Glowing Orbs in background */}
-        <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/40 rounded-full blur-3xl pointer-events-none z-0" />
-        <div className="absolute -left-12 top-12 w-32 h-32 bg-[var(--color-accent)]/5 rounded-full blur-2xl pointer-events-none z-0" />
-        <div className="absolute right-12 -bottom-10 w-32 h-32 bg-[var(--color-success)]/10 rounded-full blur-2xl pointer-events-none z-0" />
+      <div
+        className="rounded-[28px] relative overflow-hidden"
+        style={{
+          background: `linear-gradient(145deg, ${accent}F0 0%, ${accent}CC 100%)`,
+          boxShadow: `0 16px 48px ${accent}40, 0 4px 12px ${accent}25`,
+        }}
+      >
+        {/* Decorative gloss blobs */}
+        <div className="absolute -right-10 -top-10 w-44 h-44 bg-white/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute left-0 bottom-0 w-32 h-32 bg-black/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-[55%] bg-gradient-to-b from-white/15 to-transparent pointer-events-none" />
 
-        <div className="relative flex flex-col gap-6 z-10">
-          <div>
-            <p className="text-[10px] font-bold tracking-widest uppercase text-text-hint mb-1">
-              Còn lại tháng này
+        <div className="relative z-10 p-5 pb-4">
+          {/* ── Top row: label + trend badge ── */}
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-[11px] font-bold tracking-[2px] uppercase text-white/70">
+              {hasIncome ? 'Còn lại tháng này' : 'Chi tiêu tháng này'}
             </p>
-            <div className="flex items-baseline gap-1 mt-1">
-              <span className={`font-num text-[44px] font-black leading-none tracking-tighter ${isOver ? 'text-danger' : 'text-text'}`}>
-                {isOver ? '-' : ''}{formatVND(Math.abs(remainingBudget))}
-              </span>
-            </div>
+            {hasTrend && (
+              <div
+                className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                style={{
+                  background: isIncrease ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.20)',
+                  color: 'white',
+                }}
+              >
+                {isIncrease ? '↑' : '↓'}
+                <span>{formatShort(Math.abs(diff))}đ</span>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-end gap-5 mt-2">
-            <div className="flex-1 pb-1">
-              <div className="flex justify-between text-[11px] font-bold mb-2">
-                <span className={pctInt >= 100 ? 'text-danger' : 'text-[var(--color-accent)]'}>
-                  {pctInt}% đã dùng
-                </span>
-                <span className="text-text-hint font-medium">{daysLeft} ngày còn lại</span>
+          {/* ── Hero number ── */}
+          <div className="flex items-baseline gap-1 mb-4">
+            <span
+              className="font-num leading-none tracking-tighter font-black text-white"
+              style={{ fontSize: 42, textShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+            >
+              {hasIncome
+                ? `${isOver ? '-' : ''}${formatVND(Math.abs(remainingBudget ?? 0))}`
+                : formatVND(monthSpent)}
+            </span>
+            <span className="text-white/60 text-[14px] font-medium mb-1">đ</span>
+          </div>
+
+          {/* ── Progress bar (only with budget) ── */}
+          {hasIncome && pctInt !== null && (
+            <div className="mb-4">
+              <div className="flex justify-between text-[10px] font-bold text-white/70 mb-1.5">
+                <span>{pctInt}% đã dùng</span>
+                <span>{daysLeft} ngày còn lại</span>
               </div>
-              <div className="h-3.5 rounded-full bg-surface2/60 shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] overflow-hidden p-[2px]">
+              <div className="h-2.5 rounded-full bg-black/20 overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(100, pctInt)}%` }}
-                  transition={{ duration: 1, type: "spring", bounce: 0 }}
+                  transition={{ duration: 0.9, type: 'spring', bounce: 0 }}
                   className="h-full rounded-full relative"
                   style={{
-                    background: isOver 
-                      ? 'var(--color-danger)' 
-                      : `linear-gradient(90deg, var(--color-success), var(--color-accent))`,
-                    boxShadow: 'inset 0px 2px 3px rgba(255, 255, 255, 0.4), inset 0px -2px 3px rgba(0, 0, 0, 0.15)',
+                    background: isOver
+                      ? 'rgba(255,80,80,0.9)'
+                      : 'rgba(255,255,255,0.85)',
+                    boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)',
                   }}
-                >
-                  {/* Glass highlight overhead */}
-                  <div className="absolute top-0 left-0 w-full h-[45%] bg-gradient-to-b from-white/70 to-white/5 rounded-t-full pointer-events-none" />
-                  
-                  {/* Liquid reflection gloss on the right edge */}
-                  <div className="absolute top-0 right-0 bottom-0 w-12 bg-gradient-to-l from-white/40 to-transparent rounded-r-full pointer-events-none mix-blend-overlay" />
-                </motion.div>
+                />
               </div>
             </div>
-            
-            <div className="shrink-0 flex flex-col items-center justify-center min-w-[92px] py-3.5 rounded-[24px] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-white/80 relative overflow-hidden">
-               <div className="absolute inset-0 bg-gradient-to-tr from-white/40 to-transparent pointer-events-none" />
-              <span className="text-[10px] font-bold text-text-hint uppercase tracking-tight mb-0.5 opacity-80 relative">HÔM NAY</span>
-              <span className="font-num text-[18px] font-black text-[var(--color-accent)] tracking-tight relative leading-none">
-                {formatShort(Math.round(dailyAllowance))}
-              </span>
+          )}
+
+          {/* ── Bottom stat pills ── */}
+          <div className="flex gap-2">
+            {/* Today spent */}
+            <div className="flex-1 rounded-[16px] bg-black/15 px-3 py-2.5 backdrop-blur-sm">
+              <p className="text-[9px] font-bold text-white/60 uppercase tracking-wider mb-0.5">Hôm nay</p>
+              <p className="font-num text-[16px] font-black text-white leading-none">
+                {formatShort(todaySpent)}<span className="text-[11px] font-medium opacity-70 ml-0.5">đ</span>
+              </p>
             </div>
+
+            {/* Month spent */}
+            <div className="flex-1 rounded-[16px] bg-black/15 px-3 py-2.5 backdrop-blur-sm">
+              <p className="text-[9px] font-bold text-white/60 uppercase tracking-wider mb-0.5">Tháng này</p>
+              <p className="font-num text-[16px] font-black text-white leading-none">
+                {formatShort(monthSpent)}<span className="text-[11px] font-medium opacity-70 ml-0.5">đ</span>
+              </p>
+            </div>
+
+            {/* Daily allowance (only with budget) */}
+            {hasIncome && dailyAllowance !== null && (
+              <div className="flex-1 rounded-[16px] bg-white/20 px-3 py-2.5 backdrop-blur-sm border border-white/30">
+                <p className="text-[9px] font-bold text-white/70 uppercase tracking-wider mb-0.5">Mỗi ngày</p>
+                <p className="font-num text-[16px] font-black text-white leading-none">
+                  {formatShort(Math.round(dailyAllowance))}<span className="text-[11px] font-medium opacity-70 ml-0.5">đ</span>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

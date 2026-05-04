@@ -1,11 +1,11 @@
 import * as React from 'react'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { formatVND, getVietnameseDateLabel } from '@/lib/utils'
 import { TransactionDetailSheet } from '@/features/transactions/TransactionDetailSheet'
 import type { HomeData } from '@/hooks/useHomeData'
 import type { Transaction } from '@/types'
 import { motion, useMotionValue, useTransform, animate, type PanInfo } from 'framer-motion'
-import { Trash } from 'lucide-react'
+import { Trash, ChevronRight } from 'lucide-react'
 import { useTransactionStore } from '@/stores/transactionStore'
 import { triggerHaptic } from '@/lib/haptic'
 
@@ -14,17 +14,40 @@ interface RecentTransactionsProps {
   onViewAll: () => void
 }
 
-// Optimized RecentTransactions with memo and lightweight entrance
+type GroupedDay = {
+  label: string
+  date: string
+  total: number
+  items: HomeData['recentTransactions']
+}
+
+function groupByDate(transactions: HomeData['recentTransactions']): GroupedDay[] {
+  const map = new Map<string, HomeData['recentTransactions']>()
+  for (const tx of transactions) {
+    const arr = map.get(tx.date) ?? []
+    arr.push(tx)
+    map.set(tx.date, arr)
+  }
+  return Array.from(map.entries())
+    .sort(([a], [b]) => b.localeCompare(a))
+    .map(([date, items]) => ({
+      date,
+      label: getVietnameseDateLabel(date),
+      total: items.reduce((s, t) => s + t.amount, 0),
+      items,
+    }))
+}
+
 export const RecentTransactions = React.memo(({ transactions, onViewAll }: RecentTransactionsProps) => {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null)
+  const handleSelect = useCallback((tx: Transaction) => setSelectedTx(tx), [])
 
-  const handleSelect = useCallback((tx: Transaction) => {
-    setSelectedTx(tx)
-  }, [])
+  const groups = useMemo(() => groupByDate(transactions), [transactions])
 
   return (
     <>
       <div className="px-4">
+        {/* Section header */}
         <div className="flex items-center justify-between mb-3">
           <p className="text-[10px] font-bold tracking-widest text-text-hint uppercase">
             Gần đây
@@ -33,29 +56,44 @@ export const RecentTransactions = React.memo(({ transactions, onViewAll }: Recen
             <button
               type="button"
               onClick={onViewAll}
-              className="text-[12px] text-accent font-medium active:opacity-60 transition-opacity"
+              className="flex items-center gap-0.5 text-[12px] text-accent font-semibold active:opacity-60 transition-opacity"
             >
-              Xem tất cả →
+              Xem tất cả
+              <ChevronRight size={13} className="mt-px" />
             </button>
           )}
         </div>
 
         {transactions.length === 0 ? (
-          <div
-            className="bg-white rounded-2xl py-8 flex flex-col items-center border border-border/60 shadow-sm"
-          >
-            <p className="text-2xl mb-2">🧾</p>
-            <p className="text-[13px] text-text-muted">Chưa có giao dịch nào</p>
+          <div className="bg-white rounded-2xl py-10 flex flex-col items-center border border-border/60 shadow-sm gap-2">
+            <p className="text-3xl">🧾</p>
+            <p className="text-[13px] text-text-muted font-medium">Chưa có giao dịch nào</p>
+            <p className="text-[11px] text-text-hint">Nhấn + để ghi chi tiêu đầu tiên</p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl overflow-hidden border border-border/60 shadow-sm">
-            {transactions.map((tx, i) => (
-               <TransactionRow
-                  key={tx.id}
-                  tx={tx}
-                  isLast={i === transactions.length - 1}
-                  onSelect={handleSelect}
-                />
+          <div className="flex flex-col gap-3">
+            {groups.map((group) => (
+              <div key={group.date}>
+                {/* Day header */}
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <span className="text-[11px] font-bold text-text-muted">{group.label}</span>
+                  <span className="font-num text-[11px] text-text-hint font-medium">
+                    −{formatVND(group.total)}đ
+                  </span>
+                </div>
+
+                {/* Transactions card */}
+                <div className="bg-white rounded-2xl overflow-hidden border border-border/60 shadow-sm">
+                  {group.items.map((tx, i) => (
+                    <TransactionRow
+                      key={tx.id}
+                      tx={tx}
+                      isLast={i === group.items.length - 1}
+                      onSelect={handleSelect}
+                    />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -84,12 +122,11 @@ const TransactionRow = React.memo(({
 }) => {
   const catColor = tx.category?.color ?? 'var(--color-accent)'
   const { softDelete } = useTransactionStore()
-  
+
   const x = useMotionValue(0)
   const [hasDragged, setHasDragged] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  // Memoize transforms to avoid re-calculation during drag
   const bgOpacity = useTransform(x, [-60, 0], [1, 0])
   const iconScale = useTransform(x, [-60, -30], [1, 0.7])
 
@@ -97,9 +134,7 @@ const TransactionRow = React.memo(({
     e.stopPropagation()
     triggerHaptic('heavy')
     setIsDeleting(true)
-    setTimeout(() => {
-      softDelete(tx.id!)
-    }, 150)
+    setTimeout(() => { softDelete(tx.id!) }, 150)
   }, [tx.id, softDelete])
 
   const handleDragEnd = useCallback((_: unknown, info: PanInfo) => {
@@ -107,7 +142,6 @@ const TransactionRow = React.memo(({
       setHasDragged(true)
       setTimeout(() => setHasDragged(false), 50)
     }
-
     if (info.offset.x < -60 || info.velocity.x < -400) {
       animate(x, -70, { type: 'spring', bounce: 0, duration: 0.3 })
       triggerHaptic('medium')
@@ -122,23 +156,20 @@ const TransactionRow = React.memo(({
     <div className="relative overflow-hidden w-full bg-white" style={{
       borderBottom: isLast ? 'none' : '0.5px solid var(--color-border)',
     }}>
-      {/* Background layer - optimized with simpler values */}
-      <motion.div 
+      {/* Delete background */}
+      <motion.div
         style={{ opacity: bgOpacity }}
         className="absolute inset-y-0 right-0 w-[70px] bg-danger flex items-center justify-center pointer-events-none"
       >
-         <motion.div style={{ scale: iconScale }}>
-            <Trash className="size-[20px] text-white" strokeWidth={2.5} />
-         </motion.div>
+        <motion.div style={{ scale: iconScale }}>
+          <Trash className="size-[20px] text-white" strokeWidth={2.5} />
+        </motion.div>
       </motion.div>
 
-      {/* Delete trigger overlay */}
-      <div 
-        className="absolute inset-y-0 right-0 w-[70px] z-20"
-        onClick={handleDelete}
-      />
+      {/* Delete trigger */}
+      <div className="absolute inset-y-0 right-0 w-[70px] z-20" onClick={handleDelete} />
 
-      {/* Foreground swipable layer */}
+      {/* Swipeable row */}
       <motion.button
         type="button"
         drag="x"
@@ -148,33 +179,36 @@ const TransactionRow = React.memo(({
         onDragEnd={handleDragEnd}
         onClick={() => !hasDragged && onSelect(tx)}
         whileTap={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
-        className="relative z-10 w-full flex items-center gap-4 px-5 py-4 text-left bg-white cursor-grab active:cursor-grabbing"
+        className="relative z-10 w-full flex items-center gap-3.5 px-4 py-3.5 text-left bg-white cursor-grab active:cursor-grabbing"
       >
+        {/* Category icon */}
         <div
-          className="shrink-0 flex items-center justify-center rounded-[12px] text-lg leading-none shadow-sm"
+          className="shrink-0 flex items-center justify-center rounded-[12px] text-[18px] leading-none shadow-sm"
           style={{
-            width: 42,
-            height: 42,
-            background: catColor + '15',
-            color: catColor,
+            width: 40,
+            height: 40,
+            background: catColor + '18',
           }}
         >
           {tx.category?.icon ?? '📦'}
         </div>
 
+        {/* Name + note/date */}
         <div className="flex-1 min-w-0">
-          <p className="truncate text-[15px] font-bold text-text mb-0.5">
+          <p className="truncate text-[14px] font-semibold text-text leading-snug">
             {tx.category?.name ?? 'Không rõ'}
           </p>
-          <p className="font-num text-[11px] font-medium text-text-hint truncate opacity-90">
-            {getVietnameseDateLabel(tx.date)}
-            {tx.note ? ` · ${tx.note}` : ''}
-          </p>
+          {tx.note ? (
+            <p className="font-num text-[11px] text-text-hint truncate mt-0.5">
+              {tx.note}
+            </p>
+          ) : null}
         </div>
 
+        {/* Amount */}
         <div className="shrink-0 flex items-baseline gap-0.5">
-          <span className="text-text-muted text-[13px] font-medium opacity-60">−</span>
-          <span className="font-num text-[15px] font-black text-text tracking-tight">
+          <span className="text-text-hint text-[12px] font-medium">−</span>
+          <span className="font-num text-[14px] font-bold text-text tracking-tight">
             {formatVND(tx.amount)}đ
           </span>
         </div>

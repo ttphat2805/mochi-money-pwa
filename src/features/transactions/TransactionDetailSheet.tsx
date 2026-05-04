@@ -197,6 +197,18 @@ export function TransactionDetailSheet({
                   enterKeyHint="done"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
+                  onFocus={(e) => {
+                    // Scroll the field into view after keyboard opens (~300ms delay)
+                    const el = e.currentTarget
+                    setTimeout(() => {
+                      const element = el as HTMLElement & { scrollIntoViewIfNeeded?: (alignCenter: boolean) => void }
+                      if (element.scrollIntoViewIfNeeded) {
+                        element.scrollIntoViewIfNeeded(true)
+                      } else {
+                        el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+                      }
+                    }, 320)
+                  }}
                   placeholder="Ghi chú (tùy chọn)"
                   className="w-full h-12 px-4 rounded-xl bg-surface border border-transparent text-[14px] outline-none focus:border-accent transition-colors"
                 />
@@ -260,7 +272,19 @@ export function TransactionDetailSheet({
                   type="button"
                   onClick={handleSave}
                   disabled={saving || amount === 0 || !categoryId}
-                  className="col-span-8 h-12 rounded-xl bg-text text-white text-[15px] font-semibold disabled:opacity-40 transition-all active:scale-[0.98] shadow-lg shadow-black/5">
+                  className="col-span-8 h-12 rounded-xl bg-text text-white text-[15px] font-semibold disabled:opacity-40 transition-all active:scale-[0.98] shadow-lg shadow-black/5 flex items-center justify-center gap-2"
+                >
+                  {saving ? (
+                    <>
+                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      <span>Đang lưu…</span>
+                    </>
+                  ) : (
+                    <span>Lưu lại</span>
+                  )}
                 </button>
               </div>
 

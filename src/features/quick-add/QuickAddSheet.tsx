@@ -105,9 +105,9 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
           side="bottom"
           showCloseButton={false}
           className={cn(
-            "bg-[#F7F5F0] rounded-t-[32px] p-0 shadow-2xl overflow-hidden border-none flex flex-col transition-all duration-300",
-            isInputFocused ? "h-[92vh] max-h-[92vh]" : "h-[82vh] max-h-[82vh]",
+            "bg-[#F7F5F0] rounded-t-[32px] p-0 shadow-2xl border-none flex flex-col",
           )}
+          style={{ height: '82dvh', maxHeight: '92dvh' }}
         >
           <div className="flex flex-col h-full">
             {/* ── HEADER: close + amount + date ── */}
@@ -162,37 +162,37 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
               <div className="h-4" />
             </div>
 
-            {/* ── Fixed Bottom Area: Note + Numpad ── */}
             <div
               className="px-5 pb-[calc(10px+env(safe-area-inset-bottom))] shrink-0 bg-[#F7F5F0] pt-2 border-t border-black/5"
             >
-              <div className="mb-3">
+              <div className="mb-3 relative">
                 <NoteInput 
                   value={note} 
                   onChange={setNote} 
                   onFocusChange={setIsInputFocused}
                 />
+                {/* "Done" overlay button — only visible when keyboard is open */}
+                {isInputFocused && (
+                  <button
+                    onPointerDown={(e) => {
+                      // Prevent the input from regaining focus
+                      e.preventDefault()
+                      if (document.activeElement instanceof HTMLElement)
+                        document.activeElement.blur()
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-7 px-3 rounded-full bg-text text-white text-[12px] font-semibold active:scale-90 transition-transform"
+                  >
+                    Xong
+                  </button>
+                )}
               </div>
-              {!isInputFocused && (
-                <Numpad
-                  onDigit={appendDigit}
-                  onDelete={deleteDigit}
-                  onConfirm={handleSave}
-                  canConfirm={canSave}
-                  isSaving={isSaving}
-                />
-              )}
-              {isInputFocused && (
-                <button
-                  onClick={() => {
-                    if (document.activeElement instanceof HTMLElement) 
-                      document.activeElement.blur();
-                  }}
-                  className="w-full h-12 bg-text text-white rounded-xl font-bold active:scale-95 transition-transform"
-                >
-                  Xong
-                </button>
-              )}
+              <Numpad
+                onDigit={appendDigit}
+                onDelete={deleteDigit}
+                onConfirm={handleSave}
+                canConfirm={canSave}
+                isSaving={isSaving}
+              />
             </div>
 
           </div>

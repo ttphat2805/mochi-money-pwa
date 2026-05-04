@@ -2,6 +2,7 @@ import React, { useRef } from 'react'
 import { formatShort } from '@/lib/utils'
 import type { CalendarDayCell } from '@/hooks/useCalendar'
 import { getHeatLevel, HEAT_BG, HEAT_TEXT } from '@/hooks/useCalendar'
+import { motion } from 'framer-motion'
 
 const WEEKDAY_HEADERS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
 
@@ -13,12 +14,11 @@ interface CalendarGridProps {
   onSelectDay: (date: string) => void
   onSwipeLeft: () => void
   onSwipeRight: () => void
-  // key changes when month changes — triggers slide animation
   monthKey: string
   slideDir: 'left' | 'right' | null
 }
 
-// Memoized day cell for perf
+// Optimized day cell with high-end motion
 const DayCell = React.memo(function DayCell({
   cell,
   isSelected,
@@ -38,37 +38,24 @@ const DayCell = React.memo(function DayCell({
     <button
       type="button"
       onClick={() => onSelect(date)}
+      className="relative flex flex-col items-center justify-center gap-1 w-full min-h-[58px] transition-all duration-200 rounded-xl overflow-hidden"
       style={{
-        minHeight: 52,
         backgroundColor: isSelected ? 'var(--color-accent)' : HEAT_BG[heat],
-        border: isSelected
-          ? '2px solid var(--color-accent)'
-          : isToday
-            ? '2px solid var(--color-accent)'
-            : '2px solid transparent',
-        transform: isSelected ? 'scale(1.06)' : 'scale(1)',
-        boxShadow: isSelected ? '0 3px 10px var(--color-accent-h2)' : 'none',
-        opacity: 1,
-        transition: 'transform 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease',
-        borderRadius: 10,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 2,
-        padding: '4px 2px',
-        width: '100%',
+        border: isToday && !isSelected ? '1.5px solid var(--color-accent)' : '1.5px solid transparent',
+        boxShadow: isSelected ? '0 4px 12px var(--color-accent-h2)' : 'none',
+        zIndex: isSelected ? 10 : 1,
       }}
     >
+      {/* Selection highlight overlay is removed in favor of simple background transition */}
+
       <span
+        className="text-[14px] leading-none z-10"
         style={{
-          fontSize: 13,
-          fontWeight: isToday ? 700 : isSelected ? 700 : 500,
-          lineHeight: 1,
+          fontWeight: isToday || isSelected ? 800 : 600,
           color: isSelected
             ? '#FFFFFF'
             : isToday
-              ? 'var(--color-accent)'
+              ? 'var(--color-accent-dark)'
               : amount > 0
                 ? HEAT_TEXT[heat]
                 : 'var(--color-text-muted)',
@@ -76,26 +63,22 @@ const DayCell = React.memo(function DayCell({
       >
         {day}
       </span>
+
       {amount > 0 && (
         <span
+          className="font-num text-[10px] leading-none tracking-tight z-10 mt-0.5"
           style={{
-            fontSize: 9,
-            lineHeight: 1,
-            fontWeight: 600,
-            color: isSelected ? 'rgba(255,255,255,0.85)' : HEAT_TEXT[heat],
+            fontWeight: 700,
+            color: isSelected ? 'rgba(255,255,255,0.9)' : HEAT_TEXT[heat],
           }}
         >
           {formatShort(amount)}
         </span>
       )}
-      {/* Today dot when not selected */}
+
+      {/* Today dot indicator */}
       {isToday && !isSelected && (
-        <div className="flex items-center gap-1.5">
-          <span
-            className="size-1.5 rounded-full"
-            style={{ backgroundColor: 'var(--color-accent)' }}
-          />
-        </div>
+        <div className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-accent-dark" />
       )}
     </button>
   )
@@ -129,26 +112,19 @@ export function CalendarGrid({
     }
   }
 
-  // Slide animation on month change
-  const slideStyle: React.CSSProperties = slideDir === 'left'
-    ? { animation: 'slideInFromRight 250ms ease-out' }
-    : slideDir === 'right'
-      ? { animation: 'slideInFromLeft 250ms ease-out' }
-      : {}
-
   return (
     <div
-      className="px-3"
+      className="px-4"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {/* Weekday headers */}
-      <div className="mb-1.5 grid grid-cols-7">
+      <div className="mb-2 grid grid-cols-7">
         {WEEKDAY_HEADERS.map((h, i) => (
           <div
             key={h}
-            className={`text-center text-[10px] font-semibold uppercase tracking-wide ${
-              i >= 5 ? 'text-accent' : 'text-text-hint'
+            className={`text-center text-[10px] font-black uppercase tracking-widest ${
+              i >= 5 ? 'text-accent/70' : 'text-text-hint'
             }`}
           >
             {h}
@@ -157,13 +133,15 @@ export function CalendarGrid({
       </div>
 
       {/* Day cells with slide animation */}
-      <div
+      <motion.div
         key={monthKey}
-        className="grid grid-cols-7 gap-0.5"
-        style={slideStyle}
+        initial={slideDir ? { x: slideDir === 'left' ? 20 : -20, opacity: 0 } : false}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        className="grid grid-cols-7 gap-1"
       >
         {days.map((cell) => {
-          if (cell.type === 'empty') return <div key={cell.key} />
+          if (cell.type === 'empty') return <div key={cell.key} className="min-h-[58px]" />
 
           const amount = dailyTotals[cell.date] ?? 0
           const heat = getHeatLevel(amount, maxDailyAmount)
@@ -180,19 +158,7 @@ export function CalendarGrid({
             />
           )
         })}
-      </div>
-
-      {/* Keyframe definitions via inline style tag */}
-      <style>{`
-        @keyframes slideInFromRight {
-          from { opacity: 0; transform: translateX(40px); }
-          to   { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes slideInFromLeft {
-          from { opacity: 0; transform: translateX(-40px); }
-          to   { opacity: 1; transform: translateX(0); }
-        }
-      `}</style>
+      </motion.div>
     </div>
   )
 }
