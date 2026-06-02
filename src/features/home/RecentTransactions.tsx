@@ -4,10 +4,12 @@ import { formatVND, getVietnameseDateLabel } from '@/lib/utils'
 import { TransactionDetailSheet } from '@/features/transactions/TransactionDetailSheet'
 import type { HomeData } from '@/hooks/useHomeData'
 import type { Transaction } from '@/types'
-import { motion, useMotionValue, useTransform, animate, type PanInfo } from 'framer-motion'
+import { motion, useMotionValue, useTransform, animate, type PanInfo, AnimatePresence } from 'framer-motion'
 import { Trash, ChevronRight } from 'lucide-react'
 import { useTransactionStore } from '@/stores/transactionStore'
 import { triggerHaptic } from '@/lib/haptic'
+
+const SWIPE_HINT_KEY = 'mochi_swipe_hint_seen'
 
 interface RecentTransactionsProps {
   transactions: HomeData['recentTransactions']
@@ -41,8 +43,21 @@ function groupByDate(transactions: HomeData['recentTransactions']): GroupedDay[]
 export const RecentTransactions = React.memo(({ transactions, onViewAll }: RecentTransactionsProps) => {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null)
   const handleSelect = useCallback((tx: Transaction) => setSelectedTx(tx), [])
+  const [showSwipeHint, setShowSwipeHint] = useState(() =>
+    !localStorage.getItem(SWIPE_HINT_KEY) && transactions.length > 0
+  )
 
   const groups = useMemo(() => groupByDate(transactions), [transactions])
+
+  // Auto-dismiss swipe hint after 2.5s
+  React.useEffect(() => {
+    if (!showSwipeHint) return
+    const t = setTimeout(() => {
+      setShowSwipeHint(false)
+      localStorage.setItem(SWIPE_HINT_KEY, '1')
+    }, 2500)
+    return () => clearTimeout(t)
+  }, [showSwipeHint])
 
   return (
     <>
@@ -90,6 +105,7 @@ export const RecentTransactions = React.memo(({ transactions, onViewAll }: Recen
                       tx={tx}
                       isLast={i === group.items.length - 1}
                       onSelect={handleSelect}
+                      showSwipeHint={i === 0 && showSwipeHint}
                     />
                   ))}
                 </div>
@@ -115,13 +131,22 @@ const TransactionRow = React.memo(({
   tx,
   isLast,
   onSelect,
+  showSwipeHint = false,
 }: {
   tx: HomeData['recentTransactions'][0]
   isLast: boolean
   onSelect: (tx: Transaction) => void
+  showSwipeHint?: boolean
 }) => {
   const catColor = tx.category?.color ?? 'var(--color-accent)'
   const { softDelete } = useTransactionStore()
+
+  // Format createdAt as HH:mm
+  const timeLabel = React.useMemo(() => {
+    if (!tx.createdAt) return ''
+    const d = new Date(tx.createdAt)
+    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false })
+  }, [tx.createdAt])
 
   const x = useMotionValue(0)
   const [hasDragged, setHasDragged] = useState(false)
@@ -193,26 +218,55 @@ const TransactionRow = React.memo(({
           {tx.category?.icon ?? '📦'}
         </div>
 
-        {/* Name + note/date */}
+        {/* Name + note/time */}
         <div className="flex-1 min-w-0">
-          <p className="truncate text-[14px] font-semibold text-text leading-snug">
-            {tx.category?.name ?? 'Không rõ'}
-          </p>
-          {tx.note ? (
-            <p className="font-num text-[11px] text-text-hint truncate mt-0.5">
-              {tx.note}
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <p className="truncate text-[14px] font-semibold text-text leading-snug">
+              {tx.category?.name ?? 'Không rõ'}
             </p>
-          ) : null}
+            {tx.isNote && (
+              <span className="shrink-0 text-[9px] font-black text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-100 leading-none">
+                GHI CHÚ
+              </span>
+            )}
+          </div>
+          <p className="text-text-hint text-[11px] truncate">
+            {tx.note ? `${tx.note} · ${timeLabel}` : timeLabel}
+          </p>
         </div>
 
         {/* Amount */}
         <div className="shrink-0 flex items-baseline gap-0.5">
           <span className="text-text-hint text-[12px] font-medium">−</span>
-          <span className="font-num text-[14px] font-bold text-text tracking-tight">
+          <span className={`font-num text-[14px] font-bold tracking-tight ${
+            tx.isNote ? 'text-text-muted' : 'text-text'
+          }`}>
             {formatVND(tx.amount)}đ
           </span>
         </div>
       </motion.button>
+
+      {/* One-time swipe-to-delete discovery hint */}
+      <AnimatePresence>
+        {showSwipeHint && (
+          <motion.div
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 10 }}
+            transition={{ delay: 0.5, duration: 0.3 }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-30 flex items-center gap-1 pointer-events-none"
+          >
+            <span className="text-[10px] font-bold text-danger/70">Vuốt ← xóa</span>
+            <motion.span
+              animate={{ x: [-3, -8, -3] }}
+              transition={{ repeat: Infinity, duration: 1 }}
+              className="text-danger/60"
+            >
+              ←
+            </motion.span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 })

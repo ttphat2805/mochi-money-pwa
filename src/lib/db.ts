@@ -50,5 +50,15 @@ db.version(3).stores({
   extraIncomes: '++id, monthKey',
 })
 
+// v4: added isNote boolean to Transaction (non-indexed — no store changes needed)
+db.version(4).stores({
+  transactions: '++id, date, categoryId, [date+categoryId], type, deletedAt',
+  categories: '++id, sortOrder',
+  recurringTemplates: '++id, active',
+  fixedExpenses: '++id, payDay, active',
+  settings: '++id',
+  extraIncomes: '++id, monthKey',
+})
+
 export { db }
 

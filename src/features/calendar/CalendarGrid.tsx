@@ -1,10 +1,13 @@
 import React, { useRef } from 'react'
 import { formatShort } from '@/lib/utils'
 import type { CalendarDayCell } from '@/hooks/useCalendar'
-import { getHeatLevel, HEAT_BG, HEAT_TEXT } from '@/hooks/useCalendar'
+import { getHeatLevel } from '@/hooks/useCalendar'
 import { motion } from 'framer-motion'
 
 const WEEKDAY_HEADERS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+
+// Opacity levels for accent tint background per heat level
+const HEAT_OPACITY = [0, 0.12, 0.22, 0.38, 0.58] as const
 
 interface CalendarGridProps {
   days: CalendarDayCell[]
@@ -16,71 +19,98 @@ interface CalendarGridProps {
   onSwipeRight: () => void
   monthKey: string
   slideDir: 'left' | 'right' | null
+  accent: string
 }
 
-// Optimized day cell with high-end motion
 const DayCell = React.memo(function DayCell({
   cell,
   isSelected,
   amount,
   heat,
   onSelect,
+  accent,
 }: {
   cell: Extract<CalendarDayCell, { type: 'day' }>
   isSelected: boolean
   amount: number
   heat: 0 | 1 | 2 | 3 | 4
   onSelect: (date: string) => void
+  accent: string
 }) {
-  const { date, day, isToday } = cell
+  const { date, day, isToday, isFuture } = cell
+  const hasSpend = amount > 0
+
+  // Background: selected → solid accent, spending → light tint, else white
+  const bgColor = isSelected
+    ? accent
+    : hasSpend
+      ? `${accent}${Math.round(HEAT_OPACITY[heat] * 255).toString(16).padStart(2, '0')}`
+      : '#FFFFFF'
+
+  // Day number color: always readable — dark on light, white on selected
+  const dayColor = isSelected
+    ? '#FFFFFF'
+    : isToday
+      ? accent
+      : 'var(--color-text)'
+
+  // Amount color
+  const amtColor = isSelected
+    ? 'rgba(255,255,255,0.9)'
+    : accent
 
   return (
-    <button
+    <motion.button
       type="button"
       onClick={() => onSelect(date)}
-      className="relative flex flex-col items-center justify-center gap-1 w-full min-h-[58px] transition-all duration-200 rounded-xl overflow-hidden"
+      whileTap={{ scale: 0.86 }}
+      transition={{ duration: 0.1 }}
+      className="relative flex flex-col items-center justify-center w-full h-[62px] rounded-2xl overflow-hidden"
       style={{
-        backgroundColor: isSelected ? 'var(--color-accent)' : HEAT_BG[heat],
-        border: isToday && !isSelected ? '1.5px solid var(--color-accent)' : '1.5px solid transparent',
-        boxShadow: isSelected ? '0 4px 12px var(--color-accent-h2)' : 'none',
-        zIndex: isSelected ? 10 : 1,
+        backgroundColor: bgColor,
+        border: isToday && !isSelected
+          ? `2px solid ${accent}`
+          : '2px solid transparent',
+        boxShadow: isSelected
+          ? `0 4px 14px ${accent}55`
+          : '0 1px 3px rgba(0,0,0,0.06)',
+        opacity: isFuture && !isToday ? 0.4 : 1,
       }}
     >
-      {/* Selection highlight overlay is removed in favor of simple background transition */}
-
+      {/* Day number — always prominent and visible */}
       <span
-        className="text-[14px] leading-none z-10"
+        className="leading-none"
         style={{
-          fontWeight: isToday || isSelected ? 800 : 600,
-          color: isSelected
-            ? '#FFFFFF'
-            : isToday
-              ? 'var(--color-accent-dark)'
-              : amount > 0
-                ? HEAT_TEXT[heat]
-                : 'var(--color-text-muted)',
+          fontSize: 15,
+          fontWeight: isToday || isSelected ? 800 : 500,
+          color: dayColor,
         }}
       >
         {day}
       </span>
 
-      {amount > 0 && (
-        <span
-          className="font-num text-[10px] leading-none tracking-tight z-10 mt-0.5"
-          style={{
-            fontWeight: 700,
-            color: isSelected ? 'rgba(255,255,255,0.9)' : HEAT_TEXT[heat],
-          }}
-        >
-          {formatShort(amount)}
-        </span>
-      )}
+      {/* Amount — fixed slot to keep all cells same height */}
+      <span
+        className="font-num leading-none mt-1"
+        style={{
+          fontSize: 9,
+          fontWeight: 700,
+          color: amtColor,
+          opacity: hasSpend ? 1 : 0,   // invisible but height-preserving
+          pointerEvents: 'none',
+        }}
+      >
+        {hasSpend ? formatShort(amount) : '0'}
+      </span>
 
-      {/* Today dot indicator */}
+      {/* Today dot — top-right corner */}
       {isToday && !isSelected && (
-        <div className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-accent-dark" />
+        <div
+          className="absolute top-1.5 right-1.5 size-1.5 rounded-full"
+          style={{ backgroundColor: accent }}
+        />
       )}
-    </button>
+    </motion.button>
   )
 })
 
@@ -94,21 +124,22 @@ export function CalendarGrid({
   onSwipeRight,
   monthKey,
   slideDir,
+  accent,
 }: CalendarGridProps) {
   const touchStartX = useRef(0)
+  const touchStartY = useRef(0)
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    const diff = touchStartX.current - e.changedTouches[0].clientX
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) {
-        onSwipeLeft()
-      } else {
-        onSwipeRight()
-      }
+    const dx = touchStartX.current - e.changedTouches[0].clientX
+    const dy = touchStartY.current - e.changedTouches[0].clientY
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      if (dx > 0) onSwipeLeft()
+      else onSwipeRight()
     }
   }
 
@@ -119,29 +150,32 @@ export function CalendarGrid({
       onTouchEnd={handleTouchEnd}
     >
       {/* Weekday headers */}
-      <div className="mb-2 grid grid-cols-7">
+      <div className="grid grid-cols-7 mb-2">
         {WEEKDAY_HEADERS.map((h, i) => (
           <div
             key={h}
-            className={`text-center text-[10px] font-black uppercase tracking-widest ${
-              i >= 5 ? 'text-accent/70' : 'text-text-hint'
-            }`}
+            className="text-center text-[10px] font-bold tracking-wider py-1"
+            style={{
+              color: i === 6 ? '#E05252' : 'var(--color-text-hint)',
+            }}
           >
             {h}
           </div>
         ))}
       </div>
 
-      {/* Day cells with slide animation */}
+      {/* Day cells */}
       <motion.div
         key={monthKey}
         initial={slideDir ? { x: slideDir === 'left' ? 20 : -20, opacity: 0 } : false}
         animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="grid grid-cols-7 gap-1"
+        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+        className="grid grid-cols-7 gap-1.5"
       >
         {days.map((cell) => {
-          if (cell.type === 'empty') return <div key={cell.key} className="min-h-[58px]" />
+          if (cell.type === 'empty') {
+            return <div key={cell.key} className="h-[62px]" />
+          }
 
           const amount = dailyTotals[cell.date] ?? 0
           const heat = getHeatLevel(amount, maxDailyAmount)
@@ -155,6 +189,7 @@ export function CalendarGrid({
               amount={amount}
               heat={heat}
               onSelect={onSelectDay}
+              accent={accent}
             />
           )
         })}

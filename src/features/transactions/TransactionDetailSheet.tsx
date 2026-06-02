@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Trash2, Calendar } from 'lucide-react'
+import { Trash2, Calendar, BookOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
@@ -43,6 +43,7 @@ export function TransactionDetailSheet({
   const [note, setNote] = useState('')
   const [date, setDate] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | undefined>(undefined)
+  const [isNote, setIsNote] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -68,6 +69,7 @@ export function TransactionDetailSheet({
     setNote(transaction.note ?? '')
     setDate(transaction.date)
     setPaymentMethod(transaction.paymentMethod)
+    setIsNote(transaction.isNote ?? false)
   }, [transaction, open])
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,6 +89,7 @@ export function TransactionDetailSheet({
         note: note.trim() || undefined,
         date,
         paymentMethod,
+        isNote: isNote || undefined,
       })
       toast.success('Đã cập nhật giao dịch')
       onClose()
@@ -146,9 +149,14 @@ export function TransactionDetailSheet({
 
           <div className="overflow-y-auto" style={{ maxHeight: '90dvh' }}>
             <div className="px-5 pb-8 flex flex-col gap-4 pt-4">
-              {/* Header Title replaced "Back to view" */}
-              <div className="flex items-center justify-center -mt-2 mb-2">
+              {/* Header */}
+              <div className="flex items-center justify-center -mt-2 mb-2 gap-2">
                 <h2 className="text-[15px] font-semibold text-text">Chỉnh sửa giao dịch</h2>
+                {isNote && (
+                  <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+                    📓 Ghi chú
+                  </span>
+                )}
               </div>
 
               {/* Amount */}
@@ -227,6 +235,36 @@ export function TransactionDetailSheet({
                   <Calendar size={16} className="text-text-muted shrink-0" />
                   <span className="text-text flex-1">{getDateLabel(date)}</span>
                   <span className="text-text-hint text-[12px] font-mono">{date}</span>
+                </button>
+              </div>
+
+              {/* isNote toggle */}
+              <div>
+                <label className="text-[10px] font-medium text-text-hint uppercase tracking-[1.2px] mb-1.5 block">
+                  Loại giao dịch
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsNote((v) => !v)}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                    isNote ? 'bg-indigo-50 border-indigo-200' : 'bg-surface border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <BookOpen size={15} className={isNote ? 'text-indigo-500' : 'text-text-muted'} />
+                    <span className={`text-[13px] font-medium ${
+                      isNote ? 'text-indigo-600' : 'text-text-muted'
+                    }`}>
+                      {isNote ? 'Ghi chú — không tính vào chi tiêu' : 'Chi tiêu bình thường'}
+                    </span>
+                  </div>
+                  <div className={`w-9 h-5 rounded-full relative transition-colors ${
+                    isNote ? 'bg-indigo-500' : 'bg-black/15'
+                  }`}>
+                    <div className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-transform ${
+                      isNote ? 'translate-x-4' : 'translate-x-0.5'
+                    }`} />
+                  </div>
                 </button>
               </div>
 

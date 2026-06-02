@@ -71,7 +71,7 @@ export function useHomeData(): HomeData {
   const todaySpent = useLiveQuery(async () => {
     const txs = await db.transactions
       .where('date').equals(today)
-      .filter((tx) => !tx.deletedAt)
+      .filter((tx) => !tx.deletedAt && !tx.isNote)
       .toArray()
     return txs.reduce((sum, tx) => sum + tx.amount, 0)
   }, [today]) ?? 0
@@ -88,7 +88,7 @@ export function useHomeData(): HomeData {
   const yesterdaySpent = useLiveQuery(async () => {
     const txs = await db.transactions
       .where('date').equals(yesterdayString)
-      .filter((tx) => !tx.deletedAt)
+      .filter((tx) => !tx.deletedAt && !tx.isNote)
       .toArray()
     return txs.reduce((sum, tx) => sum + tx.amount, 0)
   }, [yesterdayString]) ?? 0
@@ -98,7 +98,7 @@ export function useHomeData(): HomeData {
       db.transactions
         .where('date')
         .between(monthKey + '-01', monthKey + '-31', true, true)
-        .filter((tx) => !tx.deletedAt)
+        .filter((tx) => !tx.deletedAt && !tx.isNote)
         .toArray(),
     [monthKey],
   ) ?? EMPTY_TXS
@@ -125,7 +125,7 @@ export function useHomeData(): HomeData {
       const txs = await db.transactions
         .where('date')
         .between(lastMonthKey + '-01', lastMonthKey + '-31', true, true)
-        .filter((tx) => !tx.deletedAt)
+        .filter((tx) => !tx.deletedAt && !tx.isNote)
         .toArray()
       return txs.reduce((sum, tx) => sum + tx.amount, 0)
     },

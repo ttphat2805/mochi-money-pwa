@@ -31,12 +31,12 @@ export function useFinancialInsights() {
       db.transactions
         .where('date')
         .between(currentMonthKey + '-01', currentMonthKey + '-32', true, false)
-        .filter((tx) => !tx.deletedAt)
+        .filter((tx) => !tx.deletedAt && !tx.isNote)
         .toArray(),
       db.transactions
         .where('date')
         .between(prevMonthKey + '-01', prevMonthKey + '-32', true, false)
-        .filter((tx) => !tx.deletedAt)
+        .filter((tx) => !tx.deletedAt && !tx.isNote)
         .toArray()
     ])
 

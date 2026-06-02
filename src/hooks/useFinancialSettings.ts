@@ -27,7 +27,7 @@ export function useFinancialSettings() {
     () =>
       db.transactions
         .where('date').startsWith(monthKey)
-        .filter((tx) => !tx.deletedAt)
+        .filter((tx) => !tx.deletedAt && !tx.isNote)
         .toArray()
         .then((txs) => txs.reduce((s, t) => s + t.amount, 0)),
     [monthKey],

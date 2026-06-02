@@ -2,8 +2,8 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useQuickAdd } from "@/hooks/useQuickAdd";
 import { triggerHaptic } from "@/lib/haptic";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
-import { useState } from "react";
+import { X, Info } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { AmountDisplay } from "./AmountDisplay";
 import { BudgetWarningDialog } from "./BudgetWarningDialog";
@@ -49,6 +49,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
     note,
     isSaving,
     budgetWarning,
+    isNote,
     sortedCategories,
     close,
     appendDigit,
@@ -57,6 +58,8 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
     selectCategory,
     setDate,
     setNote,
+    toggleIsNote,
+    addAmount,
     save,
     confirmOverBudget,
     dismissBudgetWarning,
@@ -65,6 +68,18 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
   } = quickAdd;
 
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [showNoteTooltip, setShowNoteTooltip] = useState(false);
+  const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-dismiss tooltip after 3s
+  useEffect(() => {
+    if (showNoteTooltip) {
+      tooltipTimerRef.current = setTimeout(() => setShowNoteTooltip(false), 3000);
+    }
+    return () => {
+      if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
+    };
+  }, [showNoteTooltip]);
 
   const handleSave = async () => {
     if (document.activeElement instanceof HTMLElement)
@@ -80,6 +95,10 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
         setTimeout(() => setSuccessAnim({ isVisible: false, amount: 0 }), 1500);
       }
     }
+  };
+
+  const handleShortcut = (shortcutAmount: number) => {
+    addAmount(shortcutAmount)
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -112,11 +131,62 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
           <div className="flex flex-col h-full">
             {/* ── HEADER: close + amount + date ── */}
             <div className="px-5 pt-3 pb-3 shrink-0 bg-[#F7F5F0]">
-              {/* Top row */}
+              {/* Top row: title + isNote switch + date + close */}
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-black tracking-[2px] text-black/30 uppercase">
-                  Chi tiêu
-                </span>
+                <div className="flex items-center gap-2">
+                  {/* Title */}
+                  <span className={`text-[11px] font-black tracking-[2px] uppercase ${
+                    isNote ? 'text-indigo-400' : 'text-black/30'
+                  }`}>
+                    {isNote ? 'Ghi chú' : 'Chi tiêu'}
+                  </span>
+
+                  {/* Compact toggle switch */}
+                  <button
+                    type="button"
+                    onClick={toggleIsNote}
+                    aria-label="Bật/tắt chế độ ghi chú"
+                    className="relative flex-shrink-0"
+                  >
+                    <div className={`relative w-8 h-[18px] rounded-full transition-colors duration-200 ${
+                      isNote ? 'bg-indigo-500' : 'bg-black/15'
+                    }`}>
+                      <div className={`absolute top-[2px] size-[14px] rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                        isNote ? 'translate-x-[18px]' : 'translate-x-[2px]'
+                      }`} />
+                    </div>
+                  </button>
+
+                  {/* Info button + popover */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowNoteTooltip((v) => !v)}
+                      aria-label="Giải thích ghi chú"
+                      className="flex items-center justify-center size-[18px] rounded-full text-black/25 active:text-black/50 transition-colors"
+                    >
+                      <Info size={13} />
+                    </button>
+
+                    {/* Floating tooltip */}
+                    {showNoteTooltip && (
+                      <div
+                        className="absolute top-6 left-1/2 -translate-x-1/2 z-50 w-[220px] rounded-2xl bg-[#1C1C1E] shadow-xl p-3 text-left"
+                        style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.22)' }}
+                      >
+                        {/* Arrow */}
+                        <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 size-3 rotate-45 bg-[#1C1C1E]" />
+                        <p className="text-white text-[12px] font-semibold mb-1">📓 Ghi chú
+                          <span className="font-normal text-white/60"> (không tính chi tiêu)</span>
+                        </p>
+                        <p className="text-white/65 text-[11px] leading-[1.5]">
+                          Giao dịch này sẽ được lưu nhưng không ảnh hưởng đến tổng chi tiêu, ngân sách hay biểu đồ. Dùng cho các khoản như học phí, đầu tư một lần...
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-2">
                   <DateSelector
                     dateLabel={dateLabel}
@@ -186,12 +256,16 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                   </button>
                 )}
               </div>
+
+              {/* (isNote big block removed — now compact switch in header) */}
               <Numpad
                 onDigit={appendDigit}
                 onDelete={deleteDigit}
                 onConfirm={handleSave}
+                onShortcut={handleShortcut}
                 canConfirm={canSave}
                 isSaving={isSaving}
+                isNote={isNote}
               />
             </div>
 

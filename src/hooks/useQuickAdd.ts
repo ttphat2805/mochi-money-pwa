@@ -36,6 +36,7 @@ interface UseQuickAddReturn {
   isOpen: boolean
   isSaving: boolean
   budgetWarning: BudgetWarning | null
+  isNote: boolean
 
   // Sorted categories (last used first)
   sortedCategories: BudgetCategory[]
@@ -49,6 +50,8 @@ interface UseQuickAddReturn {
   selectCategory: (id: number) => void
   setDate: (date: string) => void
   setNote: (note: string) => void
+  toggleIsNote: () => void
+  addAmount: (value: number) => void
   save: () => Promise<SaveResult>
   confirmOverBudget: () => Promise<SaveResult>
   dismissBudgetWarning: () => void
@@ -103,6 +106,7 @@ export function useQuickAdd(): UseQuickAddReturn {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
   const [selectedDate, setSelectedDate] = useState(getTodayString)
   const [note, setNote] = useState('')
+  const [isNote, setIsNote] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [budgetWarning, setBudgetWarning] = useState<BudgetWarning | null>(null)
 
@@ -131,11 +135,12 @@ export function useQuickAdd(): UseQuickAddReturn {
   }, [categories]);
 
   // Select first category by default if none selected
-  useMemo(() => {
+  useEffect(() => {
     if (selectedCategoryId === null && sortedCategories.length > 0) {
       setSelectedCategoryId(sortedCategories[0].id ?? null)
     }
-  }, [sortedCategories, selectedCategoryId])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortedCategories])
 
   const selectedCategory = useMemo(
     () => categories.find((c) => c.id === selectedCategoryId),
@@ -160,6 +165,7 @@ export function useQuickAdd(): UseQuickAddReturn {
     setSelectedCategoryId(finalCategoryId)
     setSelectedDate(date ? date : getTodayString())
     setNote('')
+    setIsNote(false)
     setBudgetWarning(null)
   }, [categories])
 
@@ -168,25 +174,18 @@ export function useQuickAdd(): UseQuickAddReturn {
     useAppStore.getState().openQuickAdd()
   }, [resetState])
 
-  const close = useCallback(() => {
-    closeQuickAdd()
-  }, [closeQuickAdd])
+  const close = closeQuickAdd
 
-  // Watch for global open state and propagate initial date
+  // Reset state when the sheet opens (with initial context) or closes (delayed to avoid flash)
   useEffect(() => {
     if (quickAddOpen) {
       resetState(quickAddInitialDate, quickAddInitialCategoryId)
+    } else {
+      const t = setTimeout(() => resetState(), 400)
+      return () => clearTimeout(t)
     }
-  }, [quickAddOpen, quickAddInitialDate, quickAddInitialCategoryId, resetState])
-
-  // Optional: reset state only when COMPONENT is completely hidden to prevent flash mid-close
-  useEffect(() => {
-    if (!quickAddOpen) {
-       // Optional: delay state clearing until animation finishes
-       const t = setTimeout(() => resetState(), 400); 
-       return () => clearTimeout(t);
-    }
-  }, [quickAddOpen, resetState])
+  }, [quickAddOpen]) // intentionally omit resetState/initialDate to avoid re-runs mid-session
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const appendDigit = useCallback((digit: number) => {
     setAmountDigits((prev) => {
@@ -209,6 +208,20 @@ export function useQuickAdd(): UseQuickAddReturn {
 
   const selectCategory = useCallback((id: number) => {
     setSelectedCategoryId((prev) => (prev === id ? null : id))
+  }, [])
+
+  const toggleIsNote = useCallback(() => {
+    setIsNote((prev) => !prev)
+  }, [])
+
+  const addAmount = useCallback((value: number) => {
+    setAmountDigits((prev) => {
+      const current = prev === '' ? 0 : parseInt(prev, 10)
+      const next = current + value
+      const nextStr = String(next)
+      if (nextStr.length > MAX_DIGITS) return prev
+      return nextStr
+    })
   }, [])
 
   /**
@@ -235,6 +248,7 @@ export function useQuickAdd(): UseQuickAddReturn {
         type: 'manual',
         createdAt: new Date().toISOString(),
         deletedAt: null,
+        isNote: isNote || undefined,
       })
 
       setLastUsedCategoryId(selectedCategoryId)
@@ -297,6 +311,7 @@ export function useQuickAdd(): UseQuickAddReturn {
     isOpen: quickAddOpen,
     isSaving,
     budgetWarning,
+    isNote,
     sortedCategories,
     open,
     close,
@@ -306,6 +321,8 @@ export function useQuickAdd(): UseQuickAddReturn {
     selectCategory,
     setDate: setSelectedDate,
     setNote,
+    toggleIsNote,
+    addAmount,
     save,
     confirmOverBudget,
     dismissBudgetWarning,

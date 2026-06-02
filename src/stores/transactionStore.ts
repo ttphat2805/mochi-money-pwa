@@ -119,7 +119,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     const txs = await db.transactions
       .where('date')
       .startsWith(month)
-      .and((tx) => tx.categoryId === categoryId && !tx.deletedAt)
+      .and((tx) => tx.categoryId === categoryId && !tx.deletedAt && !tx.isNote)
       .toArray()
     return txs.reduce((sum, tx) => sum + tx.amount, 0)
   },
@@ -128,7 +128,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     const txs = await db.transactions
       .where('date')
       .startsWith(month)
-      .and((tx) => !tx.deletedAt)
+      .and((tx) => !tx.deletedAt && !tx.isNote)
       .toArray()
     return txs.reduce((sum, tx) => sum + tx.amount, 0)
   },

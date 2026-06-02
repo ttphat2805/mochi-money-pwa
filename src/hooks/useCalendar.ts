@@ -23,14 +23,14 @@ export interface MonthStats {
 // ── Constants ─────────────────────────────────────────────────
 
 export const HEAT_BG = [
-  'transparent',
+  'rgba(0,0,0,0.04)',        // 0 — no spend: subtle cell shape
   'var(--color-accent-h1)',
   'var(--color-accent-h2)',
   'var(--color-accent-h3)',
   'var(--color-accent-h4)',
 ] as const
 export const HEAT_TEXT = [
-  'var(--color-text-muted)',
+  'var(--color-text-muted)', // 0 — no spend
   'var(--color-accent-dark)',
   'var(--color-accent-dark)',
   'var(--color-accent-dark)',
@@ -113,7 +113,7 @@ export function useCalendar() {
       db.transactions
         .where('date')
         .between(viewMonthKey + '-01', viewMonthKey + '-32', true, false)
-        .filter((tx) => !tx.deletedAt)
+        .filter((tx) => !tx.deletedAt && !tx.isNote)
         .toArray(),
     [viewMonthKey],
   )
@@ -158,6 +158,12 @@ export function useCalendar() {
     [viewYear, viewMonth, today],
   )
 
+  const goToToday = () => {
+    setViewYear(todayYear)
+    setViewMonth(todayMonth)
+    setSelectedDay(today)
+  }
+
   return {
     today,
     viewYear,
@@ -169,6 +175,7 @@ export function useCalendar() {
     setSelectedDay,
     goToPrevMonth,
     goToNextMonth,
+    goToToday,
     dailyTotals,
     maxDailyAmount,
     selectedDayTxs,

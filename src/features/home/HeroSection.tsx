@@ -35,14 +35,19 @@ export const HeroSection = React.memo(({
   const hasTrend = lastMonthSpent > 0
   const diff = monthSpent - lastMonthSpent
   const isIncrease = diff > 0
+  const trendPct = hasTrend ? Math.abs(Math.round((diff / lastMonthSpent) * 100)) : 0
 
   return (
     <div className="px-4 z-10 relative">
       <div
-        className="rounded-[28px] relative overflow-hidden"
+        className={`rounded-[28px] relative overflow-hidden ${
+          isOver ? 'animate-[pulse-border_2s_ease-in-out_infinite]' : ''
+        }`}
         style={{
           background: `linear-gradient(145deg, ${accent}F0 0%, ${accent}CC 100%)`,
-          boxShadow: `0 16px 48px ${accent}40, 0 4px 12px ${accent}25`,
+          boxShadow: isOver
+            ? `0 16px 48px rgba(214,62,62,0.35), 0 4px 12px rgba(214,62,62,0.2), 0 0 0 2px rgba(214,62,62,0.5)`
+            : `0 16px 48px ${accent}40, 0 4px 12px ${accent}25`,
         }}
       >
         {/* Decorative gloss blobs */}
@@ -60,12 +65,15 @@ export const HeroSection = React.memo(({
               <div
                 className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
                 style={{
-                  background: isIncrease ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.20)',
+                  background: isIncrease ? 'rgba(220,38,38,0.25)' : 'rgba(34,197,94,0.25)',
                   color: 'white',
                 }}
               >
-                {isIncrease ? '↑' : '↓'}
+                <span>{isIncrease ? '↑' : '↓'}</span>
                 <span>{formatShort(Math.abs(diff))}đ</span>
+                {trendPct > 0 && (
+                  <span className="opacity-80">({trendPct}%)</span>
+                )}
               </div>
             )}
           </div>

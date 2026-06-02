@@ -1,50 +1,84 @@
-import { formatShort } from '@/lib/utils'
+import { formatShort, formatVND } from '@/lib/utils'
 import type { MonthStats } from '@/hooks/useCalendar'
-import { Wallet, Sparkles, TrendingUp } from 'lucide-react'
+import { Wallet, Flame, TrendingUp } from 'lucide-react'
+import { usePersonalization } from '@/hooks/usePersonalization'
 
 interface MonthSummaryProps {
   stats: MonthStats
 }
 
 export function MonthSummary({ stats }: MonthSummaryProps) {
+  const { settings } = usePersonalization()
+  const accent = settings.accentColor || '#E8A020'
   const { total, avgPerDay, maxDay, maxDayAmount } = stats
 
-  const maxDayLabel = maxDay ? `${maxDay.slice(8)}/${maxDay.slice(5, 7)}` : '—'
+  const maxDayLabel = maxDay
+    ? `${maxDay.slice(8)}/${maxDay.slice(5, 7)}`
+    : '—'
+
+  const cards = [
+    {
+      icon: <Wallet size={15} />,
+      label: 'Tổng chi',
+      value: formatShort(total),
+      sub: total > 0 ? `${formatVND(total)}đ` : '—',
+      color: accent,
+      bg: accent + '12',
+    },
+    {
+      icon: <Flame size={15} />,
+      label: `Cao nhất`,
+      value: maxDayAmount > 0 ? formatShort(maxDayAmount) : '—',
+      sub: maxDayAmount > 0 ? `Ngày ${maxDayLabel}` : 'Chưa có',
+      color: '#D63E3E',
+      bg: '#D63E3E12',
+    },
+    {
+      icon: <TrendingUp size={15} />,
+      label: 'Mỗi ngày TB',
+      value: avgPerDay > 0 ? formatShort(Math.round(avgPerDay)) : '—',
+      sub: avgPerDay > 0 ? 'có chi tiêu' : 'Chưa có',
+      color: '#22C55E',
+      bg: '#22C55E12',
+    },
+  ]
 
   return (
-    <div className="px-4 grid grid-cols-3 gap-3">
-      {/* Total month */}
-      <div className="bg-white rounded-[24px] p-3.5 border border-border/60 shadow-sm flex flex-col relative overflow-hidden group">
-        <div className="size-7 rounded-full bg-accent/10 flex items-center justify-center text-accent mb-2.5">
-           <Wallet size={14} />
-        </div>
-        <p className="text-[9px] font-black text-text-hint uppercase tracking-widest leading-none mb-1">Tổng chi</p>
-        <p className="font-num text-[15px] font-black text-text tracking-tighter leading-none">
-          {formatShort(total)}<span className="text-[10px] font-medium opacity-60 ml-0.5">đ</span>
-        </p>
-      </div>
-      
-      {/* Highest day */}
-      <div className="bg-white rounded-[24px] p-3.5 border border-border/60 shadow-sm flex flex-col relative overflow-hidden group">
-        <div className="size-7 rounded-full bg-danger/10 flex items-center justify-center text-danger mb-2.5">
-           <TrendingUp size={14} />
-        </div>
-        <p className="text-[9px] font-black text-text-hint uppercase tracking-widest leading-none mb-1">Tối đa ({maxDayLabel})</p>
-        <p className="font-num text-[15px] font-black text-danger tracking-tighter leading-none">
-          {formatShort(maxDayAmount)}<span className="text-[10px] font-medium opacity-60 ml-0.5">đ</span>
-        </p>
-      </div>
+    <div className="px-4 grid grid-cols-3 gap-2.5">
+      {cards.map((c) => (
+        <div
+          key={c.label}
+          className="rounded-[20px] p-3.5 border border-border/50 flex flex-col gap-2 bg-white"
+          style={{ boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}
+        >
+          {/* Icon */}
+          <div
+            className="size-7 rounded-full flex items-center justify-center"
+            style={{ background: c.bg, color: c.color }}
+          >
+            {c.icon}
+          </div>
 
-      {/* Avg daily */}
-      <div className="bg-white rounded-[24px] p-3.5 border border-border/60 shadow-sm flex flex-col relative overflow-hidden group">
-        <div className="size-7 rounded-full bg-success/10 flex items-center justify-center text-success mb-2.5">
-           <Sparkles size={14} />
+          {/* Label */}
+          <p className="text-[9px] font-black text-text-hint uppercase tracking-widest leading-none">
+            {c.label}
+          </p>
+
+          {/* Value */}
+          <div>
+            <p
+              className="font-num text-[16px] font-black tracking-tighter leading-none"
+              style={{ color: c.color }}
+            >
+              {c.value}
+              {c.value !== '—' && (
+                <span className="text-[10px] font-medium opacity-60 ml-0.5">đ</span>
+              )}
+            </p>
+            <p className="text-[9px] text-text-hint mt-0.5 font-medium truncate">{c.sub}</p>
+          </div>
         </div>
-        <p className="text-[9px] font-black text-text-hint uppercase tracking-widest leading-none mb-1">Trung bình</p>
-        <p className="font-num text-[15px] font-black text-success tracking-tighter leading-none">
-          {formatShort(Math.round(avgPerDay))}<span className="text-[10px] font-medium opacity-60 ml-0.5">đ</span>
-        </p>
-      </div>
+      ))}
     </div>
   )
 }

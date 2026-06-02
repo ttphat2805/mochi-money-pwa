@@ -1,28 +1,52 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, ChevronRight, CalendarPlus, Coffee } from 'lucide-react'
 import { formatVND } from '@/lib/utils'
 import { TransactionDetailSheet } from '@/features/transactions/TransactionDetailSheet'
 import type { BudgetCategory, Transaction } from '@/types'
-
+import { motion } from 'framer-motion'
+import { usePersonalization } from '@/hooks/usePersonalization'
 
 interface TxWithCategory extends Transaction {
   category: BudgetCategory | undefined
 }
 
 interface DayDetailPanelProps {
-  selectedDay: string | null
+  selectedDay: string
   transactions: TxWithCategory[]
   today: string
   onAddTransaction: () => void
 }
 
-const WEEKDAYS_SHORT = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
+const WEEKDAYS = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
 
-function getDayLabel(dateStr: string): string {
+function getDayLabel(dateStr: string, today: string): { title: string; sub: string } {
   const [year, month, day] = dateStr.split('-').map(Number)
   const date = new Date(year, month - 1, day)
   const dow = date.getDay()
-  return `${WEEKDAYS_SHORT[dow]}, ngày ${day}`
+  const isToday = dateStr === today
+  const isTomorrow = (() => {
+    const d = new Date(today)
+    d.setDate(d.getDate() + 1)
+    return d.toISOString().slice(0, 10) === dateStr
+  })()
+  const isYesterday = (() => {
+    const d = new Date(today)
+    d.setDate(d.getDate() - 1)
+    return d.toISOString().slice(0, 10) === dateStr
+  })()
+
+  const dayName = isToday
+    ? 'Hôm nay'
+    : isYesterday
+    ? 'Hôm qua'
+    : isTomorrow
+    ? 'Ngày mai'
+    : WEEKDAYS[dow]
+
+  return {
+    title: dayName,
+    sub: `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`,
+  }
 }
 
 export function DayDetailPanel({
@@ -31,99 +55,147 @@ export function DayDetailPanel({
   today,
   onAddTransaction,
 }: DayDetailPanelProps) {
-  const total = transactions.reduce((s, tx) => s + tx.amount, 0)
-  const isPastOrToday = !!selectedDay && selectedDay <= today
+  const { settings } = usePersonalization()
+  const accent = settings.accentColor || '#E8A020'
+  const total = transactions.reduce((s, tx) => s + (tx.isNote ? 0 : tx.amount), 0)
+  const isFuture = selectedDay > today
   const [selectedTx, setSelectedTx] = useState<TxWithCategory | null>(null)
-
-  if (!selectedDay) return null
+  const { title, sub } = getDayLabel(selectedDay, today)
 
   return (
     <>
-      <div className="px-4 mt-2">
-        <div className="bg-white rounded-[28px] border border-border/60 shadow-premium overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-border/50 bg-surface/30">
-            <div>
-              <p className="text-[10px] font-black text-text-hint uppercase tracking-widest mb-0.5">Chi tiết ngày</p>
-              <h3 className="text-[15px] font-black text-text leading-tight">{getDayLabel(selectedDay)}</h3>
-            </div>
-            {total > 0 && (
-              <div className="text-right">
-                <p className="text-[10px] font-black text-text-hint uppercase tracking-widest mb-0.5">Tổng cộng</p>
-                <p className="font-num text-[16px] font-black text-accent leading-tight">−{formatVND(total)}đ</p>
-              </div>
-            )}
+      <div
+        className="rounded-[24px] overflow-hidden border border-border/60"
+        style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}
+      >
+        {/* ── Header ── */}
+        <div
+          className="px-5 py-4 flex items-center justify-between"
+          style={{
+            background: `linear-gradient(135deg, ${accent}12 0%, ${accent}06 100%)`,
+            borderBottom: '1px solid rgba(0,0,0,0.05)',
+          }}
+        >
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-widest text-text-hint mb-0.5">{sub}</p>
+            <h3 className="text-[18px] font-black text-text leading-tight">{title}</h3>
           </div>
 
-          {/* Transaction list */}
-          <div className="max-h-[320px] overflow-y-auto scrollbar-hide">
-            {transactions.length === 0 ? (
-              <div className="px-6 py-8 text-center flex flex-col items-center gap-3">
-                <div className="size-12 rounded-full bg-surface flex items-center justify-center text-xl">☕️</div>
-                <p className="text-text-muted text-[13px] font-medium italic opacity-80">
-                  Không có chi tiêu cho ngày này
+          <div className="flex items-center gap-2">
+            {total > 0 && (
+              <div className="text-right">
+                <p className="text-[10px] font-bold text-text-hint uppercase tracking-wide mb-0.5">Tổng</p>
+                <p
+                  className="font-num text-[17px] font-black leading-tight"
+                  style={{ color: accent }}
+                >
+                  −{formatVND(total)}đ
                 </p>
-                {isPastOrToday && (
-                  <button
-                    type="button"
-                    onClick={onAddTransaction}
-                    className="mt-1 h-9 px-4 rounded-full bg-accent text-white text-[12px] font-bold shadow-sm active:scale-95 transition-transform"
-                  >
-                    Thêm ngay
-                  </button>
-                )}
               </div>
-            ) : (
-              <div className="flex flex-col">
-                {transactions.map((tx) => (
-                  <button
+            )}
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.88 }}
+              onClick={onAddTransaction}
+              className="size-10 rounded-full flex items-center justify-center shadow-sm text-white"
+              style={{ background: accent }}
+            >
+              <Plus size={18} strokeWidth={2.5} />
+            </motion.button>
+          </div>
+        </div>
+
+        {/* ── Body ── */}
+        <div className="bg-white">
+          {transactions.length === 0 ? (
+            /* Empty state */
+            <div className="flex flex-col items-center justify-center py-9 px-5 text-center gap-3">
+              {isFuture ? (
+                <div
+                  className="size-14 rounded-2xl flex items-center justify-center mb-1"
+                  style={{ background: `${accent}15` }}
+                >
+                  <CalendarPlus size={26} style={{ color: accent }} strokeWidth={1.5} />
+                </div>
+              ) : (
+                <div className="size-14 rounded-2xl flex items-center justify-center mb-1 bg-amber-50">
+                  <Coffee size={26} className="text-amber-400" strokeWidth={1.5} />
+                </div>
+              )}
+              <p className="text-text-muted text-[13px] font-medium leading-snug">
+                {isFuture
+                  ? 'Chưa có giao dịch — lên kế hoạch trước nhé!'
+                  : 'Không có chi tiêu ngày này'}
+              </p>
+            </div>
+          ) : (
+            /* Transaction list */
+            <div>
+              {transactions.map((tx, idx) => {
+                const timeLabel = tx.createdAt
+                  ? new Date(tx.createdAt).toLocaleTimeString('vi-VN', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false,
+                    })
+                  : ''
+                const catColor = tx.category?.color ?? '#88887A'
+
+                return (
+                  <motion.button
                     key={tx.id}
                     type="button"
+                    whileTap={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
                     onClick={() => setSelectedTx(tx)}
-                    className="flex items-center gap-4 px-5 py-4 w-full text-left active:bg-surface/50 transition-colors border-b border-border/40 last:border-0"
+                    className="flex items-center gap-3.5 px-5 py-3.5 w-full text-left transition-colors"
+                    style={{
+                      borderBottom: idx < transactions.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none',
+                    }}
                   >
+                    {/* Category icon */}
                     <div
                       className="shrink-0 flex items-center justify-center rounded-[14px] text-[18px] leading-none"
                       style={{
                         width: 42,
                         height: 42,
-                        background: (tx.category?.color ?? '#88887A') + '15',
+                        background: catColor + '18',
                       }}
                     >
                       {tx.category?.icon ?? '📦'}
                     </div>
 
+                    {/* Name + note/time */}
                     <div className="flex-1 min-w-0">
-                      <p className="truncate text-[14px] font-bold text-text leading-tight mb-0.5">
-                        {tx.category?.name ?? 'Không rõ'}
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <p className="truncate text-[14px] font-bold text-text leading-tight">
+                          {tx.category?.name ?? 'Không rõ'}
+                        </p>
+                        {tx.isNote && (
+                          <span className="shrink-0 text-[9px] font-black text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-100 leading-none">
+                            GHI CHÚ
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-text-hint text-[11px] truncate">
+                        {tx.note ? `${tx.note} · ${timeLabel}` : timeLabel}
                       </p>
-                      {tx.note && (
-                        <p className="text-text-hint text-[11px] truncate">{tx.note}</p>
-                      )}
                     </div>
 
-                    <div className="shrink-0 text-right">
-                       <p className="font-num text-[14px] font-black text-text leading-none mb-0.5">
-                         −{formatVND(tx.amount)}đ
-                       </p>
-                       <p className="text-[10px] text-text-hint font-medium uppercase">đã ghi</p>
+                    {/* Amount + chevron */}
+                    <div className="shrink-0 flex items-center gap-1">
+                      <p
+                        className="font-num text-[14px] font-bold leading-none"
+                        style={{ color: tx.isNote ? 'var(--color-text-muted)' : 'var(--color-text)' }}
+                      >
+                        −{formatVND(tx.amount)}đ
+                      </p>
+                      <ChevronRight size={13} className="text-text-hint/50" />
                     </div>
-                  </button>
-                ))}
-                
-                {isPastOrToday && (
-                  <button
-                    type="button"
-                    onClick={onAddTransaction}
-                    className="flex items-center justify-center gap-2 py-4 w-full text-accent text-[13px] font-bold active:bg-surface/50 transition-colors"
-                  >
-                    <Plus size={14} strokeWidth={3} />
-                    <span>Thêm chi tiêu khác</span>
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+                  </motion.button>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
 

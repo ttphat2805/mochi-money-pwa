@@ -1,7 +1,8 @@
 import { Home, Wallet, CalendarDays, BarChart2, Plus, type LucideIcon } from "lucide-react";
 import { useAppStore } from "@/stores/appStore";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { triggerHaptic } from "@/lib/haptic";
+import { getTodayString } from "@/lib/utils";
 
 export type TabKey = "home" | "budget" | "calendar" | "overview";
 
@@ -51,7 +52,23 @@ function NavItem({ icon: Icon, label, active, onClick }: NavItemProps) {
 }
 
 export function BottomNav({ active, onTab }: BottomNavProps) {
-  const { openQuickAdd } = useAppStore();
+  const { openQuickAdd, calendarSelectedDay } = useAppStore();
+
+  // When on calendar tab, pre-fill the selected date (or today if none)
+  const handleFabClick = () => {
+    triggerHaptic("medium");
+    if (active === "calendar") {
+      openQuickAdd(calendarSelectedDay ?? getTodayString());
+    } else {
+      openQuickAdd();
+    }
+  };
+
+  const today = getTodayString();
+  const showDateBadge =
+    active === "calendar" &&
+    calendarSelectedDay !== null &&
+    calendarSelectedDay !== today;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none pb-[calc(0.5rem+env(safe-area-inset-bottom))] px-4">
@@ -63,16 +80,30 @@ export function BottomNav({ active, onTab }: BottomNavProps) {
         <div className="absolute left-1/2 -top-5 -translate-x-1/2 z-20">
           <motion.button
             type="button"
-            onClick={() => {
-              triggerHaptic("medium");
-              openQuickAdd();
-            }}
+            onClick={handleFabClick}
             whileTap={{ scale: 0.92 }}
             aria-label="Thêm chi tiêu"
             className="flex size-14 items-center justify-center bg-accent shadow-lg shadow-accent/40 rounded-full text-white"
           >
             <Plus size={28} strokeWidth={3} />
           </motion.button>
+          {/* Date badge: shows selected calendar day when it's not today */}
+          <AnimatePresence>
+            {showDateBadge && (
+              <motion.div
+                key={calendarSelectedDay}
+                initial={{ opacity: 0, y: 4, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 4, scale: 0.8 }}
+                transition={{ duration: 0.2 }}
+                className="absolute -top-2.5 -right-2 bg-text text-white text-[9px] font-black px-1.5 py-0.5 rounded-full leading-tight pointer-events-none whitespace-nowrap"
+              >
+                {calendarSelectedDay
+                  ? calendarSelectedDay.slice(8) + '/' + calendarSelectedDay.slice(5, 7)
+                  : ''}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* ── Background Layer with Notch ── */}

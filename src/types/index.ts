@@ -109,6 +109,13 @@ export interface Transaction {
   createdAt: string
   /** Soft delete marker — non-null means deleted. Hard delete after 5s undo window. */
   deletedAt?: string | null
+  /**
+   * When true, this transaction is saved to history but excluded from ALL
+   * spending calculations: daily/monthly totals, budget progress, calendar
+   * heatmap, and dashboard stats. Useful for one-off big purchases like
+   * course fees, license fees, etc. that you want to track but not count.
+   */
+  isNote?: boolean
 }
 
 /* ───────────────────────────────────────────

@@ -64,7 +64,7 @@ export function useDashboard() {
     () =>
       db.transactions
         .where('date').between(currentMonthKey + '-01', currentMonthKey + '-32', true, false)
-        .filter((tx) => !tx.deletedAt)
+        .filter((tx) => !tx.deletedAt && !tx.isNote)
         .toArray(),
     [currentMonthKey],
   ) ?? EMPTY_TXS
@@ -112,7 +112,7 @@ export function useDashboard() {
         sixMonthKeys.map(async (monthKey) => {
           const txs = await db.transactions
             .where('date').between(monthKey + '-01', monthKey + '-32', true, false)
-            .filter((tx) => !tx.deletedAt).toArray()
+            .filter((tx) => !tx.deletedAt && !tx.isNote).toArray()
           return { monthLabel: getMonthLabel(monthKey), monthKey, total: txs.reduce((s, t) => s + t.amount, 0) }
         }),
       )
@@ -130,7 +130,7 @@ export function useDashboard() {
         last4MonthKeys.map(async (monthKey) => {
           const txs = await db.transactions
             .where('date').between(monthKey + '-01', monthKey + '-32', true, false)
-            .filter((tx) => !tx.deletedAt).toArray()
+            .filter((tx) => !tx.deletedAt && !tx.isNote).toArray()
           const amount = txs.reduce((s, t) => s + t.amount, 0)
           return {
             monthLabel: getMonthLabel(monthKey),
@@ -155,7 +155,7 @@ export function useDashboard() {
         last7DaysKeys.map(async (dateStr) => {
           const txs = await db.transactions
             .where('date').equals(dateStr)
-            .filter((tx) => !tx.deletedAt).toArray()
+            .filter((tx) => !tx.deletedAt && !tx.isNote).toArray()
           const amount = txs.reduce((s, t) => s + t.amount, 0)
           return {
             dayLabel: getShortWeekday(dateStr),

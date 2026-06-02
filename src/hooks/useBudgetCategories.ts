@@ -33,7 +33,7 @@ export function useBudgetCategories() {
       }
       const txs = await db.transactions
         .where('date').startsWith(monthKey)
-        .filter((tx) => !tx.deletedAt && tx.categoryId === cat.id)
+        .filter((tx) => !tx.deletedAt && !tx.isNote && tx.categoryId === cat.id)
         .toArray()
       const spent = txs.reduce((s, t) => s + t.amount, 0)
       results.push({
