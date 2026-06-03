@@ -269,8 +269,8 @@ export function useQuickAdd(): UseQuickAddReturn {
   const save = useCallback(async (): Promise<SaveResult> => {
     if (!canSave || !selectedCategoryId || !selectedCategory) return EMPTY_RESULT
 
-    // Check budget limit
-    if (selectedCategory.limitPerMonth !== null) {
+    // Skip budget check for note-only transactions (they don't affect spending)
+    if (!isNote && selectedCategory.limitPerMonth !== null) {
       const month = getCurrentMonthString()
       const currentSpent = await getSpentByCategory(selectedCategoryId, month)
 
@@ -291,7 +291,7 @@ export function useQuickAdd(): UseQuickAddReturn {
     }
 
     return performSave()
-  }, [canSave, selectedCategoryId, selectedCategory, amount, getSpentByCategory, performSave])
+  }, [canSave, selectedCategoryId, selectedCategory, isNote, amount, getSpentByCategory, performSave])
 
   const confirmOverBudget = useCallback(async (): Promise<SaveResult> => {
     setBudgetWarning(null)

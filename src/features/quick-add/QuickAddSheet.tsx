@@ -126,7 +126,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
           className={cn(
             "bg-[#F7F5F0] rounded-t-[32px] p-0 shadow-2xl border-none flex flex-col",
           )}
-          style={{ height: '82dvh', maxHeight: '92dvh' }}
+          style={{ height: '92dvh', maxHeight: '96dvh' }}
         >
           <div className="flex flex-col h-full">
             {/* ── HEADER: close + amount + date ── */}

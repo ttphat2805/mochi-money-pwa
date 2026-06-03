@@ -35,7 +35,7 @@ function groupByDate(transactions: HomeData['recentTransactions']): GroupedDay[]
     .map(([date, items]) => ({
       date,
       label: getVietnameseDateLabel(date),
-      total: items.reduce((s, t) => s + t.amount, 0),
+      total: items.reduce((s, t) => s + (t.isNote ? 0 : t.amount), 0),
       items,
     }))
 }
@@ -237,7 +237,7 @@ const TransactionRow = React.memo(({
 
         {/* Amount */}
         <div className="shrink-0 flex items-baseline gap-0.5">
-          <span className="text-text-hint text-[12px] font-medium">−</span>
+          {!tx.isNote && <span className="text-text-hint text-[12px] font-medium">−</span>}
           <span className={`font-num text-[14px] font-bold tracking-tight ${
             tx.isNote ? 'text-text-muted' : 'text-text'
           }`}>
