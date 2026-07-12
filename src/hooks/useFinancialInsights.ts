@@ -14,7 +14,6 @@ export interface FinancialInsight {
   type: 'positive' | 'negative' | 'neutral'
   title: string
   message: string
-  icon: string
   diff?: number
   diffPct?: number
   impactCategory?: string
@@ -69,7 +68,6 @@ export function useFinancialInsights() {
           type: 'positive',
           title: 'Chi tiêu giảm',
           message: `Thật tuyệt! Bạn đã chi tiêu ít hơn tháng trước ${Math.abs(diffPct)}%.`,
-          icon: '💰',
           diff,
           diffPct
         })
@@ -78,7 +76,6 @@ export function useFinancialInsights() {
           type: 'negative',
           title: 'Chi tiêu tăng cao',
           message: `Tháng này bạn đang chi tiêu nhiều hơn ${diffPct}% so với tháng trước.`,
-          icon: '⚠️',
           diff,
           diffPct
         })
@@ -104,7 +101,6 @@ export function useFinancialInsights() {
          type: 'negative',
          title: 'Cần chú ý',
          message: `Chi tiêu cho "${biggestIncrease.name}" đã tăng ${biggestIncrease.pct}% so với tháng trước.`,
-         icon: '🔍',
          impactCategory: biggestIncrease.name
        })
     }
@@ -115,7 +111,6 @@ export function useFinancialInsights() {
         type: 'neutral',
         title: 'Bắt đầu hành trình',
         message: 'Tôi sẽ phân tích thói quen chi tiêu của bạn sau khi bạn có dữ liệu từ 2 tháng trở lên.',
-        icon: '🚀'
       })
     }
 

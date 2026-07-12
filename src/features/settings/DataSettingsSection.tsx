@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { Download, Trash2, Upload } from 'lucide-react'
 import { SettingsRow } from './SettingsRow'
 import { Divider } from './SettingsHelpers'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -48,9 +49,9 @@ export function DataSettingsSection() {
         onChange={handleFileSelect}
       />
 
-      <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">
+      <div className="bg-card mx-4 rounded-xl overflow-hidden border border-border">
         <SettingsRow
-          icon="📤"
+          icon={<Upload size={18} className="text-text-muted" />}
           label="Xuất dữ liệu (Export)"
           sublabel="Chia sẻ hoặc lưu file backup .json"
           onTap={() => void handleExport()}
@@ -58,7 +59,7 @@ export function DataSettingsSection() {
         />
         <Divider />
         <SettingsRow
-          icon="📥"
+          icon={<Download size={18} className="text-text-muted" />}
           label="Nhập dữ liệu (Import)"
           sublabel="Khôi phục từ file backup"
           onTap={handleImportClick}
@@ -66,7 +67,7 @@ export function DataSettingsSection() {
         />
         <Divider />
         <SettingsRow
-          icon="🗑"
+          icon={<Trash2 size={18} className="text-danger" />}
           label="Xoá toàn bộ dữ liệu"
           sublabel="Đặt lại về danh mục mặc định"
           onTap={() => setClearConfirmOpen(true)}

@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
+import { normalizeCategory } from '@/lib/categoryIconMigration'
 import type {
   Transaction,
   BudgetCategory,
@@ -59,6 +60,16 @@ db.version(4).stores({
   settings: '++id',
   extraIncomes: '++id, monthKey',
 })
+
+// v5: dark banking re-theme — category icons migrate from emoji to SVG icon
+// names, stored colors brighten for the dark palette. Schema is inherited
+// from v4 unchanged.
+db.version(5).upgrade((tx) =>
+  tx
+    .table('categories')
+    .toCollection()
+    .modify((cat: BudgetCategory) => normalizeCategory(cat)),
+)
 
 export { db }
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { House, Plus } from 'lucide-react'
 import { BackButton } from '@/components/BackButton'
 import { formatVND } from '@/lib/utils'
 import { useFixedExpenses } from '@/hooks/useFixedExpenses'
@@ -77,7 +77,7 @@ export function FixedExpenseListPage({ onBack }: FixedExpenseListPageProps) {
         {/* Monthly total strip */}
         <div className="bg-surface px-4 py-3 flex items-center justify-between">
           <span className="text-text-muted text-[12px]">Tổng cố định tháng này</span>
-          <span className="font-num text-accent text-[14px] font-semibold">
+          <span className="font-num text-accent-dark text-[14px] font-semibold">
             {formatVND(totalPerMonth)}đ
           </span>
         </div>
@@ -86,12 +86,12 @@ export function FixedExpenseListPage({ onBack }: FixedExpenseListPageProps) {
         <div className="flex-1 overflow-y-auto">
           {sorted.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-20">
-              <p className="text-3xl">🏠</p>
+              <House size={32} className="text-text-hint" />
               <p className="text-text-muted text-[13px]">Chưa có chi phí cố định</p>
               <p className="text-text-hint text-[11px]">Nhấn + để thêm</p>
             </div>
           ) : (
-            <div className="mt-2 mx-4 rounded-xl overflow-hidden border border-border bg-white">
+            <div className="mt-2 mx-4 rounded-xl overflow-hidden border border-border bg-card">
               {sorted.map((expense, idx) => (
                 <div key={expense.id}>
                   {idx > 0 && <div className="border-border mx-4 border-t" />}

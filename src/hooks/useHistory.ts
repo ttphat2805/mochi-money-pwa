@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
-import { getCurrentMonthString, getMonthLabel } from '@/lib/utils'
+import { getCurrentMonthString, getMonthLabel, sumSpent } from '@/lib/utils'
 import { useCategoryStore } from '@/stores/categoryStore'
 import type { BudgetCategory, Transaction } from '@/types'
 
@@ -39,42 +39,40 @@ export function useHistory() {
   // All available month keys for the month picker
   const monthKeys = useMemo(() => getLast12Months(), [])
 
-  // Live query: transactions for selected month, optional category filter
-  const filteredTransactions = useLiveQuery(async () => {
+  // Single live query per month. Category filtering happens client-side
+  // below, so tapping a filter chip never re-queries the DB (no skeleton
+  // flash, instant response).
+  const monthTransactions = useLiveQuery(async () => {
     const txs = await db.transactions
       .where('date')
       .startsWith(selectedMonth)
       .filter((tx) => !tx.deletedAt)
       .toArray()
 
-    const filtered = selectedCategoryId
-      ? txs.filter((tx) => tx.categoryId === selectedCategoryId)
-      : txs
+    return txs.sort(
+      (a, b) =>
+        b.date.localeCompare(a.date) ||
+        b.createdAt.localeCompare(a.createdAt),
+    )
+  }, [selectedMonth])
 
-    return filtered
-      .sort(
-        (a, b) =>
-          b.date.localeCompare(a.date) ||
-          b.createdAt.localeCompare(a.createdAt),
-      )
-      .map((tx) => ({ ...tx, category: catMap.get(tx.categoryId) }))
-  }, [selectedMonth, selectedCategoryId, catMap])
-
-  // Month total (unfiltered, for header display)
-  const monthTotal = useLiveQuery(async () => {
-    const txs = await db.transactions
-      .where('date')
-      .startsWith(selectedMonth)
-      .filter((tx) => !tx.deletedAt)
-      .toArray()
-    return txs.reduce((s, t) => s + t.amount, 0)
-  }, [selectedMonth]) ?? 0
-
-  // Filtered total (for the category summary header)
-  const filteredTotal = useMemo(
-    () => (filteredTransactions ?? []).reduce((s, t) => s + t.amount, 0),
-    [filteredTransactions],
+  const monthWithCategory = useMemo<TransactionWithCategory[]>(
+    () => (monthTransactions ?? []).map((tx) => ({ ...tx, category: catMap.get(tx.categoryId) })),
+    [monthTransactions, catMap],
   )
+
+  const filteredTransactions = useMemo(
+    () =>
+      selectedCategoryId != null
+        ? monthWithCategory.filter((tx) => tx.categoryId === selectedCategoryId)
+        : monthWithCategory,
+    [monthWithCategory, selectedCategoryId],
+  )
+
+  // Money totals exclude notes (isNote), matching budget calculations
+  const monthTotal = useMemo(() => sumSpent(monthWithCategory), [monthWithCategory])
+
+  const filteredTotal = useMemo(() => sumSpent(filteredTransactions), [filteredTransactions])
 
   // The selected category object
   const selectedCategory = useMemo(
@@ -82,17 +80,17 @@ export function useHistory() {
     [selectedCategoryId, catMap],
   )
 
-  // Categories that actually have transactions this month (for filter chips)
-  const activeCategories = useLiveQuery(async () => {
-    const txs = await db.transactions
-      .where('date')
-      .startsWith(selectedMonth)
-      .filter((tx) => !tx.deletedAt)
-      .toArray()
-
-    const catIds = new Set(txs.map((t) => t.categoryId))
-    return categories.filter((c) => c.id != null && catIds.has(c.id!))
-  }, [selectedMonth, categories]) ?? []
+  // Categories that actually have transactions this month (for filter chips).
+  // The selected category stays in the list even with zero transactions, so
+  // the active filter is always visible and dismissable when browsing months.
+  const activeCategories = useMemo(() => {
+    const catIds = new Set((monthTransactions ?? []).map((t) => t.categoryId))
+    const active = categories.filter((c) => c.id != null && catIds.has(c.id!))
+    if (selectedCategory && !active.some((c) => c.id === selectedCategory.id)) {
+      return [selectedCategory, ...active]
+    }
+    return active
+  }, [monthTransactions, categories, selectedCategory])
 
   // Month label for display
   const monthLabel = useMemo(() => {
@@ -111,9 +109,9 @@ export function useHistory() {
     selectedCategoryId,
     setSelectedCategoryId,
     selectedCategory,
-    filteredTransactions: filteredTransactions ?? [],
+    filteredTransactions,
     filteredTotal,
     catMap,
-    isLoading: filteredTransactions === undefined,
+    isLoading: monthTransactions === undefined,
   }
 }

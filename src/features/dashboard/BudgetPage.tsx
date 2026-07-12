@@ -14,7 +14,7 @@ export function BudgetPage({ onSettings }: BudgetPageProps) {
         <button
           type="button"
           onClick={onSettings}
-          className="!min-h-7 flex size-9 items-center justify-center rounded-full bg-white border border-border shadow-sm active:scale-95 transition-transform"
+          className="!min-h-7 flex size-9 items-center justify-center rounded-full bg-card border border-border shadow-sm active:scale-95 transition-transform"
           aria-label="Cài đặt"
         >
           <Settings className="size-4 text-text-muted" />

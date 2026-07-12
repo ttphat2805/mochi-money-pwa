@@ -3,9 +3,10 @@ import { Plus } from "lucide-react";
 import { db } from "@/lib/db";
 import { useCategoryStore } from "@/stores/categoryStore";
 import { CategoryFormSheet } from "@/features/settings/CategoryFormSheet";
-import type { BudgetCategory } from "@/types";
+import { CategoryIcon } from "@/lib/categoryIcons";
+import { CATEGORY_COLORS, type BudgetCategory } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn, tint } from "@/lib/utils";
 import { usePersonalization } from "@/hooks/usePersonalization";
 
 interface CategoryGridProps {
@@ -21,7 +22,7 @@ export function CategoryGrid({
 }: CategoryGridProps) {
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
   const { settings } = usePersonalization();
-  const accentColor = settings.accentColor || '#E8A020';
+  const accentColor = settings.accentColor;
 
   return (
     <div className="relative">
@@ -44,15 +45,18 @@ export function CategoryGrid({
                   "relative flex flex-col items-center justify-center gap-1 rounded-2xl border transition-all duration-200 text-center min-h-[84px] touch-none px-1 py-2",
                   isSelected
                     ? "border-transparent shadow-sm"
-                    : "bg-white/70 border-border/20"
+                    : "bg-card border-border"
                 )}
                 style={isSelected ? {
                   backgroundColor: category.color,
                 } : {}}
               >
-                <span className="text-[26px] leading-none shrink-0 mb-1">
-                  {category.icon}
-                </span>
+                <CategoryIcon
+                  icon={category.icon}
+                  size={22}
+                  color={isSelected ? "#FFFFFF" : category.color}
+                  className="shrink-0 mb-1"
+                />
 
                 <span className={cn(
                   "text-[10px] font-black leading-tight line-clamp-2",
@@ -69,11 +73,11 @@ export function CategoryGrid({
               type="button"
               whileTap={{ scale: 0.96 }}
               onClick={() => setAddCategoryOpen(true)}
-              className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-border/30 min-h-[84px] bg-white/40 touch-none"
+              className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-border2 min-h-[84px] bg-card/50 touch-none"
             >
               <div
                 className="size-6 rounded-full flex items-center justify-center text-white shrink-0"
-                style={{ backgroundColor: `${accentColor}20` }}
+                style={{ backgroundColor: tint(accentColor, 13) }}
               >
                 <Plus size={14} strokeWidth={3} style={{ color: accentColor }} />
               </div>
@@ -92,7 +96,7 @@ export function CategoryGrid({
           const id = await db.categories.add({
             ...data,
             sortOrder: count,
-            color: "#F5C043",
+            color: CATEGORY_COLORS[count % CATEGORY_COLORS.length],
           });
           await useCategoryStore.getState().loadCategories();
           onSelect(id as number);

@@ -141,7 +141,7 @@ export function TransactionDetailSheet({
           }}
           side="bottom"
           showCloseButton={true}
-          className="rounded-t-3xl bg-white p-0"
+          className="rounded-t-3xl bg-card p-0"
           style={{ maxHeight: '92dvh' }}
         >
           <SheetTitle className="sr-only">Chi tiết giao dịch</SheetTitle>
@@ -153,8 +153,9 @@ export function TransactionDetailSheet({
               <div className="flex items-center justify-center -mt-2 mb-2 gap-2">
                 <h2 className="text-[15px] font-semibold text-text">Chỉnh sửa giao dịch</h2>
                 {isNote && (
-                  <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
-                    📓 Ghi chú
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-400 bg-sky-400/10 px-2 py-0.5 rounded-full border border-sky-400/20">
+                    <BookOpen size={10} />
+                    Ghi chú
                   </span>
                 )}
               </div>
@@ -247,19 +248,19 @@ export function TransactionDetailSheet({
                   type="button"
                   onClick={() => setIsNote((v) => !v)}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
-                    isNote ? 'bg-indigo-50 border-indigo-200' : 'bg-surface border-transparent'
+                    isNote ? 'bg-sky-400/10 border-sky-400/25' : 'bg-surface border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <BookOpen size={15} className={isNote ? 'text-indigo-500' : 'text-text-muted'} />
+                    <BookOpen size={15} className={isNote ? 'text-sky-400' : 'text-text-muted'} />
                     <span className={`text-[13px] font-medium ${
-                      isNote ? 'text-indigo-600' : 'text-text-muted'
+                      isNote ? 'text-sky-400' : 'text-text-muted'
                     }`}>
                       {isNote ? 'Ghi chú — không tính vào chi tiêu' : 'Chi tiêu bình thường'}
                     </span>
                   </div>
                   <div className={`w-9 h-5 rounded-full relative transition-colors ${
-                    isNote ? 'bg-indigo-500' : 'bg-black/15'
+                    isNote ? 'bg-sky-500' : 'bg-white/15'
                   }`}>
                     <div className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-transform ${
                       isNote ? 'translate-x-4' : 'translate-x-0.5'
@@ -283,9 +284,9 @@ export function TransactionDetailSheet({
                         onClick={() => setPaymentMethod(selected ? undefined : m.value as PaymentMethod)}
                         className="h-9 px-4 rounded-full text-[12px] font-medium border transition-colors"
                         style={{
-                          background: selected ? 'var(--color-accent-bg)' : '#F2F0EC',
+                          background: selected ? 'var(--color-accent-bg)' : 'var(--color-surface2)',
                           borderColor: selected ? 'var(--color-accent)' : 'transparent',
-                          color: selected ? 'var(--color-accent-dark)' : '#88887A',
+                          color: selected ? 'var(--color-accent-dark)' : 'var(--color-text-muted)',
                         }}
                       >
                         {m.label}
@@ -310,7 +311,7 @@ export function TransactionDetailSheet({
                   type="button"
                   onClick={handleSave}
                   disabled={saving || amount === 0 || !categoryId}
-                  className="col-span-8 h-12 rounded-xl bg-text text-white text-[15px] font-semibold disabled:opacity-40 transition-all active:scale-[0.98] shadow-lg shadow-black/5 flex items-center justify-center gap-2"
+                  className="col-span-8 h-12 rounded-xl bg-accent text-white text-[15px] font-semibold disabled:opacity-40 transition-all active:scale-[0.98] shadow-lg shadow-black/20 flex items-center justify-center gap-2"
                 >
                   {saving ? (
                     <>

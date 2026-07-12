@@ -132,13 +132,15 @@ export function useHomeData(): HomeData {
     [lastMonthKey],
   ) ?? 0
 
+  // Wider window than the 8 rows shown by default, so the category filter
+  // on the Home recent list has data to work with without extra queries.
   const recentRaw = useLiveQuery(
     () =>
       db.transactions
         .orderBy('id')
         .reverse()
         .filter((tx) => !tx.deletedAt)
-        .limit(8)
+        .limit(50)
         .toArray(),
     [],
   ) ?? EMPTY_TXS

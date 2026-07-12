@@ -15,7 +15,7 @@ export function HourPicker({ value, onChange }: HourPickerProps) {
           onClick={() => onChange(h)}
           className={`snap-center shrink-0 flex items-center justify-center size-10 rounded-xl text-[14px] font-semibold transition-all ${
             value === h
-              ? 'bg-text text-white shadow-md scale-110 relative z-10'
+              ? 'bg-text text-bg shadow-md scale-110 relative z-10'
               : 'bg-surface text-text-muted hover:bg-surface2 active:scale-95'
           }`}
         >

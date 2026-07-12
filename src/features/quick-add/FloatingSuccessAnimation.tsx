@@ -22,7 +22,7 @@ export function FloatingSuccessAnimation({ isVisible, amount }: FloatingSuccessA
           animate={{ opacity: 1, y: -90, scale: 1 }}
           exit={{ opacity: 0, y: -130, scale: 0.9, filter: 'blur(4px)' }}
           transition={POP_SPRING}
-          className="pointer-events-none fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2.5 rounded-full bg-[#1A1A18] px-6 py-3.5 shadow-2xl backdrop-blur-xl border border-white/10"
+          className="pointer-events-none fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2.5 rounded-full bg-surface2 px-6 py-3.5 shadow-2xl backdrop-blur-xl border border-white/10"
         >
           <motion.div 
             initial={{ scale: 0, rotate: -45 }}
@@ -32,7 +32,7 @@ export function FloatingSuccessAnimation({ isVisible, amount }: FloatingSuccessA
           >
             ✓
           </motion.div>
-          <span className="text-white font-num font-black text-[18px] tracking-tight">
+          <span className="text-text font-num font-black text-[18px] tracking-tight">
              -{amount.toLocaleString('vi-VN')}đ
           </span>
         </motion.div>

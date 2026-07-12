@@ -1,5 +1,6 @@
 import { getTodayString } from '@/lib/utils'
 import { db } from '@/lib/db'
+import { normalizeCategory } from '@/lib/categoryIconMigration'
 import type {
   BudgetCategory,
   Transaction,
@@ -225,9 +226,11 @@ export async function restoreBackup(
         ])
       }
 
-      // bulkPut handles duplicates gracefully in merge mode
+      // bulkPut handles duplicates gracefully in merge mode.
+      // Old backups can carry emoji icons / light-theme colors — normalize
+      // at the write boundary, same as the Dexie v5 upgrade.
       await Promise.all([
-        db.categories.bulkPut(backup.data.categories),
+        db.categories.bulkPut(backup.data.categories.map((c) => normalizeCategory({ ...c }))),
         db.transactions.bulkPut(backup.data.transactions),
         db.recurringTemplates.bulkPut(backup.data.recurringTemplates),
         db.fixedExpenses.bulkPut(backup.data.fixedExpenses),

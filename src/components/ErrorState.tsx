@@ -1,3 +1,5 @@
+import { Frown } from 'lucide-react'
+
 interface ErrorStateProps {
   message?: string
   onRetry?: () => void
@@ -13,11 +15,11 @@ export function ErrorState({
       alignItems: 'center', justifyItems: 'center',
       padding: '48px 24px', textAlign: 'center',
     }}>
-      <span style={{ fontSize: 40, marginBottom: 16 }}>😵</span>
-      <p style={{ fontSize: 15, fontWeight: 500, color: '#1A1A18', marginBottom: 6 }}>
+      <Frown size={40} style={{ color: 'var(--color-text-hint)', marginBottom: 16 }} />
+      <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)', marginBottom: 6 }}>
         {message}
       </p>
-      <p style={{ fontSize: 13, color: '#88887A', marginBottom: 20 }}>
+      <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
         Thử lại hoặc khởi động lại app
       </p>
       {onRetry && (

@@ -5,6 +5,7 @@ import type { RecurringTemplate, BudgetCategory } from '@/types'
 import { Switch } from '@/components/ui/switch'
 import { motion, useMotionValue, animate, type PanInfo } from 'framer-motion'
 import { Trash } from 'lucide-react'
+import { CategoryIcon } from '@/lib/categoryIcons'
 import { triggerHaptic } from '@/lib/haptic'
 
 interface TemplateRowProps {
@@ -70,10 +71,15 @@ export function TemplateRow({ template, category, onEdit, onToggleActive, onDele
         onDragEnd={handleDragEnd}
         onClick={handleRowTap}
         whileTap={{ scale: Math.abs(x.get()) < 5 ? 0.98 : 1 }}
-        className="bg-white relative z-10 flex cursor-grab min-h-[56px] items-center gap-3 px-4 py-3 active:bg-surface active:cursor-grabbing w-full"
+        className="bg-card relative z-10 flex cursor-grab min-h-[56px] items-center gap-3 px-4 py-3 active:bg-surface2 active:cursor-grabbing w-full"
       >
-        {/* Category emoji */}
-        <span className="text-xl leading-none shrink-0">{category?.icon ?? '📦'}</span>
+        {/* Category icon */}
+        <CategoryIcon
+          icon={category?.icon}
+          size={20}
+          color={category?.color ?? 'var(--color-text-muted)'}
+          className="shrink-0"
+        />
 
         {/* Name + schedule + category */}
         <div className="min-w-0 flex-1">

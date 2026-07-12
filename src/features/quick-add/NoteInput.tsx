@@ -14,7 +14,7 @@ export function NoteInput({ value, onChange, onFocusChange }: NoteInputProps) {
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const { settings } = usePersonalization()
-  const accent = settings.accentColor || '#E8A020'
+  const accent = settings.accentColor
 
   const hasValue = value.length > 0
 
@@ -24,14 +24,14 @@ export function NoteInput({ value, onChange, onFocusChange }: NoteInputProps) {
       className={cn(
         "flex items-center gap-2 px-3 rounded-xl cursor-text transition-all duration-200",
         isFocused || hasValue
-          ? "bg-white border border-border/40"
-          : "bg-white/50 border border-dashed border-border/30"
+          ? "bg-card border border-border2"
+          : "bg-card/50 border border-dashed border-border"
       )}
     >
       <Pencil
         size={12}
         className="shrink-0 transition-colors duration-200"
-        style={{ color: isFocused ? accent : '#9CA3AF' }}
+        style={{ color: isFocused ? accent : 'var(--color-text-hint)' }}
       />
 
       <input
@@ -59,7 +59,7 @@ export function NoteInput({ value, onChange, onFocusChange }: NoteInputProps) {
         placeholder="Ghi chú (tùy chọn)"
         className="w-full bg-transparent text-[12px] font-medium outline-none text-text leading-none"
         style={{
-          '--placeholder-color': '#C0BDB5',
+          '--placeholder-color': 'var(--color-text-hint)',
         } as React.CSSProperties}
         maxLength={100}
       />

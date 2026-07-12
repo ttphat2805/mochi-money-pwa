@@ -87,7 +87,7 @@ export function useDashboard() {
       [...categoryTotals.entries()]
         .map(([catId, total]) => {
           const cat = catMap.get(catId)
-          return { name: cat?.name ?? '?', value: total, color: cat?.color ?? '#888', icon: cat?.icon ?? '📦', pct: monthTotal > 0 ? Math.round((total / monthTotal) * 100) : 0 }
+          return { name: cat?.name ?? '?', value: total, color: cat?.color ?? '#94A3B8', icon: cat?.icon ?? 'package', pct: monthTotal > 0 ? Math.round((total / monthTotal) * 100) : 0 }
         })
         .sort((a, b) => b.value - a.value),
     [categoryTotals, monthTotal, catMap],

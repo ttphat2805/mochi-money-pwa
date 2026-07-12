@@ -66,7 +66,7 @@ export function RecurringListPage({ onBack }: RecurringListPageProps) {
         <button
           type="button"
           onClick={handleAdd}
-          className="bg-text active:opacity-80 flex size-8 items-center justify-center rounded-full text-white transition-opacity"
+          className="bg-accent active:opacity-80 flex size-8 items-center justify-center rounded-full text-white transition-opacity"
           aria-label="Thêm khoản"
         >
           <Plus className="size-4" />
@@ -81,7 +81,7 @@ export function RecurringListPage({ onBack }: RecurringListPageProps) {
             <p className="text-text-muted text-[13px]">Nhấn + để thêm</p>
           </div>
         ) : (
-          <div className="bg-white mx-4 mt-2 overflow-hidden rounded-xl border border-border">
+          <div className="bg-card mx-4 mt-2 overflow-hidden rounded-xl border border-border">
             {templates.map((t, i) => (
               <div key={t.id}>
                 {i > 0 && <div className="border-border mx-4 border-t" />}

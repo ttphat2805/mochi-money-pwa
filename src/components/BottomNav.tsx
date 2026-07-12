@@ -74,7 +74,7 @@ export function BottomNav({ active, onTab }: BottomNavProps) {
     <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none pb-[calc(0.5rem+env(safe-area-inset-bottom))] px-4">
       {/* Container must be pointer-events-auto for clicks */}
       <div
-        className="relative mx-auto flex h-[64px] w-full max-w-md items-end pointer-events-auto border-t border-black/5"
+        className="relative mx-auto flex h-[64px] w-full max-w-md items-end pointer-events-auto border-t border-white/5"
       >
         {/* Floating Center FAB */}
         <div className="absolute left-1/2 -top-5 -translate-x-1/2 z-20">
@@ -96,7 +96,7 @@ export function BottomNav({ active, onTab }: BottomNavProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 4, scale: 0.8 }}
                 transition={{ duration: 0.2 }}
-                className="absolute -top-2.5 -right-2 bg-text text-white text-[9px] font-black px-1.5 py-0.5 rounded-full leading-tight pointer-events-none whitespace-nowrap"
+                className="absolute -top-2.5 -right-2 bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-full leading-tight pointer-events-none whitespace-nowrap"
               >
                 {calendarSelectedDay
                   ? calendarSelectedDay.slice(8) + '/' + calendarSelectedDay.slice(5, 7)
@@ -109,10 +109,10 @@ export function BottomNav({ active, onTab }: BottomNavProps) {
         {/* ── Background Layer with Notch ── */}
         <div className="absolute inset-x-0 bottom-0 h-[64px] flex items-end">
           {/* Left part */}
-          <div className="h-full flex-1 bg-white rounded-l-[30px]" />
+          <div className="h-full flex-1 bg-card rounded-l-[30px]" />
 
           {/* Right part */}
-          <div className="h-full flex-1 bg-white rounded-r-[30px]" />
+          <div className="h-full flex-1 bg-card rounded-r-[30px]" />
         </div>
 
         {/* ── Icons Overlay ── */}

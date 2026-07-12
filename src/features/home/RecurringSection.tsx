@@ -1,3 +1,4 @@
+import { AlarmClock } from 'lucide-react'
 import { formatShort } from '@/lib/utils'
 import { RecurringRow } from './RecurringRow'
 import type { RecurringItem } from '@/hooks/useHomeData'
@@ -21,13 +22,15 @@ export function RecurringSection({ items, onToggle, hasAnyRecurring, onSettingsT
           className="w-full bg-accent/10 border border-accent/20 border-dashed rounded-[20px] p-4 text-left flex items-center justify-between active:scale-[0.98] transition-transform"
         >
           <div className="flex items-center gap-3">
-            <div className="size-10 bg-accent/15 rounded-xl flex items-center justify-center text-lg">⏰</div>
+            <div className="size-10 bg-accent/15 rounded-xl flex items-center justify-center">
+              <AlarmClock size={20} className="text-accent-dark" />
+            </div>
             <div>
-              <p className="text-[13px] font-bold text-accent">Thêm khoản lặp lại</p>
-              <p className="text-[11px] text-accent/80 font-medium">Để app tự nhắc mỗi sáng</p>
+              <p className="text-[13px] font-bold text-accent-dark">Thêm khoản lặp lại</p>
+              <p className="text-[11px] text-accent-dark/80 font-medium">Để app tự nhắc mỗi sáng</p>
             </div>
           </div>
-          <div className="text-accent text-lg">→</div>
+          <div className="text-accent-dark text-lg">→</div>
         </button>
       </div>
     )
@@ -60,10 +63,9 @@ export function RecurringSection({ items, onToggle, hasAnyRecurring, onSettingsT
       </div>
 
       <div
-        className="bg-white rounded-2xl overflow-hidden"
+        className="bg-card rounded-2xl overflow-hidden border border-border"
         style={{
-          border: '1px solid #E8E6E0',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.04), 0 1px 0 rgba(255,255,255,0.8) inset',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.2)',
         }}
       >
         {items.map((item, i) => (

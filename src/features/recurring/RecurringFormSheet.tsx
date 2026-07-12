@@ -96,7 +96,7 @@ export function RecurringFormSheet({ open, onClose, onSave, editTemplate }: Recu
                 onChange={(e) => form.setName(e.target.value)}
                 placeholder="VD: Ăn trưa văn phòng"
                 maxLength={50}
-                className="border-border rounded-xl border bg-white px-4 py-3 text-[14px] outline-none focus:border-accent placeholder:text-text-hint transition-colors"
+                className="border-border rounded-xl border bg-surface px-4 py-3 text-[14px] outline-none focus:border-accent placeholder:text-text-hint transition-colors"
               />
             </div>
 

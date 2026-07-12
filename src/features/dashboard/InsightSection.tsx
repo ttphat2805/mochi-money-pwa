@@ -34,21 +34,21 @@ function InsightCard({ insight, index }: { insight: FinancialInsight, index: num
 
   const styles = {
     positive: {
-      bg: 'bg-[#EDFAF4]',
-      iconColor: 'text-[#2A9D6E]',
-      iconBg: 'bg-[#C6F6D5]/40',
+      bg: 'bg-emerald-400/10',
+      iconColor: 'text-emerald-400',
+      iconBg: 'bg-emerald-400/15',
       label: 'Tiểu điểm tốt'
     },
     negative: {
-      bg: 'bg-[#FFF0F0]',
-      iconColor: 'text-[#D63E3E]',
-      iconBg: 'bg-[#FED7D7]/40',
+      bg: 'bg-red-400/10',
+      iconColor: 'text-red-400',
+      iconBg: 'bg-red-400/15',
       label: 'Cần lưu ý'
     },
     neutral: {
-      bg: 'bg-white',
+      bg: 'bg-card',
       iconColor: 'text-text-muted',
-      iconBg: 'bg-surface',
+      iconBg: 'bg-surface2',
       label: 'Thông tin'
     }
   }
@@ -62,7 +62,7 @@ function InsightCard({ insight, index }: { insight: FinancialInsight, index: num
       transition={{ delay: index * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       whileTap={{ scale: 0.98 }}
       onClick={() => triggerHaptic('light')}
-      className={`snap-start shrink-0 w-[280px] p-5 rounded-[28px] ${bg} shadow-premium border border-white/50 flex flex-col gap-4 relative overflow-hidden`}
+      className={`snap-start shrink-0 w-[280px] p-5 rounded-[28px] ${bg} shadow-premium border border-border flex flex-col gap-4 relative overflow-hidden`}
     >
       <div className="flex items-center justify-between relative z-10">
         <div className="flex items-center gap-2">
@@ -75,7 +75,6 @@ function InsightCard({ insight, index }: { insight: FinancialInsight, index: num
               {label}
             </span>
         </div>
-        <span className="text-xl grayscale-[0.2]">{insight.icon}</span>
       </div>
 
       <div className="relative z-10">
@@ -92,7 +91,7 @@ function InsightCard({ insight, index }: { insight: FinancialInsight, index: num
       </div>
 
       {/* Decorative gradient overlay */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
     </motion.div>
   )
 }

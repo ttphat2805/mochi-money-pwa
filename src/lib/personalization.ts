@@ -3,16 +3,25 @@ export interface PersonalizationSettings {
   accentColor: string
 }
 
+/** Old light-theme default accent — migrated to the new green on read */
+const LEGACY_DEFAULT_ACCENT = '#E8A020'
+
 const DEFAULT: PersonalizationSettings = {
   appName: 'Chi Tiêu',
-  accentColor: '#E8A020',
+  accentColor: '#059669',
 }
 
 export function getPersonalization(): PersonalizationSettings {
   if (typeof window === 'undefined') return DEFAULT
   try {
     const raw = localStorage.getItem('personalization')
-    return raw ? { ...DEFAULT, ...JSON.parse(raw) } : DEFAULT
+    const settings: PersonalizationSettings = raw ? { ...DEFAULT, ...JSON.parse(raw) } : DEFAULT
+    // Users who never picked a custom accent carry the old amber default —
+    // move them onto the new theme default
+    if (settings.accentColor?.toUpperCase() === LEGACY_DEFAULT_ACCENT) {
+      settings.accentColor = DEFAULT.accentColor
+    }
+    return settings
   } catch {
     return DEFAULT
   }
@@ -37,7 +46,7 @@ export function applyAccentColor(color: string) {
   root.style.setProperty('--color-accent', color)
   root.style.setProperty('--color-accent-rgb', `${r}, ${g}, ${b}`)
 
-  // Derive light bg (Level 1 equivalent)
+  // Derive subtle bg tint (Level 1 equivalent)
   root.style.setProperty('--color-accent-bg', color + '18')
 
   // Set heat map levels via CSS variables for consistency
@@ -46,9 +55,10 @@ export function applyAccentColor(color: string) {
   root.style.setProperty('--color-accent-h3', color + '70') // ~45%
   root.style.setProperty('--color-accent-h4', color)        // 100%
 
-  // Derive dark: mix with black 30%
-  const darken = (c: number) => Math.floor(c * 0.7)
-  const darkHex = '#' + [darken(r), darken(g), darken(b)]
+  // --color-accent-dark is accent-toned TEXT on the dark theme, so it must
+  // be a LIGHTER tint of the accent (mix with white) to keep contrast
+  const lighten = (c: number) => Math.min(255, Math.floor(c + (255 - c) * 0.45))
+  const lightHex = '#' + [lighten(r), lighten(g), lighten(b)]
     .map(n => n.toString(16).padStart(2, '0')).join('')
-  root.style.setProperty('--color-accent-dark', darkHex)
+  root.style.setProperty('--color-accent-dark', lightHex)
 }

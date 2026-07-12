@@ -1,11 +1,13 @@
+import { CategoryFilterChips } from '@/components/CategoryFilterChips'
+import { NoteBadge } from '@/components/NoteBadge'
 import { TransactionDetailSheet } from '@/features/transactions/TransactionDetailSheet'
 import { useHistory, type TransactionWithCategory } from '@/hooks/useHistory'
 import { useShouldShowSkeleton } from '@/hooks/useShouldShowSkeleton'
-import { triggerHaptic } from '@/lib/haptic'
-import { cn, formatVND, getDateLabel } from '@/lib/utils'
+import { formatVND, getDateLabel, sumSpent, tint } from '@/lib/utils'
 import type { Transaction } from '@/types'
 import { animate, motion, useMotionValue, type PanInfo } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Trash, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, FolderOpen, Trash, X } from 'lucide-react'
+import { CategoryIcon } from '@/lib/categoryIcons'
 import * as React from 'react'
 import { useCallback, useState } from 'react'
 import { HistorySkeleton } from './HistorySkeleton'
@@ -58,25 +60,33 @@ function TxRow({
           }
           onSelect(tx)
         }}
-        whileTap={{ backgroundColor: 'rgba(0,0,0,0.03)' }}
-        className="flex min-h-[58px] items-center gap-3 px-3 py-3 bg-white transition-colors cursor-grab active:cursor-grabbing text-left w-full relative z-10"
+        whileTap={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
+        className="flex min-h-[58px] items-center gap-3 px-3 py-3 bg-card transition-colors cursor-grab active:cursor-grabbing text-left w-full relative z-10"
       >
         <div
-          className="shrink-0 flex items-center justify-center rounded-[12px] text-xl border border-border/40"
+          className="shrink-0 flex items-center justify-center rounded-[12px] border border-border/40"
           style={{
             width: 40,
             height: 40,
-            background: tx.category?.color ? tx.category.color + '15' : '#F2F0EC',
-            color: tx.category?.color ?? 'var(--color-text-muted)',
+            background: tx.category?.color ? tint(tx.category.color, 8) : 'var(--color-surface2)',
           }}
         >
-          {tx.category?.icon ?? '📦'}
+          <CategoryIcon
+            icon={tx.category?.icon}
+            size={18}
+            color={tx.category?.color ?? 'var(--color-text-muted)'}
+          />
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[14px] font-bold text-text mb-0.5">
-            {tx.category?.name ?? 'Không rõ'}
-          </p>
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <p className="truncate text-[14px] font-bold text-text">
+              {tx.category?.name ?? 'Không rõ'}
+            </p>
+            {tx.isNote && (
+              <NoteBadge />
+            )}
+          </div>
           <p className="font-num text-[11px] text-text-hint truncate opacity-90">
             {getDateLabel(tx.date)}
             {tx.note ? ` · ${tx.note}` : ''}
@@ -84,8 +94,14 @@ function TxRow({
         </div>
 
         <div className="flex shrink-0 items-center gap-0.5">
-          <span className="text-text-muted text-[13px] font-medium opacity-60">−</span>
-          <span className="font-num text-[15px] font-black text-text tracking-tight">
+          {!tx.isNote && (
+            <span className="text-text-muted text-[13px] font-medium opacity-60">−</span>
+          )}
+          <span
+            className={`font-num text-[15px] font-black tracking-tight ${
+              tx.isNote ? 'text-text-muted' : 'text-text'
+            }`}
+          >
             {formatVND(tx.amount)}đ
           </span>
         </div>
@@ -134,7 +150,7 @@ export function HistoryTab() {
             type="button"
             onClick={() => canGoBack && history.setSelectedMonth(history.monthKeys[currentIdx + 1])}
             disabled={!canGoBack}
-            className="flex size-8 items-center justify-center rounded-full bg-surface active:bg-surface2 transition-colors disabled:opacity-30"
+            className="flex size-10 items-center justify-center rounded-full bg-surface active:bg-surface2 transition-colors disabled:opacity-30"
           >
             <ChevronLeft size={16} />
           </button>
@@ -150,84 +166,33 @@ export function HistoryTab() {
             type="button"
             onClick={() => canGoForward && history.setSelectedMonth(history.monthKeys[currentIdx - 1])}
             disabled={!canGoForward}
-            className="flex size-8 items-center justify-center rounded-full bg-surface active:bg-surface2 transition-colors disabled:opacity-30"
+            className="flex size-10 items-center justify-center rounded-full bg-surface active:bg-surface2 transition-colors disabled:opacity-30"
           >
             <ChevronRight size={16} />
           </button>
         </div>
 
-        {/* Category filter pills - Elite Scroll Version */}
+        {/* Category filter chips */}
         {history.activeCategories.length > 0 && (
-          <div className="relative mb-4">
-             {/* Edge Fades for visual depth */}
-            <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-bg to-transparent z-10 pointer-events-none" />
-            <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-bg to-transparent z-10 pointer-events-none" />
-
-            <div
-              className="flex gap-2.5 overflow-x-auto px-4 pb-1 snap-x scrollbar-hide touch-pan-x"
-              style={{ WebkitOverflowScrolling: 'touch', overscrollBehaviorX: 'contain' }}
-            >
-              {/* All chip */}
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.95 }}
-                animate={!history.selectedCategoryId ? { scale: 1.05 } : { scale: 1 }}
-                onClick={() => {
-                   triggerHaptic('light');
-                   history.setSelectedCategoryId(null);
-                }}
-                className={cn(
-                  "snap-start shrink-0 flex items-center h-10 px-5 rounded-full border-[1.5px] transition-all",
-                  !history.selectedCategoryId 
-                    ? "bg-text text-white shadow-md z-10" 
-                    : "bg-white border-border text-text-muted hover:bg-surface"
-                )}
-              >
-                <span className="text-[13px] font-black tracking-tight">Tất cả</span>
-              </motion.button>
-
-              {history.activeCategories.map((cat) => {
-                const isActive = history.selectedCategoryId === cat.id
-                return (
-                  <motion.button
-                    key={cat.id}
-                    type="button"
-                    whileTap={{ scale: 0.95 }}
-                    animate={isActive ? { scale: 1.05 } : { scale: 1 }}
-                    onClick={() => {
-                        triggerHaptic('light');
-                        history.setSelectedCategoryId(isActive ? null : cat.id!);
-                    }}
-                    className={cn(
-                      "snap-start shrink-0 flex items-center gap-2 h-10 px-4 rounded-full border-[1.5px] transition-all",
-                      isActive 
-                        ? "bg-white shadow-md z-10" 
-                        : "bg-white border-border text-text-muted hover:bg-surface"
-                    )}
-                    style={{
-                      borderColor: isActive ? cat.color : undefined,
-                      backgroundColor: isActive ? `${cat.color}10` : undefined,
-                      color: isActive ? cat.color : undefined,
-                    }}
-                  >
-                    <span className="text-lg translate-y-[0.5px]">{cat.icon}</span>
-                    <span className="text-[13px] font-black whitespace-nowrap tracking-tight">
-                        {cat.name}
-                    </span>
-                  </motion.button>
-                )
-              })}
-            </div>
-          </div>
+          <CategoryFilterChips
+            className="mb-3"
+            categories={history.activeCategories}
+            selectedId={history.selectedCategoryId}
+            onSelect={history.setSelectedCategoryId}
+          />
         )}
 
         {/* Active filter summary header */}
         {history.selectedCategoryId != null && history.selectedCategory && (
           <div
             className="mx-4 mb-3 p-3 rounded-xl flex items-center gap-3"
-            style={{ background: history.selectedCategory.color + '15' }}
+            style={{ background: tint(history.selectedCategory.color, 8) }}
           >
-            <span style={{ fontSize: 24 }}>{history.selectedCategory.icon}</span>
+            <CategoryIcon
+              icon={history.selectedCategory.icon}
+              size={24}
+              color={history.selectedCategory.color}
+            />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate" style={{ color: history.selectedCategory.color }}>
                 {history.selectedCategory.name}
@@ -240,7 +205,7 @@ export function HistoryTab() {
             <button
               type="button"
               onClick={() => history.setSelectedCategoryId(null)}
-              className="w-7 h-7 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm active:scale-95 transition-transform"
+              className="w-7 h-7 rounded-full bg-card flex items-center justify-center shrink-0 shadow-sm active:scale-95 transition-transform"
             >
               <X size={13} className="text-text-muted" />
             </button>
@@ -250,7 +215,7 @@ export function HistoryTab() {
         {/* Transaction list */}
         {history.filteredTransactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-8 text-center">
-            <span className="text-4xl mb-3">🗂️</span>
+            <FolderOpen size={40} className="text-text-hint mb-3" />
             <p className="text-[14px] font-medium text-text-muted">
               {history.selectedCategoryId
                 ? 'Không có giao dịch cho danh mục này'
@@ -258,9 +223,11 @@ export function HistoryTab() {
             </p>
           </div>
         ) : (
-          <div className="mx-4 rounded-[16px] border border-border bg-white overflow-hidden">
+          // No keyed remount here: re-keying on filter change would unmount
+          // and remount every swipeable row just to replay a fade
+          <div className="mx-4 rounded-[16px] border border-border bg-card overflow-hidden">
             {groups.map(([date, txs], groupIdx) => {
-              const dayTotal = txs.reduce((s, t) => s + t.amount, 0)
+              const dayTotal = sumSpent(txs)
               return (
                 <div key={date} className={groupIdx > 0 ? 'border-t border-border' : ''}>
                   {/* Date header */}
