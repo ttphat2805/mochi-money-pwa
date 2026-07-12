@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { X, Plus, Trash2, TriangleAlert } from "lucide-react";
+import { Plus, Trash2, TriangleAlert } from "lucide-react";
+import { CloseButton } from "@/components/CloseButton";
 import { BackButton } from "@/components/BackButton";
 import {
   Dialog,
@@ -72,13 +73,7 @@ function VNDInput({
           className="font-num flex-1 text-[20px] bg-transparent outline-none placeholder:text-text-hint"
         />
         {raw ? (
-          <button
-            type="button"
-            onClick={clear}
-            className="text-text-hint hover:text-text-muted shrink-0"
-          >
-            <X className="size-4" />
-          </button>
+          <CloseButton onClick={clear} size="sm" label="Xoá số tiền" />
         ) : null}
         <span className="text-text-muted text-[16px] shrink-0">đ</span>
       </div>
@@ -451,29 +446,15 @@ function ExtraIncomeDialog({
               </span>
               {/* Clear button */}
               {amount > 0 && (
-                <button
+                <CloseButton
                   onClick={() => {
                     setAmount(0);
                     setDisplay("");
                   }}
-                  style={{
-                    position: "absolute",
-                    right: 36,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    width: 20,
-                    height: 20,
-                    borderRadius: "50%",
-                    background: "var(--color-surface2)",
-                    border: "none",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <X size={10} color="white" />
-                </button>
+                  size="sm"
+                  label="Xoá số tiền"
+                  className="absolute right-8 top-1/2 -translate-y-1/2 size-5 [&_svg]:size-2.5"
+                />
               )}
             </div>
           </div>

@@ -174,6 +174,9 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
 
                         <RechartsTooltip
                           cursor={false}
+                          // Must stack above the frosted-glass center disc
+                          // overlay, or its backdrop-blur smears the tooltip
+                          wrapperStyle={{ zIndex: 20 }}
                           content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                               const item = payload[0].payload;

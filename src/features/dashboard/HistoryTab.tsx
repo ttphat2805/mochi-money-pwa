@@ -1,4 +1,5 @@
 import { CategoryFilterChips } from '@/components/CategoryFilterChips'
+import { CloseButton } from '@/components/CloseButton'
 import { NoteBadge } from '@/components/NoteBadge'
 import { TransactionDetailSheet } from '@/features/transactions/TransactionDetailSheet'
 import { useHistory, type TransactionWithCategory } from '@/hooks/useHistory'
@@ -6,7 +7,7 @@ import { useShouldShowSkeleton } from '@/hooks/useShouldShowSkeleton'
 import { formatVND, getDateLabel, sumSpent, tint } from '@/lib/utils'
 import type { Transaction } from '@/types'
 import { animate, motion, useMotionValue, type PanInfo } from 'framer-motion'
-import { ChevronLeft, ChevronRight, FolderOpen, Trash, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, FolderOpen, Trash } from 'lucide-react'
 import { CategoryIcon } from '@/components/CategoryIcon'
 import * as React from 'react'
 import { useCallback, useState } from 'react'
@@ -202,13 +203,10 @@ export function HistoryTab() {
                 {formatVND(history.filteredTotal)}đ
               </p>
             </div>
-            <button
-              type="button"
+            <CloseButton
+              label="Bỏ lọc danh mục"
               onClick={() => history.setSelectedCategoryId(null)}
-              className="w-7 h-7 rounded-full bg-card flex items-center justify-center shrink-0 shadow-sm active:scale-95 transition-transform"
-            >
-              <X size={13} className="text-text-muted" />
-            </button>
+            />
           </div>
         )}
 

@@ -1,7 +1,8 @@
 import * as React from "react";
 import { Drawer } from "vaul";
 
-import { cn } from "@/lib/utils";
+import { closeButtonClass, cn } from "@/lib/utils";
+import { triggerHaptic } from "@/lib/haptic";
 import { XIcon } from "lucide-react";
 
 function Sheet({ ...props }: React.ComponentProps<typeof Drawer.Root>) {
@@ -73,10 +74,11 @@ function SheetContent({
           <Drawer.Close asChild>
             <button
               type="button"
-              className="absolute top-4 right-4 h-9 w-9 rounded-full bg-surface flex items-center justify-center text-text-muted active:scale-90 transition-transform z-50 hover:bg-surface2"
+              onClick={() => triggerHaptic("light")}
+              className={cn(closeButtonClass, "absolute top-4 right-4 size-8 z-50")}
             >
-              <XIcon size={18} />
-              <span className="sr-only">Close</span>
+              <XIcon size={14} strokeWidth={2.5} />
+              <span className="sr-only">Đóng</span>
             </button>
           </Drawer.Close>
         )}

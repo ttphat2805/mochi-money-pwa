@@ -19,6 +19,22 @@ export function formatVND(amount: number): string {
 }
 
 /**
+ * Shared styling for circular X/close buttons (see components/CloseButton).
+ * Lives here (not in the component file) so Radix/vaul `asChild` closers can
+ * import it without breaking react-refresh's only-export-components rule.
+ *
+ * - `min-h-0` defeats the global `button { min-height: 44px }` rule that
+ *   otherwise stretches small circles into vertical pills.
+ * - The ::after ring silently restores a ≥44px tap area around the circle.
+ */
+export const closeButtonClass = cn(
+  'relative min-h-0 rounded-full bg-white/8 border border-white/10',
+  'flex items-center justify-center shrink-0 text-text',
+  'transition-all active:scale-95 active:bg-white/15',
+  'after:absolute after:-inset-2 after:content-[""]',
+)
+
+/**
  * Translucent tint of any CSS color (hex, var(), named).
  * Replaces the `hex + '15'` concatenation idiom, which silently breaks on
  * var() references and forces literal hexes at every call site.

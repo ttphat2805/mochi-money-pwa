@@ -3,8 +3,9 @@
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
-import { cn } from "@/lib/utils"
+import { closeButtonClass, cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { triggerHaptic } from "@/lib/haptic"
 import { XIcon } from "lucide-react"
 
 function Dialog({
@@ -71,14 +72,14 @@ function DialogContent({
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close data-slot="dialog-close" asChild>
-            <Button
-              variant="ghost"
-              className="absolute top-3 right-3 rounded-full size-8 p-0 text-text-hint hover:bg-surface active:bg-surface2"
-              size="icon"
+            <button
+              type="button"
+              onClick={() => triggerHaptic("light")}
+              className={cn(closeButtonClass, "absolute top-3 right-3 size-8 z-10")}
             >
-              <XIcon className="size-4" />
-              <span className="sr-only">Close</span>
-            </Button>
+              <XIcon size={14} strokeWidth={2.5} />
+              <span className="sr-only">Đóng</span>
+            </button>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>

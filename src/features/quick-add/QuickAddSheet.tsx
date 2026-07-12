@@ -2,7 +2,8 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useQuickAdd } from "@/hooks/useQuickAdd";
 import { triggerHaptic } from "@/lib/haptic";
 import { cn } from "@/lib/utils";
-import { X, Info, StickyNote } from "lucide-react";
+import { Info, StickyNote } from "lucide-react";
+import { CloseButton } from "@/components/CloseButton";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { AmountDisplay } from "./AmountDisplay";
@@ -194,12 +195,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                     dateLabel={dateLabel}
                     onTap={() => setDatePickerOpen(true)}
                   />
-                  <button
-                    onClick={close}
-                    className="!min-h-7 size-7 rounded-full bg-white/10 flex items-center justify-center active:scale-90 transition-transform"
-                  >
-                    <X size={13} className="text-text-muted" />
-                  </button>
+                  <CloseButton onClick={close} size="sm" />
                 </div>
               </div>
 

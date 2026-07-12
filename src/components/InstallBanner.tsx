@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Smartphone } from 'lucide-react'
+import { CloseButton } from '@/components/CloseButton'
 
 function isIOS(): boolean {
   return /iphone|ipad|ipod/i.test(navigator.userAgent)
@@ -58,15 +59,7 @@ export function InstallBanner() {
             để dùng offline
           </p>
         </div>
-        <button
-          type="button"
-          onClick={dismiss}
-          className="text-[20px] leading-none p-1 shrink-0"
-          style={{ color: 'rgba(255,255,255,0.4)' }}
-          aria-label="Đóng"
-        >
-          ×
-        </button>
+        <CloseButton onClick={dismiss} size="sm" />
       </div>
     </div>
   )
