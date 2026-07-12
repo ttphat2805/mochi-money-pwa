@@ -4,13 +4,40 @@ import { Settings2, TrendingUp, TrendingDown, AlertCircle, PiggyBank, BarChart3 
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { useAppStore } from "@/stores/appStore";
 import { useShouldShowSkeleton } from "@/hooks/useShouldShowSkeleton";
+import { BUDGET_STATUS_COLORS, getBudgetStatus } from "@/types";
 import { BudgetSkeleton } from "./BudgetSkeleton";
 import { motion } from "framer-motion";
 
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+// ── Gauge geometry — 250° arc with the gap centered at the bottom ─────────
+// Screen coords (y down): t=0 → lower-left, t=0.5 → top, t=1 → lower-right.
 
-// ── Small helpers ──────────────────────────────────────────────
+const G_CX = 120;
+const G_CY = 110;
+const G_R = 92;
+const G_STROKE = 18;
+const G_START = 145; // degrees
+const G_SWEEP = 250; // degrees
 
+function gaugePolar(t: number) {
+  const rad = ((G_START + t * G_SWEEP) * Math.PI) / 180;
+  return { x: G_CX + G_R * Math.cos(rad), y: G_CY + G_R * Math.sin(rad) };
+}
+
+/**
+ * Arc between two fractions of the gauge, split into ≤62.5° segments so the
+ * SVG large-arc flag never becomes ambiguous (renderers disagree near 180°).
+ */
+function gaugeArc(t0: number, t1: number) {
+  const steps = Math.max(1, Math.ceil((t1 - t0) / 0.25));
+  const pts = Array.from({ length: steps + 1 }, (_, i) =>
+    gaugePolar(t0 + ((t1 - t0) * i) / steps),
+  );
+  return pts
+    .slice(1)
+    .reduce((d, p) => `${d} A ${G_R} ${G_R} 0 0 1 ${p.x} ${p.y}`, `M ${pts[0].x} ${pts[0].y}`);
+}
+
+const GAUGE_TRACK = gaugeArc(0, 1);
 
 // ── Budget Tab ─────────────────────────────────────────────────
 
@@ -44,11 +71,13 @@ export function BudgetTab() {
   const catsWithoutLimit = budget.categoriesWithBudget.filter(
     (c) => !c.limitPerMonth && c.spent > 0,
   );
-  // Gauge geometry — compute fill arc end angle dynamically
-  // so we use ONE slice (no remaining slice) → cornerRadius works perfectly
-  const GAUGE_START = 215
-  const GAUGE_SWEEP = 250  // total degrees of the gauge track
-  const fillEndAngle = GAUGE_START - (Math.min(100, budget.spentPct) / 100) * GAUGE_SWEEP
+
+  // Gauge fill + status color: personal accent while healthy, then amber →
+  // orange → red as spending approaches/exceeds the budget
+  const pctFrac = budget.spentPct / 100;
+  const fillT = Math.min(1, Math.max(pctFrac, 0.02));
+  const gaugeColor =
+    pctFrac > 1 ? '#EF4444' : pctFrac >= 0.8 ? '#FB923C' : pctFrac >= 0.6 ? '#FBBF24' : 'var(--color-accent)';
 
   return (
     <div className="flex-1 overflow-y-auto bg-bg px-4 py-4 scrollbar-hide pb-32 pt-2 animate-in fade-in duration-150 mesh-gradient min-h-full">
@@ -76,80 +105,59 @@ export function BudgetTab() {
         {/* Top inner gloss */}
         <div className="absolute top-0 inset-x-0 h-[40%] bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-[32px]" />
 
-        {/* Gauge chart — bigger and bolder */}
-        <div className="pt-6 h-[280px] flex justify-center items-center relative w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart style={{ outline: 'none' }}>
-              <defs>
-                <linearGradient id="gauge-liquid" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="var(--color-success)" stopOpacity={1} />
-                  <stop offset="60%" stopColor="var(--color-accent)" stopOpacity={1} />
-                  <stop offset="100%" stopColor="var(--color-danger)" stopOpacity={1} />
-                </linearGradient>
-                <filter id="gauge-3d" x="-25%" y="-25%" width="150%" height="150%">
-                  <feDropShadow dx="0" dy="8" stdDeviation="10" floodColor="var(--color-accent)" floodOpacity="0.28" />
-                </filter>
-              </defs>
+        {/* Gauge — status-colored arc with progress knob */}
+        <div className="pt-6 flex justify-center relative w-full">
+          <svg
+            viewBox="0 0 240 200"
+            className="w-[260px] max-w-full"
+            role="img"
+            aria-label={`Đã dùng ${Math.round(budget.spentPct)}% ngân sách tháng này`}
+          >
+            {/* Track */}
+            <path d={GAUGE_TRACK} fill="none" stroke="rgba(255,255,255,0.08)"
+              strokeWidth={G_STROKE} strokeLinecap="round" />
 
-              {/* Track — static background arc */}
-              <Pie
-                data={[{ value: 1 }]}
-                cx="50%" cy="60%"
-                startAngle={215} endAngle={-35}
-                innerRadius="55%" outerRadius="80%"
-                dataKey="value"
-                stroke="none"
-                isAnimationActive={false}
-              >
-                <Cell fill="rgba(255,255,255,0.08)" style={{ outline: 'none' }} />
-              </Pie>
+            {/* Fill */}
+            <motion.path
+              d={gaugeArc(0, fillT)}
+              fill="none" stroke={gaugeColor}
+              strokeWidth={G_STROKE} strokeLinecap="round"
+              initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
+              transition={{ duration: 0.7, ease: 'easeOut' }}
+            />
 
-              {/* Fill — single slice with proper cornerRadius */}
-              <Pie
-                data={[{ value: 1 }]}
-                cx="50%" cy="60%"
-                startAngle={GAUGE_START}
-                endAngle={fillEndAngle}
-                innerRadius="55%" outerRadius="80%"
-                dataKey="value"
-                stroke="none"
-                cornerRadius={14}
-                isAnimationActive={true}
-                animationDuration={1000}
-                animationBegin={100}
-              >
-                <Cell fill="url(#gauge-liquid)" filter="url(#gauge-3d)" style={{ outline: 'none', cursor: 'default' }} />
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
+            {/* Progress knob riding the arc */}
+            <motion.g
+              style={{ transformOrigin: `${G_CX}px ${G_CY}px` }}
+              initial={{ rotate: 0 }}
+              animate={{ rotate: fillT * G_SWEEP }}
+              transition={{ type: 'spring', bounce: 0.2, duration: 0.85, delay: 0.1 }}
+            >
+              <circle cx={gaugePolar(0).x} cy={gaugePolar(0).y} r={13} fill="var(--color-card)" />
+              <circle cx={gaugePolar(0).x} cy={gaugePolar(0).y} r={10} fill="#F8FAFC" />
+              <circle cx={gaugePolar(0).x} cy={gaugePolar(0).y} r={4.5} fill={gaugeColor} />
+            </motion.g>
+          </svg>
 
           {/* Center text */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ paddingTop: '40px' }}>
+          <div className="absolute inset-0 flex flex-col items-center justify-center pt-5 pointer-events-none">
             <span className="text-[10px] font-black tracking-[0.2em] uppercase text-text-hint mb-1">Sử dụng</span>
             <span
               className="font-black font-num leading-none"
-              style={{
-                fontSize: '52px',
-                color: 'var(--color-accent-dark)',
-              }}
+              style={{ fontSize: '48px', color: gaugeColor }}
             >
               {Math.round(budget.spentPct)}%
             </span>
           </div>
         </div>
 
-        {/* Stats — two premium pill cards */}
+        {/* Stats — spent (neutral) vs remaining (semantic) */}
         <div className="flex gap-3 px-5 pb-4 mt-1">
-          <div className="flex-1 rounded-2xl px-4 py-3 relative overflow-hidden"
-            style={{
-              background: 'rgba(239,68,68,0.07)',
-              border: '1px solid rgba(239,68,68,0.15)',
-            }}
-          >
-            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-danger mb-1">Tổng chi</p>
-            <p className="font-num text-[18px] font-black text-danger leading-none">{formatVND(budget.totalSpent)}đ</p>
+          <div className="flex-1 rounded-2xl px-4 py-3 bg-white/4 border border-border/60">
+            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-text-muted mb-1">Tổng chi</p>
+            <p className="font-num text-[18px] font-black text-text leading-none">{formatVND(budget.totalSpent)}đ</p>
           </div>
-          <div className="flex-1 rounded-2xl px-4 py-3 relative overflow-hidden text-right"
+          <div className="flex-1 rounded-2xl px-4 py-3 text-right"
             style={{
               background: budget.flexAmount - budget.totalSpent >= 0 ? 'rgba(16,185,129,0.07)' : 'rgba(239,68,68,0.07)',
               border: budget.flexAmount - budget.totalSpent >= 0 ? '1px solid rgba(16,185,129,0.15)' : '1px solid rgba(239,68,68,0.15)',
@@ -164,30 +172,9 @@ export function BudgetTab() {
           </div>
         </div>
 
-        {/* 3D Liquid progress bar */}
-        <div className="mx-6 h-4 rounded-full overflow-hidden p-[2px] mb-3"
-          style={{ background: 'rgba(255,255,255,0.08)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.25)' }}
-        >
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: Math.min(100, budget.spentPct) + '%' }}
-            transition={{ duration: 1, type: 'spring', bounce: 0 }}
-            className="h-full rounded-full relative"
-            style={{
-              background: (budget.flexAmount - budget.totalSpent < 0)
-                ? 'var(--color-danger)'
-                : 'linear-gradient(90deg, var(--color-success), var(--color-accent))',
-              boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5), inset 0 -2px 3px rgba(0,0,0,0.12)',
-            }}
-          >
-            <div className="absolute top-0 left-0 w-full h-[45%] bg-gradient-to-b from-white/30 to-white/5 rounded-t-full pointer-events-none" />
-            <div className="absolute top-0 right-0 bottom-0 w-12 bg-gradient-to-l from-white/35 to-transparent rounded-r-full pointer-events-none mix-blend-overlay" />
-          </motion.div>
-        </div>
-
         {/* Footer */}
         <div className="flex justify-between items-center px-6 pb-6 text-[11px] text-text-muted font-medium">
-          <span className="font-num">{formatBudgetPct(budget.spentPct)} đã dùng</span>
+          <span>Ngân sách <span className="font-num text-text font-bold">{formatShort(budget.flexAmount)}</span></span>
           <span>Còn {budget.daysLeft} ngày &middot; <span className="text-text font-bold">~{formatShort(budget.dailyAllowance)}/ngày</span></span>
         </div>
       </div>
@@ -202,20 +189,20 @@ export function BudgetTab() {
           </div>
 
           {catsWithLimit.map((cat) => {
-            const isFull = cat.pct === 100;
-            const isOver = cat.pct > 100;
+            const status = getBudgetStatus(cat.spent, cat.limitPerMonth);
+            const statusColor = BUDGET_STATUS_COLORS[status];
+            const isOver = status === 'over';
             const diff = cat.spent - cat.lastMonthSpent;
             const isIncrease = diff > 0;
             const diffAbs = Math.abs(diff);
-            
-            
+
             return (
               <div
                 key={cat.id}
                 onClick={() => openQuickAdd(undefined, cat.id)}
                 className={cn(
                   "p-5 bg-card rounded-[32px] shadow-premium border transition-all active-scale cursor-pointer",
-                  isOver ? "border-danger/20" : isFull ? "border-amber-400/20" : "border-border"
+                  isOver ? "border-danger/20" : status === 'danger' ? "border-amber-400/20" : "border-border"
                 )}
               >
                 <div className="flex items-center gap-4 mb-5">
@@ -244,7 +231,10 @@ export function BudgetTab() {
                       Giới hạn {formatVND(cat.limitPerMonth!)}đ
                     </p>
                   </div>
-                  <div className={cn("text-[13px] font-black", isOver ? "text-danger" : isFull ? "text-amber-400" : "text-text-muted")}>
+                  <div
+                    className="text-[13px] font-black"
+                    style={{ color: status === 'ok' ? 'var(--color-text-muted)' : statusColor }}
+                  >
                     {formatBudgetPct(cat.pct)}
                   </div>
                 </div>
@@ -253,9 +243,9 @@ export function BudgetTab() {
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: Math.min(100, cat.pct) + "%" }}
-                    transition={{ duration: 1, ease: [0.34, 1.56, 0.64, 1] }}
-                    className="h-full"
-                    style={{ background: isOver ? "#EF4444" : isFull ? "#F59E0B" : "#10B981" }}
+                    transition={{ duration: 0.7, ease: 'easeOut' }}
+                    className="h-full rounded-full"
+                    style={{ background: statusColor }}
                   />
                 </div>
 
@@ -275,10 +265,10 @@ export function BudgetTab() {
                 </div>
 
                 {isOver && (
-                  <div className="mt-5 p-3 bg-danger/5 rounded-2xl border border-danger/10 flex items-center gap-3">
+                  <div className="mt-5 p-3 bg-danger/5 rounded-2xl border border-danger/10 flex items-center gap-2.5">
                     <AlertCircle size={14} className="text-danger shrink-0" />
-                    <span className="text-[10px] font-bold text-danger uppercase leading-tight">
-                      Bạn đã chi tiêu vượt quá kế hoạch đề ra
+                    <span className="text-[12px] font-semibold text-danger leading-tight">
+                      Vượt giới hạn {formatShort(Math.abs(cat.remaining))} tháng này
                     </span>
                   </div>
                 )}

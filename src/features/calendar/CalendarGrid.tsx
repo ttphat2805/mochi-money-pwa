@@ -2,6 +2,7 @@ import React, { useRef } from 'react'
 import { formatShort, tint } from '@/lib/utils'
 import type { CalendarDayCell } from '@/hooks/useCalendar'
 import { getHeatLevel } from '@/hooks/useCalendar'
+import { triggerHaptic } from '@/lib/haptic'
 import { motion } from 'framer-motion'
 
 const WEEKDAY_HEADERS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
@@ -39,31 +40,37 @@ const DayCell = React.memo(function DayCell({
 }) {
   const { date, day, isToday, isFuture } = cell
   const hasSpend = amount > 0
+  // On strong heat tints the accent-colored amount text loses contrast —
+  // switch both texts to white there
+  const strongHeat = hasSpend && heat >= 3
 
   // Background: selected → solid accent, spending → accent tint, else card
   const bgColor = isSelected
     ? accent
     : hasSpend
-      ? `${accent}${Math.round(HEAT_OPACITY[heat] * 255).toString(16).padStart(2, '0')}`
+      ? tint(accent, HEAT_OPACITY[heat] * 100)
       : 'var(--color-card)'
 
   // Day number color: always readable — near-white on dark, white on selected
-  const dayColor = isSelected
+  const dayColor = isSelected || strongHeat
     ? '#FFFFFF'
     : isToday
       ? accent
       : 'var(--color-text)'
 
   // Amount color
-  const amtColor = isSelected
+  const amtColor = isSelected || strongHeat
     ? 'rgba(255,255,255,0.9)'
     : accent
 
   return (
     <motion.button
       type="button"
-      onClick={() => onSelect(date)}
-      whileTap={{ scale: 0.86 }}
+      onClick={() => {
+        triggerHaptic('light')
+        onSelect(date)
+      }}
+      whileTap={{ scale: 0.95 }}
       transition={{ duration: 0.1 }}
       className="relative flex flex-col items-center justify-center w-full h-[62px] rounded-2xl overflow-hidden"
       style={{
@@ -103,13 +110,6 @@ const DayCell = React.memo(function DayCell({
         {hasSpend ? formatShort(amount) : '0'}
       </span>
 
-      {/* Today dot — top-right corner */}
-      {isToday && !isSelected && (
-        <div
-          className="absolute top-1.5 right-1.5 size-1.5 rounded-full"
-          style={{ backgroundColor: accent }}
-        />
-      )}
     </motion.button>
   )
 })
@@ -194,6 +194,19 @@ export function CalendarGrid({
           )
         })}
       </motion.div>
+
+      {/* Heat legend — explains the tint intensity */}
+      <div className="flex items-center justify-end gap-1.5 mt-2.5 pr-1">
+        <span className="text-[9px] text-text-hint font-medium">Ít</span>
+        {HEAT_OPACITY.slice(1).map((o) => (
+          <span
+            key={o}
+            className="size-2.5 rounded-[5px]"
+            style={{ background: tint(accent, o * 100) }}
+          />
+        ))}
+        <span className="text-[9px] text-text-hint font-medium">Nhiều</span>
+      </div>
     </div>
   )
 }
