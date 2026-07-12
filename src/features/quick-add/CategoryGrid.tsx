@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 import { db } from "@/lib/db";
 import { useCategoryStore } from "@/stores/categoryStore";
 import { CategoryFormSheet } from "@/features/settings/CategoryFormSheet";
-import { CategoryIcon } from "@/lib/categoryIcons";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { CATEGORY_COLORS, type BudgetCategory } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn, tint } from "@/lib/utils";

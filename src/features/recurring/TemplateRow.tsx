@@ -5,7 +5,7 @@ import type { RecurringTemplate, BudgetCategory } from '@/types'
 import { Switch } from '@/components/ui/switch'
 import { motion, useMotionValue, animate, type PanInfo } from 'framer-motion'
 import { Trash } from 'lucide-react'
-import { CategoryIcon } from '@/lib/categoryIcons'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import { triggerHaptic } from '@/lib/haptic'
 
 interface TemplateRowProps {

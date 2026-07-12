@@ -8,7 +8,7 @@ import type { HomeData } from '@/hooks/useHomeData'
 import type { BudgetCategory, Transaction } from '@/types'
 import { motion, useMotionValue, useTransform, animate, type PanInfo, AnimatePresence } from 'framer-motion'
 import { Trash, ChevronRight, ReceiptText } from 'lucide-react'
-import { CategoryIcon } from '@/lib/categoryIcons'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import { useTransactionStore } from '@/stores/transactionStore'
 import { triggerHaptic } from '@/lib/haptic'
 

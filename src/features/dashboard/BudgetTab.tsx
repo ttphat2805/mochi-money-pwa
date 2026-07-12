@@ -1,7 +1,7 @@
 import { useBudget } from "@/hooks/useBudget";
 import { formatBudgetPct, formatShort, formatVND, cn, tint } from "@/lib/utils";
 import { Settings2, TrendingUp, TrendingDown, AlertCircle, PiggyBank, BarChart3 } from "lucide-react";
-import { CategoryIcon } from "@/lib/categoryIcons";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { useAppStore } from "@/stores/appStore";
 import { useShouldShowSkeleton } from "@/hooks/useShouldShowSkeleton";
 import { BudgetSkeleton } from "./BudgetSkeleton";

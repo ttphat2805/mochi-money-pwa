@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import { IconPickerSheet } from '@/components/IconPickerSheet'
-import { CategoryIcon } from '@/lib/categoryIcons'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import { formatVND } from '@/lib/utils'
 import type { BudgetCategory } from '@/types'
 

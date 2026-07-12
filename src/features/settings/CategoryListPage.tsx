@@ -23,7 +23,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { ChevronRight, FolderOpen, GripVertical, Plus } from 'lucide-react'
 import { memo, useCallback, useState } from 'react'
-import { CategoryIcon } from '@/lib/categoryIcons'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import { CategoryFormSheet } from './CategoryFormSheet'
 
 interface CategoryListPageProps {

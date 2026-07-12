@@ -6,7 +6,7 @@ import { TransactionDetailSheet } from '@/features/transactions/TransactionDetai
 import type { BudgetCategory, Transaction } from '@/types'
 import { motion } from 'framer-motion'
 import { usePersonalization } from '@/hooks/usePersonalization'
-import { CategoryIcon } from '@/lib/categoryIcons'
+import { CategoryIcon } from '@/components/CategoryIcon'
 
 interface TxWithCategory extends Transaction {
   category: BudgetCategory | undefined

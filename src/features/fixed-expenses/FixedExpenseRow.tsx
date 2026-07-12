@@ -5,7 +5,7 @@ import { useCategoryStore } from '@/stores/categoryStore'
 import type { FixedExpense } from '@/types'
 import { motion, useMotionValue, animate, type PanInfo } from 'framer-motion'
 import { Trash } from 'lucide-react'
-import { CategoryIcon } from '@/lib/categoryIcons'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import { triggerHaptic } from '@/lib/haptic'
 
 interface FixedExpenseRowProps {
