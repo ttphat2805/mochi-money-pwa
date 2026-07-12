@@ -1,4 +1,4 @@
-import { CategoryIcon } from '@/lib/categoryIcons'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import { triggerHaptic } from '@/lib/haptic'
 import { cn } from '@/lib/utils'
 import type { BudgetCategory } from '@/types'

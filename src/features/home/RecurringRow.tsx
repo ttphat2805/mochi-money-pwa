@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { formatVND } from '@/lib/utils'
-import { CategoryIcon } from '@/lib/categoryIcons'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import type { RecurringItem } from '@/hooks/useHomeData'
 
 interface RecurringRowProps {

@@ -1,5 +1,5 @@
 import { formatVND } from '@/lib/utils'
-import { CategoryIcon } from '@/lib/categoryIcons'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import {
   Dialog,
   DialogContent,
