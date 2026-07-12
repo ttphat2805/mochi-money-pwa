@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCalendar } from '@/hooks/useCalendar'
+import { triggerHaptic } from '@/lib/haptic'
 import { useAppStore } from '@/stores/appStore'
 import { CalendarGrid } from './CalendarGrid'
 import { MonthSummary } from './MonthSummary'
@@ -18,6 +19,21 @@ export function CalendarPage() {
   const [slideDir, setSlideDir] = useState<'left' | 'right' | null>(null)
   const showSkeleton = useShouldShowSkeleton(cal.isLoading)
   const accent = settings.accentColor
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  // "Hôm nay" is only useful when we're not already looking at today
+  const isViewingToday =
+    cal.viewMonthKey === cal.today.slice(0, 7) &&
+    (!cal.selectedDay || cal.selectedDay === cal.today)
+
+  // Bring the day detail panel into view when a day is picked
+  useEffect(() => {
+    if (!cal.selectedDay) return
+    const t = setTimeout(() => {
+      panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }, 220) // after the panel's enter animation settles
+    return () => clearTimeout(t)
+  }, [cal.selectedDay])
 
   useEffect(() => {
     setCalendarSelectedDay(cal.selectedDay)
@@ -33,11 +49,13 @@ export function CalendarPage() {
   }
 
   const goNext = () => {
+    triggerHaptic('light')
     setSlideDir('left')
     cal.goToNextMonth()
   }
 
   const goPrev = () => {
+    triggerHaptic('light')
     setSlideDir('right')
     cal.goToPrevMonth()
   }
@@ -60,18 +78,23 @@ export function CalendarPage() {
             </p>
           </div>
 
-          {/* Today pill — small, unobtrusive */}
-          <button
-            type="button"
-            onClick={cal.goToToday}
-            className="mb-0.5 h-7 px-3 rounded-full text-[11px] font-bold transition-all active:scale-90"
-            style={{
-              background: tint(accent, 9),
-              color: accent,
-            }}
-          >
-            Hôm nay
-          </button>
+          {/* Today pill — only when not already viewing today */}
+          {!isViewingToday && (
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic('light')
+                cal.goToToday()
+              }}
+              className="mb-0.5 h-8 px-3.5 rounded-full text-[11px] font-bold transition-all active:scale-95"
+              style={{
+                background: tint(accent, 9),
+                color: accent,
+              }}
+            >
+              Hôm nay
+            </button>
+          )}
         </div>
 
         {/* Month navigation — inline, no card buttons */}
@@ -79,7 +102,7 @@ export function CalendarPage() {
           <button
             type="button"
             onClick={goPrev}
-            className="size-8 flex items-center justify-center rounded-full active:bg-white/5 transition-colors"
+            className="size-10 flex items-center justify-center rounded-full active:bg-white/5 transition-colors"
             aria-label="Tháng trước"
           >
             <ChevronLeft className="size-[18px] text-text-muted" />
@@ -101,7 +124,7 @@ export function CalendarPage() {
             type="button"
             onClick={goNext}
             disabled={!cal.canGoNext}
-            className="size-8 flex items-center justify-center rounded-full active:bg-white/5 transition-colors disabled:opacity-25"
+            className="size-10 flex items-center justify-center rounded-full active:bg-white/5 transition-colors disabled:opacity-25"
             aria-label="Tháng sau"
           >
             <ChevronRight className="size-[18px] text-text-muted" />
@@ -134,6 +157,7 @@ export function CalendarPage() {
               <AnimatePresence mode="wait">
                 {cal.selectedDay && (
                   <motion.div
+                    ref={panelRef}
                     key={cal.selectedDay}
                     initial={{ opacity: 0, y: -6 }}
                     animate={{ opacity: 1, y: 0 }}

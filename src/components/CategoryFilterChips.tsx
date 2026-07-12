@@ -32,12 +32,19 @@ export function CategoryFilterChips({
 
   const activeKey = selectedId == null ? 'all' : String(selectedId)
 
-  // Keep the selected chip centered in view
+  // Bring the selected chip into view — but only when it's actually cut off
+  // at an edge, so taps on visible chips don't move the row at all
   React.useEffect(() => {
     const scroller = scrollerRef.current
     const chip = chipRefs.current.get(activeKey)
     if (!scroller || !chip) return
-    const target = chip.offsetLeft - (scroller.clientWidth - chip.offsetWidth) / 2
+    const margin = 24
+    const chipLeft = chip.offsetLeft
+    const chipRight = chipLeft + chip.offsetWidth
+    const viewLeft = scroller.scrollLeft
+    const viewRight = viewLeft + scroller.clientWidth
+    if (chipLeft >= viewLeft + margin && chipRight <= viewRight - margin) return
+    const target = chipLeft - (scroller.clientWidth - chip.offsetWidth) / 2
     scroller.scrollTo({ left: Math.max(0, target), behavior: 'smooth' })
   }, [activeKey, categories.length])
 
@@ -108,7 +115,7 @@ function Chip({
       ref={chipRef}
       type="button"
       onClick={onClick}
-      whileTap={{ scale: 0.95 }}
+      whileTap={{ scale: 0.97 }}
       aria-pressed={isActive}
       className={cn(
         'relative snap-start shrink-0 flex h-8 items-center gap-1.5 rounded-full px-3.5 transition-colors duration-200',
@@ -117,13 +124,16 @@ function Chip({
         // Inverted pill: near-white fill + navy text on the dark theme
         isActive ? 'text-bg' : 'bg-surface2/60 text-text-muted',
       )}
-      style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
+      // pan-x (not 'manipulation'): buttons cover the whole row, so their
+      // touch-action must match the scroller's or vertical swipes starting
+      // on a chip scroll the page instead of being ignored
+      style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'pan-x' }}
     >
       {isActive && (
         <motion.span
           layoutId={pillId}
           className="absolute inset-0 rounded-full bg-text shadow-sm"
-          transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
+          transition={{ type: 'tween', duration: 0.18, ease: 'easeOut' }}
         />
       )}
       {icon && (

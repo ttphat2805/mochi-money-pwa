@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { useDashboard } from '@/hooks/useDashboard'
 import { MonthlyTab } from './MonthlyTab'
 import { HistoryTab } from './HistoryTab'
 import { getMonthLabel } from '@/lib/utils'
+import { triggerHaptic } from '@/lib/haptic'
 import { PullToRefresh } from '@/components/PullToRefresh'
 import { useShouldShowSkeleton } from '@/hooks/useShouldShowSkeleton'
 import { OverviewSkeleton } from './OverviewSkeleton'
@@ -32,23 +34,45 @@ export function DashboardPage() {
         <span className="text-text-muted text-[13px]">{rightLabel}</span>
       </header>
 
-      {/* Sub-tabs */}
-      <div className="border-border grid grid-cols-2 border-b">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            id={`dashboard-tab-${tab.id}`}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={`h-11 border-b-2 text-[13px] font-medium transition-colors ${
-              activeTab === tab.id
-                ? 'border-accent text-accent-dark'
-                : 'border-transparent text-text-muted'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Sub-tabs — segmented control with sliding pill */}
+      <div
+        role="tablist"
+        className="mx-4 mb-2 flex rounded-full bg-surface p-1 border border-border/60"
+      >
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id
+          return (
+            <button
+              key={tab.id}
+              id={`dashboard-tab-${tab.id}`}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => {
+                if (isActive) return
+                triggerHaptic('light')
+                setActiveTab(tab.id)
+              }}
+              className="relative h-10 flex-1 rounded-full text-[13px] font-bold"
+              style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
+            >
+              {isActive && (
+                <motion.span
+                  layoutId="dashboard-tab-pill"
+                  className="absolute inset-0 rounded-full bg-accent shadow-sm"
+                  transition={{ type: 'tween', duration: 0.2, ease: 'easeOut' }}
+                />
+              )}
+              <span
+                className={`relative z-10 transition-colors duration-150 ${
+                  isActive ? 'text-white' : 'text-text-muted'
+                }`}
+              >
+                {tab.label}
+              </span>
+            </button>
+          )
+        })}
       </div>
 
       {/* Scrollable content */}

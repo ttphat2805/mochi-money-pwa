@@ -132,8 +132,10 @@ export const RecentTransactions = React.memo(({ transactions, onViewAll }: Recen
           </div>
         ) : (
           // No keyed remount here: re-keying on filter change would unmount
-          // and remount every swipeable row just to replay a fade
-          <div className="flex flex-col gap-3">
+          // and remount every swipeable row just to replay a fade.
+          // min-height keeps the section from collapsing when a filter
+          // shortens the list (prevents vertical scroll jumps).
+          <div className={selectedCategoryId != null ? 'flex flex-col gap-3 min-h-[280px]' : 'flex flex-col gap-3'}>
             {groups.map((group) => (
               <div key={group.date}>
                 {/* Day header */}

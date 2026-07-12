@@ -212,7 +212,9 @@ export function HistoryTab() {
           </div>
         )}
 
-        {/* Transaction list */}
+        {/* Transaction list — reserved height so switching filters can't
+            collapse the page and cause a vertical scroll jump */}
+        <div className="min-h-[55dvh]">
         {history.filteredTransactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-8 text-center">
             <FolderOpen size={40} className="text-text-hint mb-3" />
@@ -251,6 +253,7 @@ export function HistoryTab() {
             })}
           </div>
         )}
+        </div>
       </div>
 
       <TransactionDetailSheet

@@ -1,6 +1,8 @@
+import { useMemo } from 'react'
 import type { useDashboard } from '@/hooks/useDashboard'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import { triggerHaptic } from '@/lib/haptic'
-import { cn, formatShort, formatVND } from '@/lib/utils'
+import { cn, formatShort, formatVND, tint } from '@/lib/utils'
 import { useAppStore } from '@/stores/appStore'
 import { motion } from 'framer-motion'
 import { Activity, BarChart3, PieChart as PieChartIcon, TrendingDown, TrendingUp } from 'lucide-react'
@@ -17,6 +19,25 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
   const { dashboardChartMode: chartMode, setDashboardChartMode: setChartMode } = useAppStore()
 
   const { monthTotal, settings, donutData, last4MonthsBar, lastMonthTotal } = data
+
+  // Donut readability: slivers under 3% become confetti on a thin ring, so
+  // group them into one muted "Khác" slice. The legend below still lists
+  // every category individually.
+  const chartSlices = useMemo(() => {
+    if (monthTotal <= 0) return donutData
+    const small = donutData.filter((d) => d.value / monthTotal < 0.03)
+    if (small.length < 2) return donutData
+    return [
+      ...donutData.filter((d) => d.value / monthTotal >= 0.03),
+      {
+        name: 'Khác',
+        value: small.reduce((s, d) => s + d.value, 0),
+        color: '#64748B',
+        icon: 'package',
+        pct: Math.round((small.reduce((s, d) => s + d.value, 0) / monthTotal) * 100),
+      },
+    ]
+  }, [donutData, monthTotal])
 
   const diff = monthTotal - lastMonthTotal
   const isIncrease = diff > 0
@@ -101,7 +122,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
         <div className="px-2 pb-6 pt-2">
           {/* Distribution — donut */}
           {chartMode === 'distribution' && (
-            <div className="animate-in fade-in zoom-in-95 duration-300 pb-4 pt-2">
+            <div className="animate-in fade-in duration-300 pb-4 pt-2">
               {donutData.length > 0 ? (
                 <>
                   {/* Full-width donut chart */}
@@ -109,19 +130,48 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart style={{ outline: 'none' }}>
                         <defs>
-                          {donutData.map((d, i) => {
-                            const gradId = `pie-grad-${i}`;
-                            return (
-                              <linearGradient key={gradId} id={gradId} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor={d.color} stopOpacity={1} />
-                                <stop offset="100%" stopColor={d.color} stopOpacity={0.65} />
-                              </linearGradient>
-                            );
-                          })}
-                          <filter id="pie-3d-shadow" x="-50%" y="-50%" width="200%" height="200%">
-                            <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#000" floodOpacity="0.12" />
+                          {/* Gentle top-to-bottom shading per slice (3D hint) */}
+                          {chartSlices.map((d, i) => (
+                            <linearGradient key={`donut-shade-${i}`} id={`donut-shade-${i}`} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor={d.color} stopOpacity={1} />
+                              <stop offset="100%" stopColor={d.color} stopOpacity={0.78} />
+                            </linearGradient>
+                          ))}
+                          {/* Soft lift shadow for the ring */}
+                          <filter id="donut-lift" x="-30%" y="-30%" width="160%" height="160%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="5" floodColor="#000" floodOpacity="0.35" />
+                          </filter>
+                          {/* Heavy blur for the glow layer */}
+                          <filter id="donut-glow" x="-40%" y="-40%" width="180%" height="180%">
+                            <feGaussianBlur stdDeviation="10" />
                           </filter>
                         </defs>
+
+                        {/* Blurred color glow behind the ring (depth) */}
+                        <Pie
+                          data={chartSlices}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius="70%"
+                          outerRadius="94%"
+                          paddingAngle={2}
+                          dataKey="value"
+                          cornerRadius={6}
+                          stroke="none"
+                          isAnimationActive={false}
+                          style={{ outline: 'none', pointerEvents: 'none' }}
+                        >
+                          {chartSlices.map((d, i) => (
+                            <Cell
+                              key={`glow-${i}`}
+                              fill={d.color}
+                              opacity={0.35}
+                              filter="url(#donut-glow)"
+                              style={{ outline: 'none' }}
+                            />
+                          ))}
+                        </Pie>
+
                         <RechartsTooltip
                           cursor={false}
                           content={({ active, payload }) => {
@@ -139,73 +189,36 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                           }}
                         />
                         <Pie
-                          data={donutData}
+                          data={chartSlices}
                           cx="50%"
                           cy="50%"
-                          innerRadius="68%"
-                          outerRadius="94%"
-                          paddingAngle={5}
+                          innerRadius="72%"
+                          outerRadius="92%"
+                          paddingAngle={2}
                           dataKey="value"
-                          cornerRadius={20}
+                          cornerRadius={6}
                           stroke="none"
                           isAnimationActive={true}
                           animationBegin={0}
-                          animationDuration={800}
+                          animationDuration={600}
                           style={{ outline: 'none' }}
                         >
-                          {donutData.map((_d, i) => (
+                          {chartSlices.map((_d, i) => (
                             <Cell
                               key={`cell-${i}`}
-                              fill={`url(#pie-grad-${i})`}
-                              filter="url(#pie-3d-shadow)"
+                              fill={`url(#donut-shade-${i})`}
+                              filter="url(#donut-lift)"
                               style={{ outline: 'none', cursor: 'default' }}
                             />
                           ))}
                         </Pie>
-
-                        {/* 3D Glass Reflection Overlay — Outer Rim */}
-                        <Pie
-                          data={donutData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius="88%"
-                          outerRadius="91%"
-                          paddingAngle={5}
-                          dataKey="value"
-                          cornerRadius={20}
-                          stroke="none"
-                          isAnimationActive={true}
-                          animationBegin={0}
-                          animationDuration={800}
-                          style={{ outline: 'none', pointerEvents: 'none' }}
-                        >
-                          {donutData.map((_d, i) => (
-                            <Cell key={`outer-rim-${i}`} fill="rgba(255,255,255,0.25)" style={{ outline: 'none' }} />
-                          ))}
-                        </Pie>
-
-                        {/* 3D Glass Reflection Overlay — Inner Rim */}
-                        <Pie
-                          data={donutData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius="71%"
-                          outerRadius="74%"
-                          paddingAngle={5}
-                          dataKey="value"
-                          cornerRadius={20}
-                          stroke="none"
-                          isAnimationActive={true}
-                          animationBegin={0}
-                          animationDuration={800}
-                          style={{ outline: 'none', pointerEvents: 'none' }}
-                        >
-                          {donutData.map((_d, i) => (
-                            <Cell key={`inner-rim-${i}`} fill="rgba(255,255,255,0.12)" style={{ outline: 'none' }} />
-                          ))}
-                        </Pie>
                       </PieChart>
                     </ResponsiveContainer>
+
+                    {/* Frosted glass center disc */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="size-[132px] rounded-full bg-white/3 backdrop-blur-[3px] border border-white/6" />
+                    </div>
 
                     {/* Center label overlay with dynamic font scaling */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ paddingTop: '4px' }}>
@@ -235,19 +248,26 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                     {donutData.map((item) => {
                       const pct = monthTotal > 0 ? Math.round((item.value / monthTotal) * 100) : 0
                       return (
-                        <div key={item.name} className="flex items-center gap-3.5 py-3.5 px-4 rounded-[22px] bg-surface2 border border-border/40 shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-all active:scale-[0.98]">
-                          {/* Color dot */}
+                        <div key={item.name} className="relative overflow-hidden flex items-center gap-3 py-2.5 px-3 rounded-2xl bg-surface2/60 border border-border/40 transition-transform active:scale-[0.98]">
+                          {/* Proportional fill behind the row */}
                           <div
-                            className="size-3.5 rounded-full shrink-0 shadow-sm"
-                            style={{ background: item.color }}
+                            className="absolute inset-y-0 left-0 rounded-2xl pointer-events-none"
+                            style={{ width: `${pct}%`, background: tint(item.color, 7) }}
                           />
+                          {/* Category icon chip */}
+                          <div
+                            className="relative size-9 rounded-xl flex items-center justify-center shrink-0"
+                            style={{ background: tint(item.color, 12) }}
+                          >
+                            <CategoryIcon icon={item.icon} size={16} color={item.color} />
+                          </div>
                           {/* Name */}
-                          <span className="text-[14px] text-text font-bold flex-1 truncate">{item.name}</span>
+                          <span className="relative text-[14px] text-text font-bold flex-1 truncate">{item.name}</span>
                           {/* Amount */}
-                          <span className="font-num text-[14px] font-bold text-text-muted shrink-0 opacity-80">{formatShort(item.value)}</span>
+                          <span className="relative font-num text-[14px] font-bold text-text-muted shrink-0 opacity-80">{formatShort(item.value)}</span>
                           {/* Percentage badge */}
                           <span
-                            className="font-num text-[13px] font-black shrink-0 min-w-[36px] text-right"
+                            className="relative font-num text-[13px] font-black shrink-0 min-w-[36px] text-right"
                             style={{ color: item.color }}
                           >
                             {pct}%

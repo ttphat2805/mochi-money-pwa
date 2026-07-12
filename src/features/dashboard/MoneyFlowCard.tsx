@@ -20,13 +20,25 @@ function polar(deg: number) {
   return { x: CX + R * Math.cos(rad), y: CY + R * Math.sin(rad) }
 }
 
-/** Arc path between two fractions (0..1) of the semicircle */
+/**
+ * Arc path between two fractions (0..1) of the semicircle.
+ * The large-arc flag stays 0: a fraction span maps to at most a 180° sweep,
+ * so the "large" (>180°) arc is never the right choice — setting it for
+ * spans > 0.5 made renderers draw the long way around the circle (the
+ * deformed ghost ring seen on mobile).
+ */
 function arcPath(from: number, to: number) {
   const start = polar(180 + from * 180)
   const end = polar(180 + to * 180)
-  const largeArc = to - from > 0.5 ? 1 : 0
-  return `M ${start.x} ${start.y} A ${R} ${R} 0 ${largeArc} 1 ${end.x} ${end.y}`
+  return `M ${start.x} ${start.y} A ${R} ${R} 0 0 1 ${end.x} ${end.y}`
 }
+
+/**
+ * The full background track sweeps exactly 180°, where the arc flag is
+ * genuinely ambiguous (both candidate arcs are equal length) and renderers
+ * disagree. Split into two unambiguous 90° halves.
+ */
+const TRACK_PATH = `${arcPath(0, 0.5)} ${arcPath(0.5, 1)}`
 
 interface MoneyFlowCardProps {
   monthTotal: number
@@ -71,11 +83,11 @@ export function MoneyFlowCard({ monthTotal, settings }: MoneyFlowCardProps) {
       ) : (
         <>
           {/* Gauge */}
-          <div className="flex justify-center">
+          <div className="flex justify-center mb-3">
             <svg viewBox="0 0 220 128" className="w-[240px] max-w-full" role="img"
               aria-label={`Đã chi ${Math.round(spentPct * 100)}% thu nhập tháng này`}>
               {/* Track */}
-              <path d={arcPath(0, 1)} fill="none" stroke="rgba(255,255,255,0.08)"
+              <path d={TRACK_PATH} fill="none" stroke="rgba(255,255,255,0.08)"
                 strokeWidth={STROKE} strokeLinecap="round" />
 
               {/* Kept portion (drawn under the spent arc) */}
@@ -100,26 +112,31 @@ export function MoneyFlowCard({ monthTotal, settings }: MoneyFlowCardProps) {
                 />
               )}
 
-              {/* Needle */}
+              {/* Progress knob riding the arc at the spent/kept boundary.
+                  Drawn at the arc's start and rotated into place around the
+                  center, so it always sits exactly on the ring. */}
               <motion.g
                 style={{ transformOrigin: `${CX}px ${CY}px` }}
                 initial={{ rotate: 0 }}
                 animate={{ rotate: spentPct * 180 }}
-                transition={{ type: 'spring', bounce: 0.25, duration: 0.9, delay: 0.15 }}
+                transition={{ type: 'spring', bounce: 0.2, duration: 0.8, delay: 0.15 }}
               >
-                <line x1={CX - 18} y1={CY} x2={CX - R + 26} y2={CY}
-                  stroke="#F8FAFC" strokeWidth={4} strokeLinecap="round" />
+                <circle cx={CX - R} cy={CY} r={11} fill="var(--color-card)" />
+                <circle cx={CX - R} cy={CY} r={9} fill="#F8FAFC" />
+                <circle cx={CX - R} cy={CY} r={4} fill={COLOR_OUT} />
               </motion.g>
-              <circle cx={CX} cy={CY} r={11} fill={COLOR_IN} />
-              <circle cx={CX} cy={CY} r={4.5} fill="#F8FAFC" />
+
+              {/* Center readout inside the arch */}
+              <text x={CX} y={CY - 14} textAnchor="middle" fill="var(--color-text)"
+                fontSize="30" fontWeight="800" className="font-num">
+                {Math.round(spentPct * 100)}%
+              </text>
+              <text x={CX} y={CY + 6} textAnchor="middle" fill="var(--color-text-muted)"
+                fontSize="11" fontWeight="500">
+                thu nhập đã chi
+              </text>
             </svg>
           </div>
-
-          {/* Center caption */}
-          <p className="text-center font-num text-[13px] text-text-muted -mt-1 mb-4">
-            <span className="text-[16px] font-black text-text">{Math.round(spentPct * 100)}%</span>{' '}
-            thu nhập đã chi
-          </p>
 
           {/* Legend */}
           <div className="grid grid-cols-3 gap-2">
