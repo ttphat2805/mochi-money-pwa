@@ -9,7 +9,7 @@ import { useShouldShowSkeleton } from '@/hooks/useShouldShowSkeleton'
 import { CalendarSkeleton } from './CalendarSkeleton'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePersonalization } from '@/hooks/usePersonalization'
-import { formatVND } from '@/lib/utils'
+import { formatVND, tint } from '@/lib/utils'
 
 export function CalendarPage() {
   const cal = useCalendar()
@@ -17,7 +17,7 @@ export function CalendarPage() {
   const { settings } = usePersonalization()
   const [slideDir, setSlideDir] = useState<'left' | 'right' | null>(null)
   const showSkeleton = useShouldShowSkeleton(cal.isLoading)
-  const accent = settings.accentColor || '#E8A020'
+  const accent = settings.accentColor
 
   useEffect(() => {
     setCalendarSelectedDay(cal.selectedDay)
@@ -66,7 +66,7 @@ export function CalendarPage() {
             onClick={cal.goToToday}
             className="mb-0.5 h-7 px-3 rounded-full text-[11px] font-bold transition-all active:scale-90"
             style={{
-              background: `${accent}18`,
+              background: tint(accent, 9),
               color: accent,
             }}
           >
@@ -79,7 +79,7 @@ export function CalendarPage() {
           <button
             type="button"
             onClick={goPrev}
-            className="size-8 flex items-center justify-center rounded-full active:bg-black/8 transition-colors"
+            className="size-8 flex items-center justify-center rounded-full active:bg-white/5 transition-colors"
             aria-label="Tháng trước"
           >
             <ChevronLeft className="size-[18px] text-text-muted" />
@@ -101,7 +101,7 @@ export function CalendarPage() {
             type="button"
             onClick={goNext}
             disabled={!cal.canGoNext}
-            className="size-8 flex items-center justify-center rounded-full active:bg-black/8 transition-colors disabled:opacity-25"
+            className="size-8 flex items-center justify-center rounded-full active:bg-white/5 transition-colors disabled:opacity-25"
             aria-label="Tháng sau"
           >
             <ChevronRight className="size-[18px] text-text-muted" />

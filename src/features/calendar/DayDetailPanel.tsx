@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Plus, ChevronRight, CalendarPlus, Coffee } from 'lucide-react'
-import { formatVND } from '@/lib/utils'
+import { formatVND, sumSpent, tint } from '@/lib/utils'
+import { NoteBadge } from '@/components/NoteBadge'
 import { TransactionDetailSheet } from '@/features/transactions/TransactionDetailSheet'
 import type { BudgetCategory, Transaction } from '@/types'
 import { motion } from 'framer-motion'
 import { usePersonalization } from '@/hooks/usePersonalization'
+import { CategoryIcon } from '@/lib/categoryIcons'
 
 interface TxWithCategory extends Transaction {
   category: BudgetCategory | undefined
@@ -56,8 +58,8 @@ export function DayDetailPanel({
   onAddTransaction,
 }: DayDetailPanelProps) {
   const { settings } = usePersonalization()
-  const accent = settings.accentColor || '#E8A020'
-  const total = transactions.reduce((s, tx) => s + (tx.isNote ? 0 : tx.amount), 0)
+  const accent = settings.accentColor
+  const total = sumSpent(transactions)
   const isFuture = selectedDay > today
   const [selectedTx, setSelectedTx] = useState<TxWithCategory | null>(null)
   const { title, sub } = getDayLabel(selectedDay, today)
@@ -65,15 +67,15 @@ export function DayDetailPanel({
   return (
     <>
       <div
-        className="rounded-[24px] overflow-hidden border border-border/60"
-        style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}
+        className="rounded-[24px] overflow-hidden border border-border/60 bg-card"
+        style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.25)' }}
       >
         {/* ── Header ── */}
         <div
           className="px-5 py-4 flex items-center justify-between"
           style={{
-            background: `linear-gradient(135deg, ${accent}12 0%, ${accent}06 100%)`,
-            borderBottom: '1px solid rgba(0,0,0,0.05)',
+            background: `linear-gradient(135deg, ${tint(accent, 7)} 0%, ${tint(accent, 2)} 100%)`,
+            borderBottom: '1px solid var(--color-border)',
           }}
         >
           <div>
@@ -106,19 +108,19 @@ export function DayDetailPanel({
         </div>
 
         {/* ── Body ── */}
-        <div className="bg-white">
+        <div className="bg-card">
           {transactions.length === 0 ? (
             /* Empty state */
             <div className="flex flex-col items-center justify-center py-9 px-5 text-center gap-3">
               {isFuture ? (
                 <div
                   className="size-14 rounded-2xl flex items-center justify-center mb-1"
-                  style={{ background: `${accent}15` }}
+                  style={{ background: tint(accent, 8) }}
                 >
                   <CalendarPlus size={26} style={{ color: accent }} strokeWidth={1.5} />
                 </div>
               ) : (
-                <div className="size-14 rounded-2xl flex items-center justify-center mb-1 bg-amber-50">
+                <div className="size-14 rounded-2xl flex items-center justify-center mb-1 bg-amber-400/10">
                   <Coffee size={26} className="text-amber-400" strokeWidth={1.5} />
                 </div>
               )}
@@ -139,29 +141,29 @@ export function DayDetailPanel({
                       hour12: false,
                     })
                   : ''
-                const catColor = tx.category?.color ?? '#88887A'
+                const catColor = tx.category?.color ?? 'var(--color-text-muted)'
 
                 return (
                   <motion.button
                     key={tx.id}
                     type="button"
-                    whileTap={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
+                    whileTap={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
                     onClick={() => setSelectedTx(tx)}
                     className="flex items-center gap-3.5 px-5 py-3.5 w-full text-left transition-colors"
                     style={{
-                      borderBottom: idx < transactions.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none',
+                      borderBottom: idx < transactions.length - 1 ? '1px solid var(--color-border)' : 'none',
                     }}
                   >
                     {/* Category icon */}
                     <div
-                      className="shrink-0 flex items-center justify-center rounded-[14px] text-[18px] leading-none"
+                      className="shrink-0 flex items-center justify-center rounded-[14px] leading-none"
                       style={{
                         width: 42,
                         height: 42,
-                        background: catColor + '18',
+                        background: tint(catColor, 9),
                       }}
                     >
-                      {tx.category?.icon ?? '📦'}
+                      <CategoryIcon icon={tx.category?.icon} size={20} color={tx.category?.color} className="text-text-muted" />
                     </div>
 
                     {/* Name + note/time */}
@@ -171,9 +173,7 @@ export function DayDetailPanel({
                           {tx.category?.name ?? 'Không rõ'}
                         </p>
                         {tx.isNote && (
-                          <span className="shrink-0 text-[9px] font-black text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-100 leading-none">
-                            GHI CHÚ
-                          </span>
+                          <NoteBadge />
                         )}
                       </div>
                       <p className="text-text-hint text-[11px] truncate">

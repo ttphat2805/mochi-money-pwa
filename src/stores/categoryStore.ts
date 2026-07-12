@@ -1,14 +1,6 @@
 import { create } from 'zustand'
 import { db } from '@/lib/db'
-import type { BudgetCategory } from '@/types'
-
-export const CATEGORY_COLORS = [
-  '#F59E0B', '#10B981', '#3B82F6', '#EF4444', 
-  '#8B5CF6', '#EC4899', '#06B6D4', '#F97316',
-  '#14B8A6', '#6366F1', '#D946EF', '#84CC16',
-  '#0EA5E9', '#F43F5E', '#A855F7', '#10B981',
-  '#FCD34D', '#34D399', '#60A5FA', '#F87171'
-]
+import { CATEGORY_COLORS, type BudgetCategory } from '@/types'
 
 interface CategoryState {
   categories: BudgetCategory[]

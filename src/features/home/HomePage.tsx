@@ -9,6 +9,7 @@ import type { TabKey } from "@/components/BottomNav";
 import { useShouldShowSkeleton } from "@/hooks/useShouldShowSkeleton";
 import { HomeSkeleton } from "./HomeSkeleton";
 import { WaveBackground } from "@/components/ui/WaveBackground";
+import { PiggyBank } from "lucide-react";
 import * as React from "react";
 import { useAppStore } from "@/stores/appStore";
 
@@ -52,7 +53,9 @@ export function HomePage({ onNavigate, onSettings }: HomePageProps) {
             <HomeSkeleton />
           ) : isEmpty ? (
             <div className="flex flex-col items-center justify-center px-8 pt-20 pb-8 text-center">
-              <div className="text-[64px] mb-4">🍡</div>
+              <div className="mb-4">
+                <PiggyBank size={56} className="text-text-hint" strokeWidth={1.5} />
+              </div>
               <h2 className="text-[20px] font-bold mb-2 text-text">Chào mừng đến Mochi!</h2>
               <p className="text-text-muted text-[14px] mb-6">Bắt đầu bằng cách ghi chi tiêu đầu tiên của bạn</p>
               <button

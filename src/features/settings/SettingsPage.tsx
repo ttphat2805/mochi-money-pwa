@@ -1,3 +1,4 @@
+import { House, LayoutGrid, Repeat, Wallet } from 'lucide-react'
 import { BackButton } from '@/components/BackButton'
 import { SettingsRow } from './SettingsRow'
 import { SectionLabel } from './SettingsHelpers'
@@ -36,9 +37,9 @@ export function SettingsPage({ onBack, onGoRecurring, onGoFixedExpenses, onGoFin
 
         {/* Khoản lặp lại */}
         <SectionLabel>Khoản lặp lại</SectionLabel>
-        <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">
+        <div className="bg-card mx-4 rounded-xl overflow-hidden border border-border">
           <SettingsRow
-            icon="↻"
+            icon={<Repeat size={18} className="text-text-muted" />}
             label="Quản lý recurring"
             sublabel="Ăn trưa, cafe, xăng xe..."
             onTap={onGoRecurring}
@@ -47,20 +48,20 @@ export function SettingsPage({ onBack, onGoRecurring, onGoFixedExpenses, onGoFin
 
         {/* Tài chính */}
         <SectionLabel>Tài chính</SectionLabel>
-        <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">
-          <SettingsRow icon="💰" label="Tài chính & Tiết kiệm" sublabel="Thu nhập, mục tiêu..." onTap={onGoFinancial} />
+        <div className="bg-card mx-4 rounded-xl overflow-hidden border border-border">
+          <SettingsRow icon={<Wallet size={18} className="text-text-muted" />} label="Tài chính & Tiết kiệm" sublabel="Thu nhập, mục tiêu..." onTap={onGoFinancial} />
         </div>
 
         {/* Danh mục */}
         <SectionLabel>Danh mục</SectionLabel>
-        <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">
-          <SettingsRow icon="◫" label="Quản lý danh mục" onTap={onGoCategories} />
+        <div className="bg-card mx-4 rounded-xl overflow-hidden border border-border">
+          <SettingsRow icon={<LayoutGrid size={18} className="text-text-muted" />} label="Quản lý danh mục" onTap={onGoCategories} />
         </div>
 
         {/* Chi phí cố định */}
         <SectionLabel>Chi phí cố định</SectionLabel>
-        <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">
-          <SettingsRow icon="🏠" label="Chi phí cố định" sublabel="Tiền nhà, điện nước..." onTap={onGoFixedExpenses} />
+        <div className="bg-card mx-4 rounded-xl overflow-hidden border border-border">
+          <SettingsRow icon={<House size={18} className="text-text-muted" />} label="Chi phí cố định" sublabel="Tiền nhà, điện nước..." onTap={onGoFixedExpenses} />
         </div>
 
         {/* Dữ liệu */}

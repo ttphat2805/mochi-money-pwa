@@ -40,7 +40,7 @@ export function SchedulePicker({ preset, customDays, onPreset, onToggleDay }: Sc
             className={`h-9 flex-1 rounded-full border-[1.5px] text-[13px] font-medium transition-all ${
               preset === p.key
                 ? 'border-accent bg-accent text-white'
-                : 'border-border bg-white text-text-muted active:bg-surface'
+                : 'border-border bg-card text-text-muted active:bg-surface2'
             }`}
           >
             {p.label}

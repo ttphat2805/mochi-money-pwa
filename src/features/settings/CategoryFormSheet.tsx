@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import {
   Sheet,
@@ -7,10 +7,10 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
+import { IconPickerSheet } from '@/components/IconPickerSheet'
+import { CategoryIcon } from '@/lib/categoryIcons'
 import { formatVND } from '@/lib/utils'
 import type { BudgetCategory } from '@/types'
-
-const EmojiPickerSheet = lazy(() => import('@/components/EmojiPickerSheet').then((m) => ({ default: m.EmojiPickerSheet })))
 
 interface CategoryFormSheetProps {
   open: boolean
@@ -21,7 +21,7 @@ interface CategoryFormSheetProps {
   onDelete?: () => void
 }
 
-const DEFAULT_ICON = '📦'
+const DEFAULT_ICON = 'package'
 
 export function CategoryFormSheet({
   open,
@@ -39,7 +39,7 @@ export function CategoryFormSheet({
     editCategory?.limitPerMonth ? String(editCategory.limitPerMonth) : '',
   )
   const [isSaving, setIsSaving] = useState(false)
-  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false)
+  const [iconPickerOpen, setIconPickerOpen] = useState(false)
 
   // Sync when editCategory changes (sheet opens with different target)
   useEffect(() => {
@@ -83,7 +83,7 @@ export function CategoryFormSheet({
         <SheetContent
           side="bottom"
           showCloseButton={true}
-          className="rounded-t-3xl bg-white p-0"
+          className="rounded-t-3xl bg-card p-0"
           style={{ maxHeight: '90dvh' }}
         >
           <SheetTitle className="sr-only">
@@ -94,15 +94,15 @@ export function CategoryFormSheet({
           </SheetDescription>
 
           <div className="overflow-y-auto px-5 py-4 flex flex-col gap-5">
-            {/* ── Emoji selector ── */}
+            {/* ── Icon selector ── */}
             <div className="flex flex-col items-center gap-2">
               <button
                 type="button"
-                onClick={() => setEmojiPickerOpen(true)}
-                className="relative size-20 rounded-3xl bg-accent-bg flex items-center justify-center text-4xl leading-none transition-transform active:scale-95"
+                onClick={() => setIconPickerOpen(true)}
+                className="relative size-20 rounded-3xl bg-accent-bg flex items-center justify-center transition-transform active:scale-95"
                 aria-label="Thay đổi biểu tượng"
               >
-                {icon}
+                <CategoryIcon icon={icon} size={36} className="text-accent-dark" />
                 {/* Edit badge */}
                 <div className="absolute -bottom-1 -right-1 size-6 rounded-full bg-accent flex items-center justify-center shadow-sm">
                   <Pencil size={10} color="white" />
@@ -148,7 +148,7 @@ export function CategoryFormSheet({
               </div>
 
               {limitEnabled && (
-                <div className="border-border rounded-xl border bg-white px-4 py-3 flex items-center gap-2">
+                <div className="border-border rounded-xl border bg-surface px-4 py-3 flex items-center gap-2">
                   <div className="flex-1">
                     <p className="text-text-hint text-[10px] uppercase tracking-[1px] mb-1">
                       Giới hạn mỗi tháng
@@ -172,7 +172,7 @@ export function CategoryFormSheet({
               type="button"
               onClick={handleSave}
               disabled={!canSave || isSaving}
-              className="h-12 w-full rounded-[14px] bg-text text-white text-[15px] font-semibold disabled:opacity-40 transition-all active:scale-[0.98]"
+              className="h-12 w-full rounded-[14px] bg-accent text-white text-[15px] font-semibold disabled:opacity-40 transition-all active:scale-[0.98]"
             >
               {isSaving ? '...' : isEdit ? 'Lưu thay đổi' : 'Thêm danh mục'}
             </button>
@@ -195,15 +195,14 @@ export function CategoryFormSheet({
         </SheetContent>
       </Sheet>
 
-      {/* Emoji picker — separate sheet on top */}
-      {emojiPickerOpen && (
-        <Suspense fallback={null}>
-          <EmojiPickerSheet
-            open={emojiPickerOpen}
-            onClose={() => setEmojiPickerOpen(false)}
-            onSelect={setIcon}
-          />
-        </Suspense>
+      {/* Icon picker — separate sheet on top */}
+      {iconPickerOpen && (
+        <IconPickerSheet
+          open={iconPickerOpen}
+          onClose={() => setIconPickerOpen(false)}
+          onSelect={setIcon}
+          currentIcon={icon}
+        />
       )}
     </>
   )

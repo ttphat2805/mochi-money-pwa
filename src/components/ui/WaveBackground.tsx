@@ -10,8 +10,9 @@ export const WaveBackground = memo(() => {
       >
         <defs>
           <linearGradient id="primaryWave" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.85" />
-            <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.5" />
+            {/* Trust-blue hero wave; green stays reserved for CTAs */}
+            <stop offset="0%" stopColor="var(--color-primary)" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.4" />
           </linearGradient>
         </defs>
 

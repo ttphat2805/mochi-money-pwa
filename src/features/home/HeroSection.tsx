@@ -1,4 +1,4 @@
-import { formatVND, formatShort } from '@/lib/utils'
+import { formatVND, formatShort, tint } from '@/lib/utils'
 import type { FinancialSettings } from '@/types'
 import { motion } from 'framer-motion'
 import * as React from 'react'
@@ -26,7 +26,7 @@ export const HeroSection = React.memo(({
   lastMonthSpent = 0,
 }: HeroSectionProps) => {
   const { settings: appSettings } = usePersonalization()
-  const accent = appSettings.accentColor || '#E8A020'
+  const accent = appSettings.accentColor
   const hasIncome = !!settings?.income
   const pctInt = spentPct !== null ? Math.round(spentPct * 100) : null
   const isOver = (remainingBudget ?? 0) < 0
@@ -46,8 +46,8 @@ export const HeroSection = React.memo(({
         style={{
           background: `linear-gradient(145deg, ${accent}F0 0%, ${accent}CC 100%)`,
           boxShadow: isOver
-            ? `0 16px 48px rgba(214,62,62,0.35), 0 4px 12px rgba(214,62,62,0.2), 0 0 0 2px rgba(214,62,62,0.5)`
-            : `0 16px 48px ${accent}40, 0 4px 12px ${accent}25`,
+            ? `0 16px 48px rgba(220,38,38,0.35), 0 4px 12px rgba(220,38,38,0.2), 0 0 0 2px rgba(220,38,38,0.5)`
+            : `0 16px 48px ${tint(accent, 25)}, 0 4px 12px ${tint(accent, 15)}`,
         }}
       >
         {/* Decorative gloss blobs */}

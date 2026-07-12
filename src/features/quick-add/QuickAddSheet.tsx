@@ -2,7 +2,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useQuickAdd } from "@/hooks/useQuickAdd";
 import { triggerHaptic } from "@/lib/haptic";
 import { cn } from "@/lib/utils";
-import { X, Info } from "lucide-react";
+import { X, Info, StickyNote } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { AmountDisplay } from "./AmountDisplay";
@@ -87,7 +87,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
     const result = await save();
     if (result.success) {
       if (result.isFirst) {
-        toast.success("Đã ghi thành công! 🎉", { duration: 4000 });
+        toast.success("Đã ghi thành công!", { duration: 4000 });
         triggerHaptic("success");
       } else {
         triggerHaptic("success");
@@ -124,19 +124,19 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
           side="bottom"
           showCloseButton={false}
           className={cn(
-            "bg-[#F7F5F0] rounded-t-[32px] p-0 shadow-2xl border-none flex flex-col",
+            "bg-surface rounded-t-[32px] p-0 shadow-2xl border-none flex flex-col",
           )}
           style={{ height: '92dvh', maxHeight: '96dvh' }}
         >
           <div className="flex flex-col h-full">
             {/* ── HEADER: close + amount + date ── */}
-            <div className="px-5 pt-3 pb-3 shrink-0 bg-[#F7F5F0]">
+            <div className="px-5 pt-3 pb-3 shrink-0 bg-surface">
               {/* Top row: title + isNote switch + date + close */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {/* Title */}
                   <span className={`text-[11px] font-black tracking-[2px] uppercase ${
-                    isNote ? 'text-indigo-400' : 'text-black/30'
+                    isNote ? 'text-sky-400' : 'text-text-hint'
                   }`}>
                     {isNote ? 'Ghi chú' : 'Chi tiêu'}
                   </span>
@@ -149,7 +149,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                     className="relative flex-shrink-0"
                   >
                     <div className={`relative w-8 h-[18px] rounded-full transition-colors duration-200 ${
-                      isNote ? 'bg-indigo-500' : 'bg-black/15'
+                      isNote ? 'bg-sky-500' : 'bg-white/15'
                     }`}>
                       <div className={`absolute top-[2px] size-[14px] rounded-full bg-white shadow-sm transition-transform duration-200 ${
                         isNote ? 'translate-x-[18px]' : 'translate-x-[2px]'
@@ -163,7 +163,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                       type="button"
                       onClick={() => setShowNoteTooltip((v) => !v)}
                       aria-label="Giải thích ghi chú"
-                      className="flex items-center justify-center size-[18px] rounded-full text-black/25 active:text-black/50 transition-colors"
+                      className="flex items-center justify-center size-[18px] rounded-full text-text-hint active:text-text-muted transition-colors"
                     >
                       <Info size={13} />
                     </button>
@@ -171,15 +171,17 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                     {/* Floating tooltip */}
                     {showNoteTooltip && (
                       <div
-                        className="absolute top-6 left-1/2 -translate-x-1/2 z-50 w-[220px] rounded-2xl bg-[#1C1C1E] shadow-xl p-3 text-left"
-                        style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.22)' }}
+                        className="absolute top-6 left-1/2 -translate-x-1/2 z-50 w-[220px] rounded-2xl bg-surface2 border border-border shadow-xl p-3 text-left"
+                        style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
                       >
                         {/* Arrow */}
-                        <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 size-3 rotate-45 bg-[#1C1C1E]" />
-                        <p className="text-white text-[12px] font-semibold mb-1">📓 Ghi chú
-                          <span className="font-normal text-white/60"> (không tính chi tiêu)</span>
+                        <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 size-3 rotate-45 bg-surface2" />
+                        <p className="text-text text-[12px] font-semibold mb-1 flex items-center gap-1">
+                          <StickyNote size={12} className="text-text-muted shrink-0" />
+                          Ghi chú
+                          <span className="font-normal text-text-muted"> (không tính chi tiêu)</span>
                         </p>
-                        <p className="text-white/65 text-[11px] leading-[1.5]">
+                        <p className="text-text-muted text-[11px] leading-[1.5]">
                           Giao dịch này sẽ được lưu nhưng không ảnh hưởng đến tổng chi tiêu, ngân sách hay biểu đồ. Dùng cho các khoản như học phí, đầu tư một lần...
                         </p>
                       </div>
@@ -194,9 +196,9 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                   />
                   <button
                     onClick={close}
-                    className="!min-h-7 size-7 rounded-full bg-black/6 flex items-center justify-center active:scale-90 transition-transform"
+                    className="!min-h-7 size-7 rounded-full bg-white/10 flex items-center justify-center active:scale-90 transition-transform"
                   >
-                    <X size={13} className="text-black/40" />
+                    <X size={13} className="text-text-muted" />
                   </button>
                 </div>
               </div>
@@ -233,7 +235,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
             </div>
 
             <div
-              className="px-5 pb-[calc(10px+env(safe-area-inset-bottom))] shrink-0 bg-[#F7F5F0] pt-2 border-t border-black/5"
+              className="px-5 pb-[calc(10px+env(safe-area-inset-bottom))] shrink-0 bg-surface pt-2 border-t border-border"
             >
               <div className="mb-3 relative">
                 <NoteInput 
@@ -250,7 +252,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                       if (document.activeElement instanceof HTMLElement)
                         document.activeElement.blur()
                     }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-7 px-3 rounded-full bg-text text-white text-[12px] font-semibold active:scale-90 transition-transform"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-7 px-3 rounded-full bg-text text-bg text-[12px] font-semibold active:scale-90 transition-transform"
                   >
                     Xong
                   </button>

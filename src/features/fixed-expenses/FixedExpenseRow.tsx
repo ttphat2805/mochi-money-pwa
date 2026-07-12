@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { Switch } from '@/components/ui/switch'
-import { formatVND } from '@/lib/utils'
-import { useLiveQuery } from 'dexie-react-hooks'
-import { db } from '@/lib/db'
+import { formatVND, tint } from '@/lib/utils'
+import { useCategoryStore } from '@/stores/categoryStore'
 import type { FixedExpense } from '@/types'
 import { motion, useMotionValue, animate, type PanInfo } from 'framer-motion'
 import { Trash } from 'lucide-react'
+import { CategoryIcon } from '@/lib/categoryIcons'
 import { triggerHaptic } from '@/lib/haptic'
 
 interface FixedExpenseRowProps {
@@ -16,9 +16,8 @@ interface FixedExpenseRowProps {
 }
 
 export function FixedExpenseRow({ expense, onEdit, onToggleActive, onDelete }: FixedExpenseRowProps) {
-  const categories = useLiveQuery(() => db.categories.toArray())
-  const category = categories?.find((c) => c.id === expense.categoryId)
-  const displayIcon = category?.icon ?? '📦'
+  const { categories } = useCategoryStore()
+  const category = categories.find((c) => c.id === expense.categoryId)
   const displayColor = category?.color ?? 'var(--color-accent)'
 
   const x = useMotionValue(0)
@@ -75,14 +74,14 @@ export function FixedExpenseRow({ expense, onEdit, onToggleActive, onDelete }: F
         onDragEnd={handleDragEnd}
         onClick={handleRowTap}
         whileTap={{ scale: Math.abs(x.get()) < 5 ? 0.98 : 1 }}
-        className="bg-white relative z-10 flex cursor-grab min-h-[56px] items-center gap-3 px-4 py-3 active:bg-surface active:cursor-grabbing w-full"
+        className="bg-card relative z-10 flex cursor-grab min-h-[56px] items-center gap-3 px-4 py-3 active:bg-surface2 active:cursor-grabbing w-full"
       >
         {/* Icon */}
-        <div 
-          className="flex size-10 shrink-0 items-center justify-center rounded-xl text-xl leading-none"
-          style={{ background: displayColor + '15' }}
+        <div
+          className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+          style={{ background: tint(displayColor, 8) }}
         >
-          {displayIcon}
+          <CategoryIcon icon={category?.icon} size={20} color={displayColor} />
         </div>
 
         {/* Name + schedule */}

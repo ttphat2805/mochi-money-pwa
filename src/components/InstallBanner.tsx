@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Smartphone } from 'lucide-react'
 
 function isIOS(): boolean {
   return /iphone|ipad|ipod/i.test(navigator.userAgent)
@@ -43,10 +44,10 @@ export function InstallBanner() {
       }}
     >
       <div
-        className="flex items-start gap-3 rounded-2xl p-4"
-        style={{ backgroundColor: '#1A1A18' }}
+        className="flex items-start gap-3 rounded-2xl p-4 border border-border"
+        style={{ backgroundColor: 'var(--color-surface2)' }}
       >
-        <span className="text-2xl leading-none">🍡</span>
+        <Smartphone size={22} className="text-accent-dark shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-white mb-0.5">
             Cài Mochi lên màn hình chính

@@ -5,6 +5,7 @@ import { useAppStore } from '@/stores/appStore'
 import { motion } from 'framer-motion'
 import { Activity, BarChart3, PieChart as PieChartIcon, TrendingDown, TrendingUp } from 'lucide-react'
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, Tooltip as RechartsTooltip, ResponsiveContainer, XAxis } from 'recharts'
+import { MoneyFlowCard } from './MoneyFlowCard'
 import { StatCards } from './StatCards'
 
 
@@ -34,10 +35,11 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
         <StatCards monthTotal={monthTotal} settings={settings} />
       </div>
 
-
+      {/* Money-flow gauge: money in vs out vs kept */}
+      <MoneyFlowCard monthTotal={monthTotal} settings={settings} />
 
       {/* Main Chart Card styled like the reference image */}
-      <div className="mt-8 mx-4 rounded-[32px] bg-white shadow-[0_8px_32px_rgba(0,0,0,0.04)] border border-border/40 overflow-hidden mb-6">
+      <div className="mt-8 mx-4 rounded-[32px] bg-card shadow-[0_8px_32px_rgba(0,0,0,0.25)] border border-border/40 overflow-hidden mb-6">
         {/* Header & Pill Toggle */}
         <div className="flex flex-wrap items-start justify-between px-6 pt-6 pb-2 gap-y-3">
           <div className="flex flex-col pr-2">
@@ -51,7 +53,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
           </div>
 
           {/* D/W/M-style Pill Toggle but for our features */}
-          <div className="inline-flex items-center bg-surface p-0.5 rounded-full shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-border/60">
+          <div className="inline-flex items-center bg-surface p-0.5 rounded-full shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.2)] border border-border/60">
             <button
               onClick={() => {
                 triggerHaptic('light')
@@ -126,7 +128,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                             if (active && payload && payload.length) {
                               const item = payload[0].payload;
                               return (
-                                <div className="bg-white/90 backdrop-blur-md px-3 py-2 rounded-xl shadow-lg border border-border flex items-center gap-2">
+                                <div className="bg-surface2/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-lg border border-border flex items-center gap-2">
                                   <div className="size-3 rounded-full" style={{ backgroundColor: item.color }} />
                                   <span className="font-medium text-[13px] text-text">{item.name}</span>
                                   <span className="font-bold text-[13px] text-text">{formatVND(item.value)}đ</span>
@@ -233,7 +235,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                     {donutData.map((item) => {
                       const pct = monthTotal > 0 ? Math.round((item.value / monthTotal) * 100) : 0
                       return (
-                        <div key={item.name} className="flex items-center gap-3.5 py-3.5 px-4 rounded-[22px] bg-white border border-border/40 shadow-[0_4px_12px_rgba(0,0,0,0.03)] transition-all active:scale-[0.98]">
+                        <div key={item.name} className="flex items-center gap-3.5 py-3.5 px-4 rounded-[22px] bg-surface2 border border-border/40 shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-all active:scale-[0.98]">
                           {/* Color dot */}
                           <div
                             className="size-3.5 rounded-full shrink-0 shadow-sm"
@@ -275,14 +277,14 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                           <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0.6} />
                         </linearGradient>
                         <linearGradient id="bar-grad-inactive" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#C9C9C4" stopOpacity={0.7} />
-                          <stop offset="100%" stopColor="#E2E2DF" stopOpacity={0.3} />
+                          <stop offset="0%" stopColor="#94A3B8" stopOpacity={0.45} />
+                          <stop offset="100%" stopColor="#94A3B8" stopOpacity={0.12} />
                         </linearGradient>
                         <filter id="bar-shadow" x="-20%" y="-20%" width="140%" height="140%">
                           <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#000" floodOpacity="0.08" />
                         </filter>
                     </defs>
-                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#E5E5E0" />
+                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="rgba(255,255,255,0.07)" />
                     <XAxis 
                       dataKey="monthLabel" 
                       axisLine={false} 
@@ -291,7 +293,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                         const yNum = typeof y === 'number' ? y : Number(y)
                         const isCurrent = payload.value === barData.find(d => d.isCurrentMonth)?.monthLabel
                         return (
-                          <text x={x} y={yNum + 12} fill={isCurrent ? '#1A1A18' : '#88887A'} fontSize={12} fontWeight={isCurrent ? 700 : 500} textAnchor="middle" fontFamily="JetBrains Mono, monospace">
+                          <text x={x} y={yNum + 12} fill={isCurrent ? '#F8FAFC' : '#94A3B8'} fontSize={12} fontWeight={isCurrent ? 700 : 500} textAnchor="middle" fontFamily="JetBrains Mono, monospace">
                             {payload.value}
                           </text>
                         )
@@ -304,9 +306,9 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                           const data = payload[0].payload;
                           const isCurrent = data.isCurrentMonth;
                           return (
-                            <div className="bg-[#1A1A18] px-3 py-2 rounded-xl shadow-lg flex flex-col gap-0.5">
-                              <span className="text-[10px] text-[#88887A]">{data.monthLabel}</span>
-                              <span className="font-bold text-[14px]" style={{ color: isCurrent ? 'var(--color-accent)' : '#fff' }}>
+                            <div className="bg-surface2 border border-border px-3 py-2 rounded-xl shadow-lg flex flex-col gap-0.5">
+                              <span className="text-[10px] text-text-muted">{data.monthLabel}</span>
+                              <span className="font-bold text-[14px]" style={{ color: isCurrent ? 'var(--color-accent-dark)' : '#fff' }}>
                                 {formatVND(data.amount)}đ
                               </span>
                             </div>
@@ -339,15 +341,15 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                   <div
                     className="px-4 py-3 rounded-2xl flex items-center gap-3 transition-all active:scale-[0.98]"
                     style={{
-                      background: isIncrease ? '#FFF5F5' : '#F2FCF7',
-                      border: `1px solid ${isIncrease ? '#FFE5E5' : '#E4F7ED'}`
+                      background: isIncrease ? 'rgba(220,38,38,0.10)' : 'rgba(16,185,129,0.10)',
+                      border: `1px solid ${isIncrease ? 'rgba(220,38,38,0.25)' : 'rgba(16,185,129,0.25)'}`
                     }}
                   >
-                    <div 
+                    <div
                       className="size-[34px] rounded-full flex items-center justify-center shrink-0 shadow-sm"
-                      style={{ background: isIncrease ? '#FFE5E5' : '#E4F7ED' }}
+                      style={{ background: isIncrease ? 'rgba(220,38,38,0.18)' : 'rgba(16,185,129,0.18)' }}
                     >
-                      {isIncrease ? <TrendingUp size={16} color="#D63E3E" /> : <TrendingDown size={16} color="var(--color-success)" />}
+                      {isIncrease ? <TrendingUp size={16} color="#F87171" /> : <TrendingDown size={16} color="#34D399" />}
                     </div>
                     <div className="flex-1 flex flex-col justify-center">
                       <p className="text-[12px] text-text-muted font-medium mb-[3px] leading-none">
@@ -355,7 +357,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                       </p>
                       <p 
                         className="font-num text-[16px] font-black leading-none"
-                        style={{ color: isIncrease ? '#D63E3E' : 'var(--color-success)' }}
+                        style={{ color: isIncrease ? '#F87171' : '#34D399' }}
                       >
                         {formatVND(Math.abs(diff))}đ
                       </p>
@@ -365,7 +367,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
 
                 {monthTotal > 0 && (
                   <div className="px-4 py-3 rounded-2xl flex items-center gap-3 bg-surface/50 border border-border/40 transition-all active:scale-[0.98]">
-                    <div className="size-[34px] rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-border/20 text-(--color-accent)">
+                    <div className="size-[34px] rounded-full bg-surface2 flex items-center justify-center shrink-0 shadow-sm border border-border/20 text-(--color-accent-dark)">
                       <Activity size={16} />
                     </div>
                     <div className="flex-1 flex flex-col justify-center">
@@ -376,7 +378,7 @@ export function MonthlyTab({ data }: MonthlyTabProps) {
                     </div>
                     <div className="text-right">
                        <p className="text-[10px] text-text-hint font-bold uppercase tracking-tight mb-0.5">Trung bình</p>
-                       <p className="text-[13px] font-black text-(--color-accent) font-num leading-none">{formatShort(averageDaily)}/n</p>
+                       <p className="text-[13px] font-black text-(--color-accent-dark) font-num leading-none">{formatShort(averageDaily)}/n</p>
                     </div>
                   </div>
                 )}

@@ -1,3 +1,4 @@
+import { Bell, Clock, Smartphone } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { HourPicker } from '@/components/HourPicker'
 import { SettingsRow } from './SettingsRow'
@@ -33,8 +34,9 @@ export function NotificationSettings() {
       {/* Not installed warning */}
       {isSupported && !isInstalled && (
         <div className="mx-4 mb-2 rounded-xl border border-accent/20 bg-accent-bg p-3">
-          <p className="text-[12px] text-accent-dark font-medium">
-            📲 Cần cài app lên màn hình chính để dùng thông báo
+          <p className="text-[12px] text-accent-dark font-medium flex items-center gap-1.5">
+            <Smartphone size={13} className="shrink-0" />
+            Cần cài app lên màn hình chính để dùng thông báo
           </p>
           <p className="text-text-muted mt-0.5 text-[11px]">
             Tap Share → Add to Home Screen trong Safari
@@ -55,9 +57,9 @@ export function NotificationSettings() {
       )}
 
       {/* Toggle row */}
-      <div className="bg-white mx-4 rounded-xl overflow-hidden border border-border">
+      <div className="bg-card mx-4 rounded-xl overflow-hidden border border-border">
         <SettingsRow
-          icon="🔔"
+          icon={<Bell size={18} className="text-text-muted" />}
           label="Nhắc chi tiêu hằng ngày"
           sublabel={
             enabled
@@ -79,7 +81,7 @@ export function NotificationSettings() {
           <>
             <Divider />
             <div className="flex items-center gap-3 px-4 py-3">
-              <span className="text-lg leading-none shrink-0">⏰</span>
+              <Clock size={18} className="text-text-muted shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[14px] font-medium mb-2">Giờ nhắc</p>
                 <HourPicker value={hour} onChange={setHour} />

@@ -35,10 +35,10 @@ export function getBudgetStatus(spent: number, limit: number | null): BudgetStat
 }
 
 export const BUDGET_STATUS_COLORS: Record<BudgetStatus, string> = {
-  ok:      '#2A9D6E',
-  warning: '#D97706',
-  danger:  '#E8A020',
-  over:    '#D63E3E',
+  ok:      '#10B981',
+  warning: '#FBBF24',
+  danger:  '#FB923C',
+  over:    '#EF4444',
 }
 
 /** Fixed monthly expense (rent, bills, etc.) */
@@ -59,7 +59,7 @@ export interface FixedExpense {
 export interface BudgetCategory {
   id?: number
   name: string
-  /** Emoji icon */
+  /** Icon name from lib/categoryIcons; legacy emoji values resolve via fallback */
   icon: string
   /** Auto-assigned, not user-selectable */
   color: string
@@ -123,41 +123,59 @@ export interface Transaction {
    ─────────────────────────────────────────── */
 
 export const CATEGORY_COLORS = [
-  '#E8A020', // amber
-  '#D63E3E', // red
-  '#2A9D6E', // green
-  '#3B82F6', // blue
-  '#8B5CF6', // violet
-  '#EC4899', // pink
-  '#F59E0B', // yellow
-  '#06B6D4', // cyan
-  '#10B981', // emerald
-  '#6366F1', // indigo
+  '#F59E0B', // amber
+  '#F87171', // red
+  '#34D399', // emerald
+  '#60A5FA', // blue
+  '#A78BFA', // violet
+  '#F472B6', // pink
+  '#FBBF24', // yellow
+  '#22D3EE', // cyan
+  '#4ADE80', // green
+  '#818CF8', // indigo
 ] as const
+
+/**
+ * Old (light-theme) palette → new dark-theme palette.
+ * Used by the DB migration to brighten colors already stored per category.
+ */
+export const LEGACY_CATEGORY_COLOR_MAP: Record<string, string> = {
+  '#E8A020': '#F59E0B',
+  '#D63E3E': '#F87171',
+  '#2A9D6E': '#34D399',
+  '#3B82F6': '#60A5FA',
+  '#8B5CF6': '#A78BFA',
+  '#EC4899': '#F472B6',
+  '#F59E0B': '#FBBF24',
+  '#06B6D4': '#22D3EE',
+  '#10B981': '#4ADE80',
+  '#6366F1': '#818CF8',
+}
 
 /* ───────────────────────────────────────────
    Default seed categories
    ─────────────────────────────────────────── */
 
 export interface SeedCategory {
+  /** Icon name from the category icon registry (lib/categoryIcons) */
   icon: string
   name: string
 }
 
 export const DEFAULT_CATEGORIES: SeedCategory[] = [
-  { icon: '🍜', name: 'Ăn uống' },
-  { icon: '☕', name: 'Cafe & Trà sữa' },
-  { icon: '🚕', name: 'Di chuyển' },
-  { icon: '⛽', name: 'Xăng xe' },
-  { icon: '🔧', name: 'Sửa xe' },
-  { icon: '🛍️', name: 'Shopee' },
-  { icon: '🛒', name: 'Mua sắm' },
-  { icon: '🎉', name: 'Đám tiệc' },
-  { icon: '🎁', name: 'Quà' },
-  { icon: '💳', name: 'Trả nợ' },
-  { icon: '🏠', name: 'Nhà & Điện nước' },
-  { icon: '💊', name: 'Sức khỏe' },
-  { icon: '🎮', name: 'Giải trí' },
-  { icon: '🍺', name: 'Nhậu' },
-  { icon: '📦', name: 'Khác' },
+  { icon: 'utensils', name: 'Ăn uống' },
+  { icon: 'coffee', name: 'Cafe & Trà sữa' },
+  { icon: 'car-taxi-front', name: 'Di chuyển' },
+  { icon: 'fuel', name: 'Xăng xe' },
+  { icon: 'wrench', name: 'Sửa xe' },
+  { icon: 'shopping-bag', name: 'Shopee' },
+  { icon: 'shopping-cart', name: 'Mua sắm' },
+  { icon: 'party-popper', name: 'Đám tiệc' },
+  { icon: 'gift', name: 'Quà' },
+  { icon: 'credit-card', name: 'Trả nợ' },
+  { icon: 'house', name: 'Nhà & Điện nước' },
+  { icon: 'pill', name: 'Sức khỏe' },
+  { icon: 'gamepad-2', name: 'Giải trí' },
+  { icon: 'beer', name: 'Nhậu' },
+  { icon: 'package', name: 'Khác' },
 ] as const

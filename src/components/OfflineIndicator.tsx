@@ -44,12 +44,12 @@ export function OfflineIndicator() {
       className="fixed inset-x-0 z-[100] flex items-center justify-center py-1.5 text-[12px] font-medium text-white transition-all"
       style={{
         top: 'env(safe-area-inset-top, 0px)',
-        backgroundColor: online ? '#2A9D6E' : '#1A1A18',
+        backgroundColor: online ? 'var(--color-success)' : 'var(--color-surface2)',
       }}
     >
       {online
         ? '✓ Đã kết nối lại'
-        : '⚡ Đang offline · Dữ liệu đã lưu trên thiết bị'}
+        : 'Đang offline · Dữ liệu đã lưu trên thiết bị'}
     </div>
   )
 }

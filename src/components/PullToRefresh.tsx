@@ -76,7 +76,7 @@ export function PullToRefresh({ onRefresh, children }: { onRefresh: () => Promis
           <Loader2 className="animate-spin size-6 text-accent" />
         ) : (
           <div 
-            className="rounded-full bg-white shadow-md flex items-center justify-center border border-border"
+            className="rounded-full bg-card shadow-md flex items-center justify-center border border-border"
             style={{ 
               width: 32, 
               height: 32, 

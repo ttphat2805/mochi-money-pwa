@@ -19,6 +19,23 @@ export function formatVND(amount: number): string {
 }
 
 /**
+ * Translucent tint of any CSS color (hex, var(), named).
+ * Replaces the `hex + '15'` concatenation idiom, which silently breaks on
+ * var() references and forces literal hexes at every call site.
+ */
+export function tint(color: string, alphaPct: number): string {
+  return `color-mix(in srgb, ${color} ${alphaPct}%, transparent)`
+}
+
+/**
+ * Sum spending across transactions, excluding notes (isNote) — the single
+ * home of the "notes don't count as spending" rule.
+ */
+export function sumSpent(txs: { amount: number; isNote?: boolean }[]): number {
+  return txs.reduce((s, t) => s + (t.isNote ? 0 : t.amount), 0)
+}
+
+/**
  * Format a Date object as 'YYYY-MM-DD' string in Asia/Ho_Chi_Minh timezone.
  */
 export function formatDateToString(date: Date): string {

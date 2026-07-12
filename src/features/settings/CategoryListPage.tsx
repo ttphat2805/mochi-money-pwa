@@ -21,8 +21,9 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ChevronRight, GripVertical, Plus } from 'lucide-react'
+import { ChevronRight, FolderOpen, GripVertical, Plus } from 'lucide-react'
 import { memo, useCallback, useState } from 'react'
+import { CategoryIcon } from '@/lib/categoryIcons'
 import { CategoryFormSheet } from './CategoryFormSheet'
 
 interface CategoryListPageProps {
@@ -40,21 +41,21 @@ export const CategoryRowContent = memo(function CategoryRowContent({
 }) {
   return (
     <div
-      className="flex items-center gap-3 bg-white px-4 py-3"
+      className="flex items-center gap-3 bg-card px-4 py-3"
       style={{
         border: isDragOverlay ? '1.5px solid var(--color-accent)' : undefined,
-        boxShadow: isDragOverlay ? '0 8px 24px rgba(0,0,0,0.12)' : undefined,
+        boxShadow: isDragOverlay ? '0 8px 24px rgba(0,0,0,0.4)' : undefined,
         borderRadius: isDragOverlay ? 14 : undefined,
       }}
     >
       {/* Drag handle placeholder (no props — overlay can't drag) */}
-      <div className="shrink-0 flex items-center justify-center p-1 -ml-1 text-[#C0BEB4]">
+      <div className="shrink-0 flex items-center justify-center p-1 -ml-1 text-text-hint">
         <GripVertical size={16} />
       </div>
 
       {/* Icon */}
-      <div className="size-9 shrink-0 flex items-center justify-center rounded-xl bg-surface text-xl leading-none">
-        {category.icon}
+      <div className="size-9 shrink-0 flex items-center justify-center rounded-xl bg-surface">
+        <CategoryIcon icon={category.icon} size={18} color={category.color} />
       </div>
 
       {/* Name + budget */}
@@ -95,22 +96,22 @@ export const SortableCategoryRow = memo(function SortableCategoryRow({
       <button
         type="button"
         onClick={() => onEdit(category)}
-        className="flex items-center gap-3 bg-white px-4 py-3 w-full text-left transition-colors active:bg-surface"
+        className="flex items-center gap-3 bg-card px-4 py-3 w-full text-left transition-colors active:bg-surface2"
       >
         {/* Drag handle — stopPropagation so dragging doesn't trigger edit */}
         <div
           {...attributes}
           {...listeners}
           onClick={(e) => e.stopPropagation()}
-          className="shrink-0 flex items-center justify-center p-1 -ml-1 text-[#C0BEB4] touch-none cursor-grab active:cursor-grabbing"
+          className="shrink-0 flex items-center justify-center p-1 -ml-1 text-text-hint touch-none cursor-grab active:cursor-grabbing"
           style={{ touchAction: 'none' }}
         >
           <GripVertical size={16} />
         </div>
 
         {/* Icon */}
-        <div className="size-9 shrink-0 flex items-center justify-center rounded-xl bg-surface text-xl leading-none">
-          {category.icon}
+        <div className="size-9 shrink-0 flex items-center justify-center rounded-xl bg-surface">
+          <CategoryIcon icon={category.icon} size={18} color={category.color} />
         </div>
 
         {/* Name + subtitle */}
@@ -223,12 +224,12 @@ export function CategoryListPage({ onBack }: CategoryListPageProps) {
         <div className="flex-1 overflow-y-auto pb-8">
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-20">
-              <p className="text-3xl">📂</p>
+              <FolderOpen size={32} className="text-text-hint" />
               <p className="text-text-muted text-[13px]">Chưa có danh mục nào</p>
               <p className="text-text-hint text-[11px]">Nhấn + để thêm</p>
             </div>
           ) : (
-            <div className="mt-2 mx-4 rounded-xl overflow-hidden border border-border bg-white">
+            <div className="mt-2 mx-4 rounded-xl overflow-hidden border border-border bg-card">
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}

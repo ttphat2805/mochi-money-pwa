@@ -82,7 +82,7 @@ export function DatePickerSheet({
       {/* Backdrop — tap to dismiss */}
       <div
         onClick={onClose}
-        className="fixed inset-0 z-60 bg-black/20 transition-opacity duration-200"
+        className="fixed inset-0 z-60 bg-black/40 transition-opacity duration-200"
         style={{
           opacity: open ? 1 : 0,
           pointerEvents: open ? "auto" : "none",
@@ -130,7 +130,7 @@ export function DatePickerSheet({
                 className={`snap-center shrink-0 h-9 rounded-full border-[1.5px] px-4 text-[13px] font-medium transition-all ${
                   picker.activeShortcut === s.key
                     ? "border-accent bg-accent text-white"
-                    : "border-border bg-white text-text-muted active:bg-surface"
+                    : "border-border bg-card text-text-muted active:bg-surface2"
                 }`}
               >
                 {s.label}
@@ -231,10 +231,10 @@ export function DatePickerSheet({
           <button
             type="button"
             onClick={handleConfirm}
-            className="bg-text mb-4 flex h-12 w-full items-center justify-center gap-2 rounded-[14px] text-white transition-opacity active:opacity-80"
+            className="bg-accent mb-4 flex h-12 w-full items-center justify-center gap-2 rounded-[14px] text-white transition-opacity active:opacity-80"
           >
             <span className="text-sm font-semibold">Xác nhận</span>
-            <span className="text-[11px] text-white/50">
+            <span className="text-[11px] text-white/60">
               {formatDateLabel(picker.selectedDate).split(" · ")[0]}
             </span>
           </button>

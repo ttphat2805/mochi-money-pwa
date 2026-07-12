@@ -34,7 +34,7 @@ export function ConfirmDialog({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
         showCloseButton={true}
-        className="max-w-[320px] rounded-[20px] bg-white p-0 shadow-xl"
+        className="max-w-[320px] rounded-[20px] bg-card p-0 shadow-xl"
       >
         {/* Body */}
         <div className="flex flex-col items-center px-6 pt-7 pb-6 gap-3">

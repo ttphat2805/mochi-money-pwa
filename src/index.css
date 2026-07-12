@@ -1,32 +1,36 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Colors from design system ── */
-  --color-bg: #F0EDE8;       /* page background — warm gray, noticeably distinct from white */
-  --color-surface: #F2F0EC;
-  --color-surface2: #E8E6E0;
-  --color-text: #1A1A18;
-  --color-text-muted: #88887A;
-  --color-text-hint: #B8B8A8;
-  --color-accent: #E8A020;
-  --color-accent-bg: #FFF4E0;
-  --color-accent-dark: #B87B10;
-  --color-danger: #D63E3E;
-  --color-danger-bg: #FFF0F0;
-  --color-success: #2A9D6E;
-  --color-success-bg: #EDFAF4;
-  --color-border: #E2E0D8;
-  --color-border2: #D0CEC4;
+  /* ── Colors — MoneyApp design system (design-system/moneyapp/MASTER.md)
+        Dark navy banking theme: trust blue + profit green on dark ── */
+  --color-bg: #0F172A;        /* page background */
+  --color-surface: #101A34;   /* muted panels, subtle fills */
+  --color-surface2: #1E2A4D;  /* pressed / elevated fills */
+  --color-card: #16213E;      /* card surfaces (replaces white cards) */
+  --color-text: #F8FAFC;
+  --color-text-muted: #94A3B8;
+  --color-text-hint: #64748B;
+  --color-accent: #059669;            /* CTA green */
+  --color-accent-rgb: 5, 150, 105;    /* runtime-overridden by applyAccentColor */
+  --color-accent-bg: rgba(5, 150, 105, 0.15);
+  --color-accent-dark: #34D399;       /* accent-toned TEXT on dark surfaces */
+  --color-danger: #DC2626;
+  --color-danger-bg: rgba(220, 38, 38, 0.15);
+  --color-success: #10B981;
+  --color-success-bg: rgba(16, 185, 129, 0.15);
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border2: rgba(255, 255, 255, 0.16);
 
   /* ── Heatmap colors for calendar ── */
-  --color-accent-h1: #FFF7EB;
-  --color-accent-h2: #FFEDD5;
-  --color-accent-h3: #FED7AA;
-  --color-accent-h4: var(--color-accent);
+  --color-accent-h1: rgba(5, 150, 105, 0.14);
+  --color-accent-h2: rgba(5, 150, 105, 0.32);
+  --color-accent-h3: rgba(5, 150, 105, 0.58);
+  --color-accent-h4: #059669;
 
   /* ── Fonts ── */
   --font-num: 'JetBrains Mono', monospace;
-  --font-ui: 'Geist', sans-serif;
+  --font-ui: 'Nunito Sans', system-ui, sans-serif;
+  --font-heading: 'Varela Round', 'Nunito Sans', system-ui, sans-serif;
 
   /* ── Radii ── */
   --radius: 16px;
@@ -36,8 +40,8 @@
   /* ── shadcn/ui generic variables ── */
   --color-background: var(--color-bg);
   --color-foreground: var(--color-text);
-  
-  --color-primary: var(--color-text);
+
+  --color-primary: #1E40AF;           /* trust blue */
   --color-primary-foreground: #FFFFFF;
 
   --color-secondary: var(--color-surface2);
@@ -48,11 +52,11 @@
 
   --color-accent-fg: var(--color-accent-dark);
   /* (already have --color-accent defined above) */
-  
+
   --color-destructive: var(--color-danger);
   --color-destructive-foreground: #FFFFFF;
 
-  --color-ring: var(--color-accent);
+  --color-ring: #1E40AF;
 
   /* ── Motion Design Easing ── */
   --transition-timing-function-app-enter: cubic-bezier(0.16, 1, 0.3, 1);
@@ -67,6 +71,11 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;         /* prevent iOS rubber-band bounce on body */
+}
+
+/* Headings use the rounded display face (Varela Round) */
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
 }
 
 #root {
@@ -150,7 +159,7 @@ input, textarea {
 
 /* ApexCharts mobile tweaks */
 .apexcharts-tooltip {
-  background: #1A1A18 !important;
+  background: #1E2A4D !important;
   color: #fff !important;
   border: none !important;
   border-radius: 8px !important;
@@ -278,44 +287,23 @@ body.dev-shell #root::before {
 
 /* ── 2026 Modern Premium Utilities ── */
 
-.glass-morphism {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.glass-morphism-dark {
-  background: rgba(26, 26, 24, 0.8);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
 .shadow-premium {
-  box-shadow: 
-    0 10px 30px -10px rgba(0, 0, 0, 0.08),
-    0 4px 12px -2px rgba(0, 0, 0, 0.03);
+  box-shadow:
+    0 10px 30px -10px rgba(0, 0, 0, 0.45),
+    0 4px 12px -2px rgba(0, 0, 0, 0.25);
 }
 
 .shadow-accent {
-  box-shadow: 0 12px 24px -8px var(--color-accent-dark-rgba, rgba(184, 123, 16, 0.25));
+  box-shadow: 0 12px 24px -8px rgba(var(--color-accent-rgb), 0.35);
 }
 
 .mesh-gradient {
-  background-color: #f0ede8;
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(232, 160, 32, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(42, 157, 110, 0.1) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(214, 62, 62, 0.05) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(55, 138, 221, 0.1) 0px, transparent 50%);
-}
-
-.text-gradient-accent {
-  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-accent) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background-color: #0F172A;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(30, 64, 175, 0.25) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(5, 150, 105, 0.16) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.10) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(5, 150, 105, 0.08) 0px, transparent 50%);
 }
 
 .active-scale {
@@ -340,20 +328,6 @@ body.dev-shell #root::before {
 }
 .btn-premium:active::after {
   opacity: 1;
-}
-
-/* ── emoji-mart overrides ── */
-em-emoji-picker {
-  --border-radius: 12px;
-  --category-icon-size: 18px;
-  --font-family: inherit;
-  --rgb-background: 250, 250, 248;
-  --rgb-input: 255, 255, 255;
-  --rgb-color: 26, 26, 24;
-  --color-border: #E2E0D8;
-  --shadow: none;
-  width: 100% !important;
-  border: none !important;
 }
 
 /* ── Accessibility & Touch ── */
@@ -392,9 +366,4 @@ button, label, .nav-item {
 @keyframes tabEnter {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes readyPulse {
-  0%, 100% { box-shadow: 0 4px 16px rgba(232, 160, 32, 0.25); }
-  50%       { box-shadow: 0 4px 24px rgba(232, 160, 32, 0.44); }
 }

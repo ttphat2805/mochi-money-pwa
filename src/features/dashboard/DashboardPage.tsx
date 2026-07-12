@@ -42,7 +42,7 @@ export function DashboardPage() {
             onClick={() => setActiveTab(tab.id)}
             className={`h-11 border-b-2 text-[13px] font-medium transition-colors ${
               activeTab === tab.id
-                ? 'border-accent text-accent'
+                ? 'border-accent text-accent-dark'
                 : 'border-transparent text-text-muted'
             }`}
           >

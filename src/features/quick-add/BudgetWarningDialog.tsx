@@ -1,4 +1,5 @@
 import { formatVND } from '@/lib/utils'
+import { CategoryIcon } from '@/lib/categoryIcons'
 import {
   Dialog,
   DialogContent,
@@ -32,11 +33,11 @@ export function BudgetWarningDialog({
 
   return (
     <Dialog open={!!warning} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent showCloseButton={true} className="p-0 overflow-hidden border-none shadow-premium rounded-[32px] bg-white/95 backdrop-blur-md">
+      <DialogContent showCloseButton={true} className="p-0 overflow-hidden border-none shadow-premium rounded-[32px] bg-card/95 backdrop-blur-md">
         <div className="flex flex-col items-center p-6 gap-4">
           {/* Icon Header */}
-          <div className="size-14 rounded-full bg-danger/10 flex items-center justify-center text-2xl shadow-inner">
-            {warning.category.icon}
+          <div className="size-14 rounded-full bg-danger/10 flex items-center justify-center shadow-inner">
+            <CategoryIcon icon={warning.category.icon} size={24} color="var(--color-danger)" />
           </div>
           
           <div className="text-center">
@@ -50,7 +51,7 @@ export function BudgetWarningDialog({
           <div className="grid grid-cols-2 gap-3 w-full mt-2">
             <button
               onClick={onCancel}
-              className="h-12 flex items-center justify-center rounded-2xl bg-surface2/50 text-[14px] font-bold text-text-muted active-scale border border-white"
+              className="h-12 flex items-center justify-center rounded-2xl bg-surface2/50 text-[14px] font-bold text-text-muted active-scale border border-border"
             >
               Bỏ qua
             </button>

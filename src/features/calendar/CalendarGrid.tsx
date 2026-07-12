@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { formatShort } from '@/lib/utils'
+import { formatShort, tint } from '@/lib/utils'
 import type { CalendarDayCell } from '@/hooks/useCalendar'
 import { getHeatLevel } from '@/hooks/useCalendar'
 import { motion } from 'framer-motion'
@@ -40,14 +40,14 @@ const DayCell = React.memo(function DayCell({
   const { date, day, isToday, isFuture } = cell
   const hasSpend = amount > 0
 
-  // Background: selected → solid accent, spending → light tint, else white
+  // Background: selected → solid accent, spending → accent tint, else card
   const bgColor = isSelected
     ? accent
     : hasSpend
       ? `${accent}${Math.round(HEAT_OPACITY[heat] * 255).toString(16).padStart(2, '0')}`
-      : '#FFFFFF'
+      : 'var(--color-card)'
 
-  // Day number color: always readable — dark on light, white on selected
+  // Day number color: always readable — near-white on dark, white on selected
   const dayColor = isSelected
     ? '#FFFFFF'
     : isToday
@@ -72,8 +72,8 @@ const DayCell = React.memo(function DayCell({
           ? `2px solid ${accent}`
           : '2px solid transparent',
         boxShadow: isSelected
-          ? `0 4px 14px ${accent}55`
-          : '0 1px 3px rgba(0,0,0,0.06)',
+          ? `0 4px 14px ${tint(accent, 33)}`
+          : '0 1px 3px rgba(0,0,0,0.2)',
         opacity: isFuture && !isToday ? 0.4 : 1,
       }}
     >
@@ -156,7 +156,7 @@ export function CalendarGrid({
             key={h}
             className="text-center text-[10px] font-bold tracking-wider py-1"
             style={{
-              color: i === 6 ? '#E05252' : 'var(--color-text-hint)',
+              color: i === 6 ? 'var(--color-danger)' : 'var(--color-text-hint)',
             }}
           >
             {h}

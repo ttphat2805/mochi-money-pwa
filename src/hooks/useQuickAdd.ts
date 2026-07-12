@@ -184,8 +184,9 @@ export function useQuickAdd(): UseQuickAddReturn {
       const t = setTimeout(() => resetState(), 400)
       return () => clearTimeout(t)
     }
-  }, [quickAddOpen]) // intentionally omit resetState/initialDate to avoid re-runs mid-session
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // intentionally omit resetState/initialDate to avoid re-runs mid-session
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quickAddOpen])
 
   const appendDigit = useCallback((digit: number) => {
     setAmountDigits((prev) => {
@@ -264,7 +265,7 @@ export function useQuickAdd(): UseQuickAddReturn {
     } finally {
       setIsSaving(false)
     }
-  }, [canSave, selectedCategoryId, amount, selectedCategory, selectedDate, note, addTransaction, close])
+  }, [canSave, selectedCategoryId, amount, selectedCategory, selectedDate, note, isNote, addTransaction, close])
 
   const save = useCallback(async (): Promise<SaveResult> => {
     if (!canSave || !selectedCategoryId || !selectedCategory) return EMPTY_RESULT

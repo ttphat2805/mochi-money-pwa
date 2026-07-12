@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Plus, Trash2 } from "lucide-react";
+import { X, Plus, Trash2, TriangleAlert } from "lucide-react";
 import { BackButton } from "@/components/BackButton";
 import {
   Dialog,
@@ -62,7 +62,7 @@ function VNDInput({
       <span className="text-text-hint text-[10px] font-medium uppercase tracking-[1.2px]">
         {label}
       </span>
-      <div className="border-border flex items-center rounded-xl border bg-white px-4 py-3 gap-2 focus-within:border-accent transition-colors">
+      <div className="border-border flex items-center rounded-xl border bg-card px-4 py-3 gap-2 focus-within:border-accent transition-colors">
         <input
           inputMode="numeric"
           type="text"
@@ -110,14 +110,15 @@ function PreviewCard({
     income > 0 ? Math.round((v / income) * 100) : 0;
 
   return (
-    <div className="rounded-[14px] border border-border bg-white p-4">
+    <div className="rounded-[14px] border border-border bg-card p-4">
       <p className="text-text-muted text-[11px] font-medium uppercase tracking-[1px] mb-3">
         Phân bổ thu nhập
       </p>
 
       {isOver ? (
-        <p className="text-danger text-[13px] font-medium">
-          ⚠️ Thu nhập không đủ bù chi phí cố định và tiết kiệm
+        <p className="text-danger text-[13px] font-medium flex items-center gap-1.5">
+          <TriangleAlert size={14} className="shrink-0" />
+          Thu nhập không đủ bù chi phí cố định và tiết kiệm
         </p>
       ) : (
         <div className="flex flex-col gap-2">
@@ -137,13 +138,13 @@ function PreviewCard({
             label="Còn để tiêu"
             amount={flex}
             pct={pctOf(flex)}
-            color="#2A9D6E"
+            color="var(--color-accent-dark)"
             bold
           />
 
           <div className="mt-3 rounded-xl bg-accent-bg px-4 py-3 border border-accent/20">
             <p className="text-text-muted text-[11px]">Mỗi ngày được tiêu</p>
-            <p className="font-num text-accent text-[18px] font-semibold mt-0.5">
+            <p className="font-num text-accent-dark text-[18px] font-semibold mt-0.5">
               ~{formatVND(daily)}đ
             </p>
           </div>
@@ -217,7 +218,7 @@ function ExtraIncomeSection({
       </div>
 
       {extraIncomes.length > 0 ? (
-        <div className="rounded-xl border border-border bg-white divide-y divide-border">
+        <div className="rounded-xl border border-border bg-card divide-y divide-border">
           {extraIncomes.map((ei) => (
             <div
               key={ei.id}
@@ -305,13 +306,13 @@ function ExtraIncomeDialog({
       <DialogContent
         showCloseButton={true}
         style={{
-          background: "#FFFFFF",
+          background: "var(--color-card)",
           borderRadius: 20,
           padding: 0,
           maxWidth: 320,
           width: "calc(100% - 48px)",
-          border: "none",
-          boxShadow: "0 8px 40px rgba(0,0,0,0.14)",
+          border: "1px solid var(--color-border)",
+          boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
           overflow: "hidden",
         }}
       >
@@ -329,7 +330,7 @@ function ExtraIncomeDialog({
               style={{
                 fontSize: 16,
                 fontWeight: 600,
-                color: "#1A1A18",
+                color: "var(--color-text)",
                 margin: 0,
               }}
             >
@@ -338,7 +339,7 @@ function ExtraIncomeDialog({
             <p
               style={{
                 fontSize: 12,
-                color: "#88887A",
+                color: "var(--color-text-muted)",
                 margin: "3px 0 0",
               }}
             >
@@ -355,7 +356,7 @@ function ExtraIncomeDialog({
               style={{
                 fontSize: 11,
                 fontWeight: 500,
-                color: "#88887A",
+                color: "var(--color-text-hint)",
                 textTransform: "uppercase",
                 letterSpacing: "0.6px",
                 display: "block",
@@ -374,17 +375,17 @@ function ExtraIncomeDialog({
                 width: "100%",
                 height: 44,
                 borderRadius: 12,
-                border: "1.5px solid #E2E0D8",
-                background: "#F5F3F0",
+                border: "1.5px solid var(--color-border2)",
+                background: "var(--color-surface)",
                 padding: "0 14px",
                 fontSize: 16, // prevents iOS zoom
-                color: "#1A1A18",
+                color: "var(--color-text)",
                 outline: "none",
                 fontFamily: "inherit",
                 transition: "border-color 0.15s",
               }}
               onFocus={(e) => (e.target.style.borderColor = "var(--color-accent)")}
-              onBlur={(e) => (e.target.style.borderColor = "#E2E0D8")}
+              onBlur={(e) => (e.target.style.borderColor = "var(--color-border2)")}
             />
           </div>
 
@@ -394,7 +395,7 @@ function ExtraIncomeDialog({
               style={{
                 fontSize: 11,
                 fontWeight: 500,
-                color: "#88887A",
+                color: "var(--color-text-hint)",
                 textTransform: "uppercase",
                 letterSpacing: "0.6px",
                 display: "block",
@@ -414,16 +415,16 @@ function ExtraIncomeDialog({
                   width: "100%",
                   height: 52,
                   borderRadius: 12,
-                  border: "1.5px solid #E2E0D8",
-                  background: amount > 0 ? "#FFF8EE" : "#F5F3F0",
+                  border: "1.5px solid var(--color-border2)",
+                  background: amount > 0 ? "var(--color-accent-bg)" : "var(--color-surface)",
                   padding: "0 40px 0 14px",
                   fontSize: 20, // large mono font, also prevents zoom
                   fontWeight: 700,
                   fontFamily: "JetBrains Mono, monospace",
-                  color: amount > 0 ? "var(--color-accent)" : "#B8B8A8",
+                  color: amount > 0 ? "var(--color-accent-dark)" : "var(--color-text-hint)",
                   outline: "none",
                   transition: "background-color 0.15s, border-color 0.15s",
-                  borderColor: amount > 0 ? "var(--color-accent-h2)" : "#E2E0D8",
+                  borderColor: amount > 0 ? "var(--color-accent-h2)" : "var(--color-border2)",
                 }}
                 onFocus={(e) =>
                   (e.target.style.borderColor =
@@ -431,7 +432,7 @@ function ExtraIncomeDialog({
                 }
                 onBlur={(e) => {
                   e.target.style.borderColor =
-                    amount > 0 ? "var(--color-accent-h2)" : "#E2E0D8";
+                    amount > 0 ? "var(--color-accent-h2)" : "var(--color-border2)";
                 }}
               />
               {/* đ suffix */}
@@ -442,7 +443,7 @@ function ExtraIncomeDialog({
                   top: "50%",
                   transform: "translateY(-50%)",
                   fontSize: 14,
-                  color: "#B8B8A8",
+                  color: "var(--color-text-hint)",
                   pointerEvents: "none",
                 }}
               >
@@ -463,7 +464,7 @@ function ExtraIncomeDialog({
                     width: 20,
                     height: 20,
                     borderRadius: "50%",
-                    background: "#C0BEB4",
+                    background: "var(--color-surface2)",
                     border: "none",
                     cursor: "pointer",
                     display: "flex",
@@ -479,7 +480,7 @@ function ExtraIncomeDialog({
         </div>
 
         {/* Divider */}
-        <div style={{ height: "0.5px", background: "#F0EDE8" }} />
+        <div style={{ height: "0.5px", background: "var(--color-border)" }} />
 
         {/* Action buttons */}
         <div
@@ -495,17 +496,17 @@ function ExtraIncomeDialog({
               flex: 1,
               height: 44,
               borderRadius: 12,
-              background: "#F2F0EC",
+              background: "var(--color-surface)",
               border: "none",
               fontSize: 14,
               fontWeight: 500,
-              color: "#88887A",
+              color: "var(--color-text-muted)",
               cursor: "pointer",
               fontFamily: "inherit",
               transition: "background 0.15s",
             }}
-            onTouchStart={(e) => (e.currentTarget.style.background = "#E8E6E0")}
-            onTouchEnd={(e) => (e.currentTarget.style.background = "#F2F0EC")}
+            onTouchStart={(e) => (e.currentTarget.style.background = "var(--color-surface2)")}
+            onTouchEnd={(e) => (e.currentTarget.style.background = "var(--color-surface)")}
           >
             Huỷ
           </button>

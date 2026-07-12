@@ -1,4 +1,5 @@
 import { formatVND } from '@/lib/utils'
+import { CategoryIcon } from '@/lib/categoryIcons'
 import type { TopCategoryItem } from '@/hooks/useDashboard'
 
 interface TopCategoriesProps {
@@ -16,7 +17,7 @@ export function TopCategories({ items }: TopCategoriesProps) {
     <div className="flex flex-col gap-3 px-4">
       {items.map((item) => (
         <div key={item.category.id} className="flex items-center gap-3">
-          <span className="text-[18px] leading-none">{item.category.icon}</span>
+          <CategoryIcon icon={item.category.icon} size={18} color={item.category.color} />
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center justify-between">
               <span className="truncate text-[12px] font-medium">{item.category.name}</span>
