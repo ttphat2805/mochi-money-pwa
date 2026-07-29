@@ -9,9 +9,10 @@ import type { TabKey } from "@/components/BottomNav";
 import { useShouldShowSkeleton } from "@/hooks/useShouldShowSkeleton";
 import { HomeSkeleton } from "./HomeSkeleton";
 import { WaveBackground } from "@/components/ui/WaveBackground";
-import { PiggyBank } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import * as React from "react";
 import { useAppStore } from "@/stores/appStore";
+import { ChibiCharacter } from "@/components/ui/ChibiCharacter";
 
 interface HomePageProps {
   onNavigate: (tab: TabKey) => void;
@@ -52,21 +53,69 @@ export function HomePage({ onNavigate, onSettings }: HomePageProps) {
           {showSkeleton ? (
             <HomeSkeleton />
           ) : isEmpty ? (
-            <div className="flex flex-col items-center justify-center px-8 pt-20 pb-8 text-center">
-              <div className="mb-4">
-                <PiggyBank size={56} className="text-text-hint" strokeWidth={1.5} />
-              </div>
-              <h2 className="text-[20px] font-bold mb-2 text-text">Chào mừng đến Mochi!</h2>
-              <p className="text-text-muted text-[14px] mb-6">Bắt đầu bằng cách ghi chi tiêu đầu tiên của bạn</p>
-              <button
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="flex flex-col items-center justify-center px-8 pt-16 pb-8 text-center"
+            >
+              {/* Chibi Character */}
+              <motion.div className="mb-6">
+                <ChibiCharacter mood="happy" size="lg" />
+              </motion.div>
+
+              {/* Decorative sparkles */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                className="absolute right-8 top-32 opacity-30"
+              >
+                <Sparkles size={32} className="text-accent" />
+              </motion.div>
+              <motion.div
+                animate={{ rotate: -360 }}
+                transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+                className="absolute left-8 top-48 opacity-20"
+              >
+                <Sparkles size={24} className="text-accent" />
+              </motion.div>
+
+              <motion.h2 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="text-[22px] font-bold mb-2 text-text"
+              >
+                Chào mừng đến Mochi Money! 🎉
+              </motion.h2>
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className="text-text-muted text-[14px] mb-8"
+              >
+                Hãy ghi chi tiêu đầu tiên để bắt đầu theo dõi tài chính của bạn
+              </motion.p>
+              <motion.button
                 type="button"
                 onClick={() => openQuickAdd()}
-                className="flex items-center gap-2 h-12 px-6 rounded-2xl bg-accent text-white font-bold text-[15px] shadow-lg shadow-accent/30 active:scale-95 transition-transform"
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4, type: 'spring', stiffness: 200 }}
+                className="flex items-center gap-2 h-12 px-6 rounded-full bg-accent text-white font-bold text-[15px] shadow-lg shadow-accent/40 hover:shadow-accent/50 transition-shadow"
               >
-                <span className="text-[18px]">+</span>
+                <motion.span 
+                  className="text-[20px]"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: 0.5 }}
+                >
+                  ✨
+                </motion.span>
                 Ghi chi tiêu đầu tiên
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
           ) : (
             <motion.div
               initial={{ opacity: 0 }}

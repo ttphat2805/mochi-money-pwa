@@ -3,6 +3,7 @@ import type { FinancialSettings } from '@/types'
 import { motion } from 'framer-motion'
 import * as React from 'react'
 import { usePersonalization } from '@/hooks/usePersonalization'
+import { ChibiCharacter } from '@/components/ui/ChibiCharacter'
 
 interface HeroSectionProps {
   settings: FinancialSettings | null
@@ -31,6 +32,10 @@ export const HeroSection = React.memo(({
   const pctInt = spentPct !== null ? Math.round(spentPct * 100) : null
   const isOver = (remainingBudget ?? 0) < 0
 
+  // Determine chibi mood based on spending
+  const chibiMood: 'happy' | 'concerned' | 'neutral' = 
+    isOver ? 'concerned' : (pctInt !== null && pctInt > 75) ? 'concerned' : 'happy'
+
   // Trend vs last month
   const hasTrend = lastMonthSpent > 0
   const diff = monthSpent - lastMonthSpent
@@ -40,7 +45,7 @@ export const HeroSection = React.memo(({
   return (
     <div className="px-4 z-10 relative">
       <div
-        className={`rounded-[28px] relative overflow-hidden ${
+        className={`rounded-[28px] relative overflow-visible ${
           isOver ? 'animate-[pulse-border_2s_ease-in-out_infinite]' : ''
         }`}
         style={{
@@ -50,6 +55,11 @@ export const HeroSection = React.memo(({
             : `0 16px 48px ${tint(accent, 25)}, 0 4px 12px ${tint(accent, 15)}`,
         }}
       >
+        {/* Chibi Character */}
+        <div className="absolute -top-8 -right-6 z-20 pointer-events-none">
+          <ChibiCharacter mood={chibiMood} size="md" />
+        </div>
+
         {/* Decorative gloss blobs */}
         <div className="absolute -right-10 -top-10 w-44 h-44 bg-white/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute left-0 bottom-0 w-32 h-32 bg-black/10 rounded-full blur-2xl pointer-events-none" />

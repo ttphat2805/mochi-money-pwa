@@ -230,10 +230,13 @@ const TransactionRow = React.memo(({
     <div className="relative overflow-hidden w-full bg-card" style={{
       borderBottom: isLast ? 'none' : '0.5px solid var(--color-border)',
     }}>
-      {/* Delete background */}
+      {/* Delete background with playful gradient */}
       <motion.div
-        style={{ opacity: bgOpacity }}
-        className="absolute inset-y-0 right-0 w-[70px] bg-danger flex items-center justify-center pointer-events-none"
+        style={{ 
+          opacity: bgOpacity,
+          background: 'linear-gradient(135deg, rgba(220,38,38,0.9) 0%, rgba(220,38,38,0.7) 100%)',
+        }}
+        className="absolute inset-y-0 right-0 w-[70px] flex items-center justify-center pointer-events-none rounded-r-2xl"
       >
         <motion.div style={{ scale: iconScale }}>
           <Trash className="size-[20px] text-white" strokeWidth={2.5} />
@@ -255,9 +258,11 @@ const TransactionRow = React.memo(({
         whileTap={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
         className="relative z-10 w-full flex items-center gap-3.5 px-4 py-3.5 text-left bg-card cursor-grab active:cursor-grabbing"
       >
-        {/* Category icon */}
-        <div
-          className="shrink-0 flex items-center justify-center rounded-[12px] leading-none shadow-sm"
+        {/* Category icon with chibi charm */}
+        <motion.div
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          whileTap={{ scale: 0.95 }}
+          className="shrink-0 flex items-center justify-center rounded-[16px] leading-none shadow-md"
           style={{
             width: 40,
             height: 40,
@@ -265,7 +270,7 @@ const TransactionRow = React.memo(({
           }}
         >
           <CategoryIcon icon={tx.category?.icon} size={18} color={tx.category?.color} className="text-text-muted" />
-        </div>
+        </motion.div>
 
         {/* Name + note/time */}
         <div className="flex-1 min-w-0">

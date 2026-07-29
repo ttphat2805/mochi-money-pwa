@@ -21,6 +21,12 @@
   --color-border: rgba(255, 255, 255, 0.08);
   --color-border2: rgba(255, 255, 255, 0.16);
 
+  /* ── Chibi Theme Colors (warm accents) ── */
+  --color-chibi-peach: #FF9F5A;
+  --color-chibi-lavender: #B18FD9;
+  --color-chibi-warm-yellow: #FFD960;
+  --color-chibi-pink: #FF9AB5;
+
   /* ── Heatmap colors for calendar ── */
   --color-accent-h1: rgba(5, 150, 105, 0.14);
   --color-accent-h2: rgba(5, 150, 105, 0.32);
@@ -366,4 +372,62 @@ button, label, .nav-item {
 @keyframes tabEnter {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Chibi Theme Animations ── */
+
+@keyframes chibi-bounce {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(-12px) scaleY(0.95); }
+}
+
+@keyframes chibi-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes chibi-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-2deg); }
+  75% { transform: rotate(2deg); }
+}
+
+@keyframes pulse-gentle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes scale-pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.animate-chibi-bounce {
+  animation: chibi-bounce 0.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.animate-chibi-float {
+  animation: chibi-float 3s ease-in-out infinite;
+}
+
+.animate-chibi-wiggle {
+  animation: chibi-wiggle 1.5s ease-in-out infinite;
+}
+
+.animate-pulse-gentle {
+  animation: pulse-gentle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-scale-pop {
+  animation: scale-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.animate-sparkle {
+  animation: sparkle 1.5s ease-in-out infinite;
 }

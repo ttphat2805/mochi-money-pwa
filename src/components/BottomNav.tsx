@@ -28,25 +28,34 @@ function NavItem({ icon: Icon, label, active, onClick }: NavItemProps) {
     <motion.button
       type="button"
       onClick={handleClick}
-      whileTap={{ scale: 0.9 }}
+      whileTap={{ scale: 0.88 }}
+      whileHover={{ scale: 1.05 }}
       className={`relative flex flex-1 h-full flex-col items-center justify-center gap-0.5 transition-colors duration-300 pointer-events-auto z-10 ${
         active ? "text-accent" : "text-text-hint hover:text-text-muted"
       }`}
     >
       {active && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="absolute inset-x-2 inset-y-2 rounded-2xl bg-accent/10 -z-10"
+          layoutId="activeNav"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          className="absolute inset-x-2 inset-y-2 rounded-2xl bg-accent/15 -z-10 blur-sm"
         />
       )}
-      <div
+      <motion.div
+        animate={active ? { y: -2 } : { y: 0 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
         className={`transition-transform duration-300 flex items-center justify-center ${active ? "scale-110" : "scale-100"}`}
       >
         <Icon size={20} strokeWidth={active ? 2.5 : 2} />
-      </div>
-      <span className="text-[10px] font-bold leading-none">{label}</span>
+      </motion.div>
+      <motion.span 
+        animate={active ? { opacity: 1, scale: 1 } : { opacity: 0.8, scale: 0.95 }}
+        className="text-[10px] font-bold leading-none"
+      >
+        {label}
+      </motion.span>
     </motion.button>
   );
 }
@@ -81,11 +90,16 @@ export function BottomNav({ active, onTab }: BottomNavProps) {
           <motion.button
             type="button"
             onClick={handleFabClick}
-            whileTap={{ scale: 0.92 }}
+            whileTap={{ scale: 0.88 }}
+            whileHover={{ scale: 1.08 }}
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
             aria-label="Thêm chi tiêu"
             className="flex size-14 items-center justify-center bg-accent shadow-lg shadow-accent/40 rounded-full text-white"
           >
-            <Plus size={28} strokeWidth={3} />
+            <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}>
+              <Plus size={28} strokeWidth={3} />
+            </motion.div>
           </motion.button>
           {/* Date badge: shows selected calendar day when it's not today */}
           <AnimatePresence>
