@@ -210,18 +210,21 @@ export function CategoryFormSheet({
             {/* Safe-area bottom spacing */}
             <div className="safe-bottom h-0" />
           </div>
+
+          {/* Icon picker — must stay inside SheetContent's React tree. On touch,
+              Radix checks "outside click" on the deferred `click` event; by then
+              the picker has unmounted, so a picker rendered outside this sheet
+              counts as an outside tap and dismisses the whole form. */}
+          {iconPickerOpen && (
+            <IconPickerSheet
+              open={iconPickerOpen}
+              onClose={() => setIconPickerOpen(false)}
+              onSelect={setIcon}
+              currentIcon={icon}
+            />
+          )}
         </SheetContent>
       </Sheet>
-
-      {/* Icon picker — separate sheet on top */}
-      {iconPickerOpen && (
-        <IconPickerSheet
-          open={iconPickerOpen}
-          onClose={() => setIconPickerOpen(false)}
-          onSelect={setIcon}
-          currentIcon={icon}
-        />
-      )}
     </>
   )
 }
