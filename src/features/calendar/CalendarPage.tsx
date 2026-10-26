@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Flame, Leaf } from 'lucide-react'
 import { useCalendar } from '@/hooks/useCalendar'
 import { triggerHaptic } from '@/lib/haptic'
 import { useAppStore } from '@/stores/appStore'
@@ -8,6 +8,7 @@ import { MonthSummary } from './MonthSummary'
 import { DayDetailPanel } from './DayDetailPanel'
 import { useShouldShowSkeleton } from '@/hooks/useShouldShowSkeleton'
 import { CalendarSkeleton } from './CalendarSkeleton'
+import { useCalendarStreaks } from './useCalendarStreaks'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePersonalization } from '@/hooks/usePersonalization'
 import { formatVND, tint } from '@/lib/utils'
@@ -20,6 +21,7 @@ export function CalendarPage() {
   const showSkeleton = useShouldShowSkeleton(cal.isLoading)
   const accent = settings.accentColor
   const panelRef = useRef<HTMLDivElement>(null)
+  const { streak, noSpendDays } = useCalendarStreaks(cal.calendarDays, cal.dailyTotals, cal.today)
 
   // "Hôm nay" is only useful when we're not already looking at today
   const isViewingToday =
@@ -152,7 +154,28 @@ export function CalendarPage() {
                 monthKey={cal.viewMonthKey}
                 slideDir={slideDir}
                 accent={accent}
+                noSpendDays={noSpendDays}
               />
+
+              {/* Streak + no-spend row — hidden when there's nothing to celebrate */}
+              {(streak > 0 || noSpendDays.size > 0) && (
+                <div className="px-4">
+                  <div className="glass rounded-[20px] px-4 py-2.5 flex items-center justify-between gap-3">
+                    {streak > 0 && (
+                      <span className="flex items-center gap-1.5 text-[12px] font-bold text-text">
+                        <Flame size={14} strokeWidth={2.5} className="text-orange-400" />
+                        Chuỗi ghi chép: <span className="font-num">{streak}</span> ngày
+                      </span>
+                    )}
+                    {noSpendDays.size > 0 && (
+                      <span className="flex items-center gap-1.5 text-[12px] font-semibold text-text-muted ml-auto">
+                        <Leaf size={13} strokeWidth={2.5} style={{ color: 'var(--color-success)' }} />
+                        <span className="font-num">{noSpendDays.size}</span> ngày không chi tiêu
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Day detail panel — inline, animated */}
               <AnimatePresence mode="wait">

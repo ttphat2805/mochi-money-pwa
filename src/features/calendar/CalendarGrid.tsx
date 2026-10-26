@@ -4,6 +4,7 @@ import type { CalendarDayCell } from '@/hooks/useCalendar'
 import { getHeatLevel } from '@/hooks/useCalendar'
 import { triggerHaptic } from '@/lib/haptic'
 import { motion } from 'framer-motion'
+import { Leaf } from 'lucide-react'
 
 const WEEKDAY_HEADERS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
 
@@ -27,6 +28,8 @@ interface CalendarGridProps {
   monthKey: string
   slideDir: 'left' | 'right' | null
   accent: string
+  /** Past days with zero spending — shown with a leaf marker */
+  noSpendDays?: ReadonlySet<string>
 }
 
 const DayCell = React.memo(function DayCell({
@@ -36,6 +39,7 @@ const DayCell = React.memo(function DayCell({
   heat,
   onSelect,
   accent,
+  isNoSpend,
 }: {
   cell: Extract<CalendarDayCell, { type: 'day' }>
   isSelected: boolean
@@ -43,6 +47,7 @@ const DayCell = React.memo(function DayCell({
   heat: 0 | 1 | 2 | 3 | 4
   onSelect: (date: string) => void
   accent: string
+  isNoSpend: boolean
 }) {
   const { date, day, isToday, isFuture } = cell
   const hasSpend = amount > 0
@@ -105,7 +110,17 @@ const DayCell = React.memo(function DayCell({
         {day}
       </span>
 
-      {/* Amount — fixed slot to keep all cells same height */}
+      {/* Amount — fixed slot to keep all cells same height.
+          No-spend days show a leaf in the same slot instead. */}
+      {isNoSpend && !hasSpend ? (
+        <Leaf
+          size={10}
+          strokeWidth={2.5}
+          className="mt-1"
+          style={{ color: isSelected ? '#FFFFFF' : 'var(--color-success)' }}
+          aria-label="Không chi tiêu"
+        />
+      ) : (
       <span
         className="font-num leading-none mt-1"
         style={{
@@ -118,6 +133,7 @@ const DayCell = React.memo(function DayCell({
       >
         {hasSpend ? formatShort(amount) : '0'}
       </span>
+      )}
 
     </motion.button>
   )
@@ -134,6 +150,7 @@ export function CalendarGrid({
   monthKey,
   slideDir,
   accent,
+  noSpendDays,
 }: CalendarGridProps) {
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
@@ -200,6 +217,7 @@ export function CalendarGrid({
               heat={heat}
               onSelect={onSelectDay}
               accent={accent}
+              isNoSpend={noSpendDays?.has(cell.date) ?? false}
             />
           )
         })}

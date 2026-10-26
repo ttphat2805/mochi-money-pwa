@@ -65,6 +65,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
     toggleIsNote,
     addAmount,
     setAmount,
+    frequentAmounts,
     save,
     confirmOverBudget,
     dismissBudgetWarning,
@@ -308,6 +309,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                 onShortcut={handleShortcut}
                 onSetAmount={(value) => setAmount(value)}
                 amount={amount}
+                frequentAmounts={frequentAmounts}
                 confirmLabel={confirmLabel}
                 canConfirm={canSave}
                 isSaving={isSaving}

@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
 import { useAppStore } from '@/stores/appStore'
 import { getTodayString, getCurrentMonthString, formatVND, getDateNDaysAgo } from '@/lib/utils'
-import type { BudgetCategory } from '@/types'
+import type { BudgetCategory, Transaction } from '@/types'
 
 const LAST_USED_CATEGORY_KEY = 'chitieu_last_category_id'
 const MAX_DIGITS = 11 // 99.999.999.999
@@ -53,6 +53,8 @@ interface UseQuickAddReturn {
   toggleIsNote: () => void
   addAmount: (value: number) => void
   setAmount: (value: number) => void
+  /** Amounts most often used for the selected category (most frequent first) */
+  frequentAmounts: number[]
   save: () => Promise<SaveResult>
   confirmOverBudget: () => Promise<SaveResult>
   dismissBudgetWarning: () => void
@@ -100,9 +102,32 @@ const EMPTY_RESULT: SaveResult = {
 }
 
 const EMPTY_CATS: BudgetCategory[] = []
+const EMPTY_AMOUNTS: number[] = []
+const FREQUENT_LOOKBACK_DAYS = 120
+const FREQUENT_MIN_COUNT = 2
+const FREQUENT_LIMIT = 3
+
+/** Most-used amounts first; ties broken by most recent use */
+function getFrequentAmounts(txs: Transaction[]): number[] {
+  const stats = new Map<number, { count: number; lastDate: string }>()
+  for (const tx of txs) {
+    const s = stats.get(tx.amount)
+    if (s) {
+      s.count++
+      if (tx.date > s.lastDate) s.lastDate = tx.date
+    } else {
+      stats.set(tx.amount, { count: 1, lastDate: tx.date })
+    }
+  }
+  return [...stats.entries()]
+    .filter(([, s]) => s.count >= FREQUENT_MIN_COUNT)
+    .sort(([, a], [, b]) => b.count - a.count || b.lastDate.localeCompare(a.lastDate))
+    .slice(0, FREQUENT_LIMIT)
+    .map(([value]) => value)
+}
 
 export function useQuickAdd(): UseQuickAddReturn {
-  const { quickAddOpen, closeQuickAdd, quickAddInitialDate, quickAddInitialCategoryId } = useAppStore()
+  const { quickAddOpen, closeQuickAdd, quickAddInitialDate, quickAddInitialCategoryId, quickAddInitialAmount } = useAppStore()
   const [amountDigits, setAmountDigits] = useState('')
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
   const [selectedDate, setSelectedDate] = useState(getTodayString)
@@ -150,11 +175,26 @@ export function useQuickAdd(): UseQuickAddReturn {
 
   const canSave = amount > 0 && selectedCategoryId !== null
 
+  // Amounts this category is usually logged with (last 120 days, used 2+ times)
+  const frequentAmounts = useLiveQuery(
+    async () => {
+      if (!quickAddOpen || selectedCategoryId === null) return EMPTY_AMOUNTS
+      const since = getDateNDaysAgo(FREQUENT_LOOKBACK_DAYS)
+      const txs = await db.transactions
+        .where('categoryId')
+        .equals(selectedCategoryId)
+        .filter((tx) => !tx.deletedAt && !tx.isNote && tx.date >= since)
+        .toArray()
+      return getFrequentAmounts(txs)
+    },
+    [quickAddOpen, selectedCategoryId],
+  ) ?? EMPTY_AMOUNTS
+
   const dateLabel = useMemo(() => getDateLabel(selectedDate), [selectedDate])
 
   // ── Actions ──
 
-  const resetState = useCallback((date?: string | null, categoryId?: number | null) => {
+  const resetState = useCallback((date?: string | null, categoryId?: number | null, initialAmount?: number | null) => {
     const lastUsedId = getLastUsedCategoryId()
     const validUsedId = lastUsedId && categories.find(c => c.id === lastUsedId) 
       ? lastUsedId 
@@ -162,7 +202,8 @@ export function useQuickAdd(): UseQuickAddReturn {
 
     const finalCategoryId = categoryId ?? validUsedId
 
-    setAmountDigits('')
+    const initialDigits = initialAmount && initialAmount > 0 ? String(Math.floor(initialAmount)) : ''
+    setAmountDigits(initialDigits.length <= MAX_DIGITS ? initialDigits : '')
     setSelectedCategoryId(finalCategoryId)
     setSelectedDate(date ? date : getTodayString())
     setNote('')
@@ -180,7 +221,7 @@ export function useQuickAdd(): UseQuickAddReturn {
   // Reset state when the sheet opens (with initial context) or closes (delayed to avoid flash)
   useEffect(() => {
     if (quickAddOpen) {
-      resetState(quickAddInitialDate, quickAddInitialCategoryId)
+      resetState(quickAddInitialDate, quickAddInitialCategoryId, quickAddInitialAmount)
     } else {
       const t = setTimeout(() => resetState(), 400)
       return () => clearTimeout(t)
@@ -332,6 +373,7 @@ export function useQuickAdd(): UseQuickAddReturn {
     toggleIsNote,
     addAmount,
     setAmount,
+    frequentAmounts,
     save,
     confirmOverBudget,
     dismissBudgetWarning,

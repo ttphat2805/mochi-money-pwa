@@ -30,6 +30,33 @@ export default defineConfig({
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
+        // Long-press app icon shortcuts (Android / desktop Chrome; iOS ignores these)
+        shortcuts: [
+          {
+            name: 'Thêm chi tiêu',
+            short_name: 'Thêm',
+            url: '/?add',
+            icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
+          },
+          {
+            name: 'Thêm Cafe & Trà sữa',
+            short_name: 'Cafe',
+            url: '/?add&cat=cafe',
+            icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
+          },
+          {
+            name: 'Thêm Ăn uống',
+            short_name: 'Ăn uống',
+            url: '/?add&cat=an-uong',
+            icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
+          },
+          {
+            name: 'Xem lịch chi tiêu',
+            short_name: 'Lịch',
+            url: '/?tab=calendar',
+            icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
+          },
+        ],
         icons: [
           {
             src: '/icon-192.png',

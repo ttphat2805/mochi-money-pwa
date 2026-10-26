@@ -4,10 +4,11 @@ import { formatVND, getVietnameseDateLabel, sumSpent, tint } from '@/lib/utils'
 import { CategoryFilterChips } from '@/components/CategoryFilterChips'
 import { NoteBadge } from '@/components/NoteBadge'
 import { TransactionDetailSheet } from '@/features/transactions/TransactionDetailSheet'
+import { TransactionSearchSheet } from '@/features/transactions/TransactionSearchSheet'
 import type { HomeData } from '@/hooks/useHomeData'
 import type { BudgetCategory, Transaction } from '@/types'
 import { motion, useMotionValue, useTransform, animate, type PanInfo, AnimatePresence } from 'framer-motion'
-import { Trash, ChevronRight, ReceiptText } from 'lucide-react'
+import { Trash, ChevronRight, ReceiptText, Search } from 'lucide-react'
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { useTransactionStore } from '@/stores/transactionStore'
 import { triggerHaptic } from '@/lib/haptic'
@@ -52,6 +53,7 @@ export const RecentTransactions = React.memo(({ transactions, onViewAll }: Recen
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null)
   const handleSelect = useCallback((tx: Transaction) => setSelectedTx(tx), [])
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [showSwipeHint, setShowSwipeHint] = useState(() =>
     !localStorage.getItem(SWIPE_HINT_KEY) && transactions.length > 0
   )
@@ -100,14 +102,24 @@ export const RecentTransactions = React.memo(({ transactions, onViewAll }: Recen
         <div className="flex items-center justify-between mb-3">
           <p className="section-title">Gần đây</p>
           {transactions.length > 0 && (
-            <button
-              type="button"
-              onClick={onViewAll}
-              className="!min-h-0 flex items-center gap-0.5 h-7 pl-3 pr-2 rounded-full bg-white/6 text-[12px] text-accent-dark font-semibold active:opacity-60 transition-opacity"
-            >
-              Xem tất cả
-              <ChevronRight size={13} className="mt-px" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                className="!min-h-0 size-7 rounded-full glass flex items-center justify-center text-text-muted active:scale-90 transition-transform"
+                aria-label="Tìm giao dịch"
+              >
+                <Search size={13} strokeWidth={2.5} />
+              </button>
+              <button
+                type="button"
+                onClick={onViewAll}
+                className="!min-h-0 flex items-center gap-0.5 h-7 pl-3 pr-2 rounded-full bg-white/6 text-[12px] text-accent-dark font-semibold active:opacity-60 transition-opacity"
+              >
+                Xem tất cả
+                <ChevronRight size={13} className="mt-px" />
+              </button>
+            </div>
           )}
         </div>
 
@@ -162,6 +174,8 @@ export const RecentTransactions = React.memo(({ transactions, onViewAll }: Recen
           </div>
         )}
       </div>
+
+      <TransactionSearchSheet open={searchOpen} onClose={() => setSearchOpen(false)} />
 
       <TransactionDetailSheet
         open={!!selectedTx}
