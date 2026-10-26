@@ -22,7 +22,11 @@ export function IconPickerSheet({
   currentIcon,
 }: IconPickerSheetProps) {
   return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+    <Sheet
+      open={open}
+      onOpenChange={(v) => !v && onClose()}
+      repositionInputs={false}
+    >
       <SheetContent
         side="bottom"
         showCloseButton={true}
@@ -43,7 +47,9 @@ export function IconPickerSheet({
           Chọn biểu tượng
         </p>
 
-        <div className="overflow-y-auto px-4 pb-6 safe-bottom">
+        {/* flex-1 + min-h-0: without them the grid overflows the 80dvh sheet
+            off-screen instead of scrolling, so the last rows can't be tapped */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-6 safe-bottom">
           <div className="grid grid-cols-6 gap-2">
             {CATEGORY_ICONS.map(({ name, Icon }) => {
               const isSelected = currentIcon === name
