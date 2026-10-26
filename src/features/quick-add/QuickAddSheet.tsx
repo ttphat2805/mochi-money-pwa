@@ -1,9 +1,11 @@
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 import { useQuickAdd } from "@/hooks/useQuickAdd";
 import { triggerHaptic } from "@/lib/haptic";
-import { cn } from "@/lib/utils";
+import { cn, formatVND, tint } from "@/lib/utils";
 import { Info, StickyNote } from "lucide-react";
 import { CloseButton } from "@/components/CloseButton";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { AmountDisplay } from "./AmountDisplay";
@@ -21,6 +23,7 @@ interface QuickAddSheetProps {
 
 export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
   const { isOpen } = quickAdd;
+  const { inset: keyboardInset, viewportHeight } = useKeyboardInset(isOpen);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [successAnim, setSuccessAnim] = useState({
     isVisible: false,
@@ -61,12 +64,23 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
     setNote,
     toggleIsNote,
     addAmount,
+    setAmount,
+    frequentAmounts,
     save,
     confirmOverBudget,
     dismissBudgetWarning,
     canSave,
+    selectedCategory,
     dateLabel,
   } = quickAdd;
+
+  // Tell the user what's still missing instead of a silently disabled button
+  const confirmLabel =
+    amount <= 0
+      ? "Nhập số tiền"
+      : selectedCategoryId === null
+        ? "Chọn danh mục"
+        : `Lưu ${formatVND(amount)}đ`;
 
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [showNoteTooltip, setShowNoteTooltip] = useState(false);
@@ -120,14 +134,25 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
 
   return (
     <>
-      <Sheet open={isOpen} onOpenChange={handleOpenChange}>
+      {/* repositionInputs off: vaul's keyboard handling can leave the drawer
+          stuck at its shrunken height on iOS — we size it via useKeyboardInset */}
+      <Sheet
+        open={isOpen}
+        onOpenChange={handleOpenChange}
+        repositionInputs={false}
+      >
         <SheetContent
           side="bottom"
           showCloseButton={false}
           className={cn(
             "bg-surface rounded-t-[32px] p-0 shadow-2xl border-none flex flex-col",
           )}
-          style={{ height: '92dvh', maxHeight: '96dvh' }}
+          style={
+            keyboardInset > 0
+              ? // Keyboard open: sit right above it, fill the visible area
+                { bottom: keyboardInset, height: viewportHeight - 12 }
+              : { height: '92dvh', maxHeight: '96dvh' }
+          }
         >
           <div className="flex flex-col h-full">
             {/* ── HEADER: close + amount + date ── */}
@@ -205,6 +230,27 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                 hasValue={amount > 0}
                 onClear={clearAmount}
               />
+
+              {/* Selected category pill — stays visible when the keyboard
+                  collapses the category grid */}
+              <div className="flex justify-center h-7 -mt-1">
+                {selectedCategory && (
+                  <span
+                    className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-[12px] font-bold"
+                    style={{
+                      color: selectedCategory.color,
+                      backgroundColor: tint(selectedCategory.color, 14),
+                    }}
+                  >
+                    <CategoryIcon
+                      icon={selectedCategory.icon}
+                      size={13}
+                      color={selectedCategory.color}
+                    />
+                    {selectedCategory.name}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* ── Scrollable: Categories ONLY ── */}
@@ -261,6 +307,10 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                 onDelete={deleteDigit}
                 onConfirm={handleSave}
                 onShortcut={handleShortcut}
+                onSetAmount={(value) => setAmount(value)}
+                amount={amount}
+                frequentAmounts={frequentAmounts}
+                confirmLabel={confirmLabel}
                 canConfirm={canSave}
                 isSaving={isSaving}
                 isNote={isNote}

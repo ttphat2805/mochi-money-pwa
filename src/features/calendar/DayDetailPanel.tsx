@@ -66,30 +66,27 @@ export function DayDetailPanel({
 
   return (
     <>
-      <div
-        className="rounded-[24px] overflow-hidden border border-border/60 bg-card"
-        style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.25)' }}
-      >
+      <div className="glass rounded-[24px] overflow-hidden">
         {/* ── Header ── */}
         <div
           className="px-5 py-4 flex items-center justify-between"
           style={{
-            background: `linear-gradient(135deg, ${tint(accent, 7)} 0%, ${tint(accent, 2)} 100%)`,
+            background: `linear-gradient(135deg, ${tint(accent, 16)} 0%, ${tint(accent, 3)} 100%)`,
             borderBottom: '1px solid var(--color-border)',
           }}
         >
           <div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-text-hint mb-0.5">{sub}</p>
-            <h3 className="text-[18px] font-black text-text leading-tight">{title}</h3>
+            <p className="font-num text-[11px] font-semibold text-text-muted mb-0.5">{sub}</p>
+            <h3 className="text-[19px] font-black text-text leading-tight tracking-tight">{title}</h3>
           </div>
 
           <div className="flex items-center gap-2">
             {total > 0 && (
               <div className="text-right">
-                <p className="text-[10px] font-bold text-text-hint uppercase tracking-wide mb-0.5">Tổng</p>
+                <p className="text-[10px] font-bold text-text-muted mb-0.5">Tổng</p>
                 <p
                   className="font-num text-[17px] font-black leading-tight"
-                  style={{ color: accent }}
+                  style={{ color: 'var(--color-accent-dark)' }}
                 >
                   −{formatVND(total)}đ
                 </p>
@@ -99,8 +96,12 @@ export function DayDetailPanel({
               type="button"
               whileTap={{ scale: 0.88 }}
               onClick={onAddTransaction}
-              className="size-10 rounded-full flex items-center justify-center shadow-sm text-white"
-              style={{ background: accent }}
+              aria-label="Thêm giao dịch cho ngày này"
+              className="size-10 rounded-[14px] flex items-center justify-center text-white border border-white/20"
+              style={{
+                background: accent,
+                boxShadow: '0 8px 18px -6px rgba(var(--color-accent-rgb), 0.6)',
+              }}
             >
               <Plus size={18} strokeWidth={2.5} />
             </motion.button>
@@ -108,7 +109,7 @@ export function DayDetailPanel({
         </div>
 
         {/* ── Body ── */}
-        <div className="bg-card">
+        <div>
           {transactions.length === 0 ? (
             /* Empty state */
             <div className="flex flex-col items-center justify-center py-9 px-5 text-center gap-3">
@@ -147,11 +148,11 @@ export function DayDetailPanel({
                   <motion.button
                     key={tx.id}
                     type="button"
-                    whileTap={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
+                    whileTap={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
                     onClick={() => setSelectedTx(tx)}
                     className="flex items-center gap-3.5 px-5 py-3.5 w-full text-left transition-colors"
                     style={{
-                      borderBottom: idx < transactions.length - 1 ? '1px solid var(--color-border)' : 'none',
+                      borderBottom: idx < transactions.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
                     }}
                   >
                     {/* Category icon */}
@@ -160,7 +161,8 @@ export function DayDetailPanel({
                       style={{
                         width: 42,
                         height: 42,
-                        background: tint(catColor, 9),
+                        background: tint(catColor, 16),
+                        boxShadow: `inset 0 0 0 1px ${tint(catColor, 22)}`,
                       }}
                     >
                       <CategoryIcon icon={tx.category?.icon} size={20} color={tx.category?.color} className="text-text-muted" />

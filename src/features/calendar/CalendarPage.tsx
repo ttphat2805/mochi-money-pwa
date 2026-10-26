@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Flame, Leaf } from 'lucide-react'
 import { useCalendar } from '@/hooks/useCalendar'
 import { triggerHaptic } from '@/lib/haptic'
 import { useAppStore } from '@/stores/appStore'
@@ -8,6 +8,7 @@ import { MonthSummary } from './MonthSummary'
 import { DayDetailPanel } from './DayDetailPanel'
 import { useShouldShowSkeleton } from '@/hooks/useShouldShowSkeleton'
 import { CalendarSkeleton } from './CalendarSkeleton'
+import { useCalendarStreaks } from './useCalendarStreaks'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePersonalization } from '@/hooks/usePersonalization'
 import { formatVND, tint } from '@/lib/utils'
@@ -20,6 +21,7 @@ export function CalendarPage() {
   const showSkeleton = useShouldShowSkeleton(cal.isLoading)
   const accent = settings.accentColor
   const panelRef = useRef<HTMLDivElement>(null)
+  const { streak, noSpendDays } = useCalendarStreaks(cal.calendarDays, cal.dailyTotals, cal.today)
 
   // "Hôm nay" is only useful when we're not already looking at today
   const isViewingToday =
@@ -61,21 +63,21 @@ export function CalendarPage() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-surface relative overflow-hidden">
+    <div className="flex h-full flex-col app-ambient relative overflow-hidden">
 
       {/* ── Header ── */}
-      <header className="relative z-10 px-5 pt-5 pb-3 safe-top shrink-0">
+      <header className="relative z-10 px-5 pt-4 pb-3 safe-top shrink-0">
         {/* Page title row */}
         <div className="flex items-end justify-between mb-4">
           <div>
-            <h1 className="text-[26px] font-black text-text tracking-tight leading-none">
-              Lịch
-            </h1>
-            <p className="text-[12px] text-text-muted mt-1 font-medium">
+            <p className="text-[12px] text-text-muted font-semibold mb-0.5">
               {cal.monthStats.total > 0
                 ? `Đã chi ${formatVND(cal.monthStats.total)}đ tháng này`
                 : 'Chưa có chi tiêu tháng này'}
             </p>
+            <h1 className="text-[26px] font-black text-text tracking-tight leading-tight">
+              Lịch
+            </h1>
           </div>
 
           {/* Today pill — only when not already viewing today */}
@@ -86,10 +88,11 @@ export function CalendarPage() {
                 triggerHaptic('light')
                 cal.goToToday()
               }}
-              className="mb-0.5 h-8 px-3.5 rounded-full text-[11px] font-bold transition-all active:scale-95"
+              className="!min-h-8 mb-1 h-8 px-3.5 rounded-full text-[11px] font-bold transition-all active:scale-95 border"
               style={{
-                background: tint(accent, 9),
-                color: accent,
+                background: tint(accent, 14),
+                borderColor: tint(accent, 30),
+                color: 'var(--color-accent-dark)',
               }}
             >
               Hôm nay
@@ -97,15 +100,15 @@ export function CalendarPage() {
           )}
         </div>
 
-        {/* Month navigation — inline, no card buttons */}
+        {/* Month navigation — glass arrow buttons */}
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={goPrev}
-            className="size-10 flex items-center justify-center rounded-full active:bg-white/5 transition-colors"
+            className="glass size-10 flex items-center justify-center rounded-full active:scale-95 transition-transform"
             aria-label="Tháng trước"
           >
-            <ChevronLeft className="size-[18px] text-text-muted" />
+            <ChevronLeft className="size-[18px] text-text" />
           </button>
 
           <motion.div
@@ -124,17 +127,17 @@ export function CalendarPage() {
             type="button"
             onClick={goNext}
             disabled={!cal.canGoNext}
-            className="size-10 flex items-center justify-center rounded-full active:bg-white/5 transition-colors disabled:opacity-25"
+            className="glass size-10 flex items-center justify-center rounded-full active:scale-95 transition-transform disabled:opacity-30"
             aria-label="Tháng sau"
           >
-            <ChevronRight className="size-[18px] text-text-muted" />
+            <ChevronRight className="size-[18px] text-text" />
           </button>
         </div>
       </header>
 
       {/* ── Scrollable body ── */}
       <div className="flex-1 min-h-0 relative z-10 overflow-y-auto scrollbar-hide pb-24">
-        <div className="flex flex-col gap-4 pt-1">
+        <div className="flex flex-col gap-4 pt-1 pb-4">
           {showSkeleton ? (
             <CalendarSkeleton />
           ) : (
@@ -151,7 +154,28 @@ export function CalendarPage() {
                 monthKey={cal.viewMonthKey}
                 slideDir={slideDir}
                 accent={accent}
+                noSpendDays={noSpendDays}
               />
+
+              {/* Streak + no-spend row — hidden when there's nothing to celebrate */}
+              {(streak > 0 || noSpendDays.size > 0) && (
+                <div className="px-4">
+                  <div className="glass rounded-[20px] px-4 py-2.5 flex items-center justify-between gap-3">
+                    {streak > 0 && (
+                      <span className="flex items-center gap-1.5 text-[12px] font-bold text-text">
+                        <Flame size={14} strokeWidth={2.5} className="text-orange-400" />
+                        Chuỗi ghi chép: <span className="font-num">{streak}</span> ngày
+                      </span>
+                    )}
+                    {noSpendDays.size > 0 && (
+                      <span className="flex items-center gap-1.5 text-[12px] font-semibold text-text-muted ml-auto">
+                        <Leaf size={13} strokeWidth={2.5} style={{ color: 'var(--color-success)' }} />
+                        <span className="font-num">{noSpendDays.size}</span> ngày không chi tiêu
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Day detail panel — inline, animated */}
               <AnimatePresence mode="wait">

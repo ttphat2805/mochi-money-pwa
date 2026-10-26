@@ -1,14 +1,21 @@
 import React, { useRef } from 'react'
-import { formatShort, tint } from '@/lib/utils'
+import { formatShort } from '@/lib/utils'
 import type { CalendarDayCell } from '@/hooks/useCalendar'
 import { getHeatLevel } from '@/hooks/useCalendar'
 import { triggerHaptic } from '@/lib/haptic'
 import { motion } from 'framer-motion'
+import { Leaf } from 'lucide-react'
 
 const WEEKDAY_HEADERS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
 
-// Opacity levels for accent tint background per heat level
-const HEAT_OPACITY = [0, 0.12, 0.22, 0.38, 0.58] as const
+// Heatmap fills per level — CSS vars set by applyAccentColor (personalization)
+const HEAT_BG = [
+  'transparent',
+  'var(--color-accent-h1)',
+  'var(--color-accent-h2)',
+  'var(--color-accent-h3)',
+  'var(--color-accent-h4)',
+] as const
 
 interface CalendarGridProps {
   days: CalendarDayCell[]
@@ -21,6 +28,8 @@ interface CalendarGridProps {
   monthKey: string
   slideDir: 'left' | 'right' | null
   accent: string
+  /** Past days with zero spending — shown with a leaf marker */
+  noSpendDays?: ReadonlySet<string>
 }
 
 const DayCell = React.memo(function DayCell({
@@ -30,6 +39,7 @@ const DayCell = React.memo(function DayCell({
   heat,
   onSelect,
   accent,
+  isNoSpend,
 }: {
   cell: Extract<CalendarDayCell, { type: 'day' }>
   isSelected: boolean
@@ -37,6 +47,7 @@ const DayCell = React.memo(function DayCell({
   heat: 0 | 1 | 2 | 3 | 4
   onSelect: (date: string) => void
   accent: string
+  isNoSpend: boolean
 }) {
   const { date, day, isToday, isFuture } = cell
   const hasSpend = amount > 0
@@ -44,12 +55,12 @@ const DayCell = React.memo(function DayCell({
   // switch both texts to white there
   const strongHeat = hasSpend && heat >= 3
 
-  // Background: selected → solid accent, spending → accent tint, else card
+  // Background: selected → solid accent, spending → heat tint, else faint glass
   const bgColor = isSelected
     ? accent
     : hasSpend
-      ? tint(accent, HEAT_OPACITY[heat] * 100)
-      : 'var(--color-card)'
+      ? HEAT_BG[heat]
+      : 'rgba(255,255,255,0.03)'
 
   // Day number color: always readable — near-white on dark, white on selected
   const dayColor = isSelected || strongHeat
@@ -61,7 +72,7 @@ const DayCell = React.memo(function DayCell({
   // Amount color
   const amtColor = isSelected || strongHeat
     ? 'rgba(255,255,255,0.9)'
-    : accent
+    : 'var(--color-accent-dark)'
 
   return (
     <motion.button
@@ -72,15 +83,18 @@ const DayCell = React.memo(function DayCell({
       }}
       whileTap={{ scale: 0.95 }}
       transition={{ duration: 0.1 }}
-      className="relative flex flex-col items-center justify-center w-full h-[62px] rounded-2xl overflow-hidden"
+      className="relative flex flex-col items-center justify-center w-full h-[56px] rounded-[14px] overflow-hidden"
       style={{
-        backgroundColor: bgColor,
+        background: bgColor,
         border: isToday && !isSelected
-          ? `2px solid ${accent}`
-          : '2px solid transparent',
+          ? `1.5px solid ${accent}`
+          : '1.5px solid transparent',
+        // Selected: soft accent glow + white inner ring (distinct from heat 4)
         boxShadow: isSelected
-          ? `0 4px 14px ${tint(accent, 33)}`
-          : '0 1px 3px rgba(0,0,0,0.2)',
+          ? '0 8px 20px -4px rgba(var(--color-accent-rgb), 0.45), inset 0 0 0 1.5px rgba(255,255,255,0.85)'
+          : isToday
+            ? '0 0 12px -2px rgba(var(--color-accent-rgb), 0.35)'
+            : 'none',
         opacity: isFuture && !isToday ? 0.4 : 1,
       }}
     >
@@ -96,7 +110,17 @@ const DayCell = React.memo(function DayCell({
         {day}
       </span>
 
-      {/* Amount — fixed slot to keep all cells same height */}
+      {/* Amount — fixed slot to keep all cells same height.
+          No-spend days show a leaf in the same slot instead. */}
+      {isNoSpend && !hasSpend ? (
+        <Leaf
+          size={10}
+          strokeWidth={2.5}
+          className="mt-1"
+          style={{ color: isSelected ? '#FFFFFF' : 'var(--color-success)' }}
+          aria-label="Không chi tiêu"
+        />
+      ) : (
       <span
         className="font-num leading-none mt-1"
         style={{
@@ -109,6 +133,7 @@ const DayCell = React.memo(function DayCell({
       >
         {hasSpend ? formatShort(amount) : '0'}
       </span>
+      )}
 
     </motion.button>
   )
@@ -125,6 +150,7 @@ export function CalendarGrid({
   monthKey,
   slideDir,
   accent,
+  noSpendDays,
 }: CalendarGridProps) {
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
@@ -149,12 +175,13 @@ export function CalendarGrid({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      <div className="glass rounded-[24px] p-3">
       {/* Weekday headers */}
       <div className="grid grid-cols-7 mb-2">
         {WEEKDAY_HEADERS.map((h, i) => (
           <div
             key={h}
-            className="text-center text-[10px] font-bold tracking-wider py-1"
+            className="text-center text-[10px] font-bold tracking-wider py-1 opacity-80"
             style={{
               color: i === 6 ? 'var(--color-danger)' : 'var(--color-text-hint)',
             }}
@@ -174,7 +201,7 @@ export function CalendarGrid({
       >
         {days.map((cell) => {
           if (cell.type === 'empty') {
-            return <div key={cell.key} className="h-[62px]" />
+            return <div key={cell.key} className="h-[56px]" />
           }
 
           const amount = dailyTotals[cell.date] ?? 0
@@ -190,22 +217,24 @@ export function CalendarGrid({
               heat={heat}
               onSelect={onSelectDay}
               accent={accent}
+              isNoSpend={noSpendDays?.has(cell.date) ?? false}
             />
           )
         })}
       </motion.div>
 
       {/* Heat legend — explains the tint intensity */}
-      <div className="flex items-center justify-end gap-1.5 mt-2.5 pr-1">
+      <div className="flex items-center justify-end gap-1.5 mt-3 pr-1">
         <span className="text-[9px] text-text-hint font-medium">Ít</span>
-        {HEAT_OPACITY.slice(1).map((o) => (
+        {HEAT_BG.slice(1).map((bg) => (
           <span
-            key={o}
-            className="size-2.5 rounded-[5px]"
-            style={{ background: tint(accent, o * 100) }}
+            key={bg}
+            className="size-2.5 rounded-[4px]"
+            style={{ background: bg }}
           />
         ))}
         <span className="text-[9px] text-text-hint font-medium">Nhiều</span>
+      </div>
       </div>
     </div>
   )

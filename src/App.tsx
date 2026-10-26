@@ -38,6 +38,13 @@ import { checkAndCreateFixedTransactions } from "@/hooks/useFixedExpenses";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { usePersonalization } from "@/hooks/usePersonalization";
 import { useIOSKeyboard } from "@/hooks/useIOSKeyboard";
+import { db } from "@/lib/db";
+import { useAppStore } from "@/stores/appStore";
+import {
+  findCategoryByQuery,
+  hasLaunchParams,
+  parseLaunchParams,
+} from "@/lib/launchParams";
 
 // ── Navigation types ──────────────────────────────────────────
 
@@ -55,8 +62,11 @@ function App() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const [history, setHistory] = useState<Screen[]>(() => {
+    // A launch shortcut (/?tab=calendar) wins over the last-used tab
+    const launchTab = parseLaunchParams(window.location.search).tab;
+    if (launchTab) localStorage.setItem("active-tab", launchTab);
     const saved = localStorage.getItem("active-tab") as TabKey;
-    return [{ id: "main", tab: saved ?? "home" }];
+    return [{ id: "main", tab: launchTab ?? saved ?? "home" }];
   });
   const { loadCategories } = useCategoryStore();
   const quickAdd = useQuickAdd();
@@ -128,6 +138,35 @@ function App() {
     };
     void init();
   }, [loadCategories]);
+
+  // ── Launch shortcuts: /?add=35000&cat=cafe, /?tab=calendar ──
+  // Consumed once after init, then stripped so a reload doesn't re-trigger.
+  useEffect(() => {
+    if (!isInitialized) return;
+    const search = window.location.search;
+    if (!hasLaunchParams(search)) return;
+
+    // ?tab is applied in the initial history state above
+    const { quickAdd: launchAdd } = parseLaunchParams(search);
+    window.history.replaceState(window.history.state, "", window.location.pathname);
+
+    if (launchAdd) {
+      db.categories
+        .toArray()
+        .then((categories) => {
+          const category = launchAdd.categoryQuery
+            ? findCategoryByQuery(categories, launchAdd.categoryQuery)
+            : undefined;
+          useAppStore
+            .getState()
+            .openQuickAdd(undefined, category?.id, launchAdd.amount ?? undefined);
+        })
+        .catch(() => {
+          // Category lookup failed — still open quick-add, just without a preset
+          useAppStore.getState().openQuickAdd(undefined, undefined, launchAdd.amount ?? undefined);
+        });
+    }
+  }, [isInitialized]);
 
   if (initError) {
     return (

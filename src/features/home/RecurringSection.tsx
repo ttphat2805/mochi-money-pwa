@@ -19,18 +19,18 @@ export function RecurringSection({ items, onToggle, hasAnyRecurring, onSettingsT
         <button
           type="button"
           onClick={onSettingsTap}
-          className="w-full bg-accent/10 border border-accent/20 border-dashed rounded-[20px] p-4 text-left flex items-center justify-between active:scale-[0.98] transition-transform"
+          className="w-full glass rounded-[24px] p-4 text-left flex items-center justify-between active:scale-[0.98] transition-transform"
         >
           <div className="flex items-center gap-3">
-            <div className="size-10 bg-accent/15 rounded-xl flex items-center justify-center">
+            <div className="size-11 bg-accent/15 rounded-[14px] flex items-center justify-center">
               <AlarmClock size={20} className="text-accent-dark" />
             </div>
             <div>
-              <p className="text-[13px] font-bold text-accent-dark">Thêm khoản lặp lại</p>
-              <p className="text-[11px] text-accent-dark/80 font-medium">Để app tự nhắc mỗi sáng</p>
+              <p className="text-[14px] font-bold text-text">Thêm khoản lặp lại</p>
+              <p className="text-[12px] text-text-muted font-medium">Để app tự nhắc mỗi sáng</p>
             </div>
           </div>
-          <div className="text-accent-dark text-lg">→</div>
+          <div className="size-8 rounded-full bg-white/6 flex items-center justify-center text-accent-dark">→</div>
         </button>
       </div>
     )
@@ -44,11 +44,9 @@ export function RecurringSection({ items, onToggle, hasAnyRecurring, onSettingsT
   return (
     <div className="px-4">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[10px] font-bold tracking-widest text-text-hint uppercase">
-          Hôm nay cần xác nhận
-        </p>
+        <p className="section-title">Hôm nay cần xác nhận</p>
         {items.length > 0 && (
-          <p className="text-[11px] font-num text-text-muted">
+          <p className="text-[11px] font-num text-text-muted px-2 h-6 flex items-center rounded-full bg-white/6">
             {doneCount}/{items.length}
             {doneTotal > 0 && (
               <>
@@ -62,12 +60,7 @@ export function RecurringSection({ items, onToggle, hasAnyRecurring, onSettingsT
         )}
       </div>
 
-      <div
-        className="bg-card rounded-2xl overflow-hidden border border-border"
-        style={{
-          boxShadow: '0 2px 12px rgba(0,0,0,0.2)',
-        }}
-      >
+      <div className="glass rounded-[24px] overflow-hidden">
         {items.map((item, i) => (
           <RecurringRow
             key={item.template.id}

@@ -3,10 +3,10 @@
 @theme {
   /* ── Colors — MoneyApp design system (design-system/moneyapp/MASTER.md)
         Dark navy banking theme: trust blue + profit green on dark ── */
-  --color-bg: #0F172A;        /* page background */
-  --color-surface: #101A34;   /* muted panels, subtle fills */
-  --color-surface2: #1E2A4D;  /* pressed / elevated fills */
-  --color-card: #16213E;      /* card surfaces (replaces white cards) */
+  --color-bg: #0A0F1E;        /* page background (deep navy) */
+  --color-surface: #0D1428;   /* muted panels, subtle fills */
+  --color-surface2: #1C2644;  /* pressed / elevated fills */
+  --color-card: #131B33;      /* opaque card surfaces (swipe rows rely on this) */
   --color-text: #F8FAFC;
   --color-text-muted: #94A3B8;
   --color-text-hint: #64748B;
@@ -33,7 +33,7 @@
   --font-heading: 'Varela Round', 'Nunito Sans', system-ui, sans-serif;
 
   /* ── Radii ── */
-  --radius: 16px;
+  --radius: 20px;
   --radius-sm: 10px;
   --radius-xs: 6px;
 
@@ -111,6 +111,13 @@ select {
   touch-action: manipulation;
   appearance: none;
   background-clip: padding-box;
+}
+
+/* Hide WebKit's native clear (✕) on search inputs — we render our own */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  display: none;
 }
 
 /* Improve keyboard appearance for all inputs */
@@ -286,6 +293,60 @@ body.dev-shell #root::before {
 }
 
 /* ── 2026 Modern Premium Utilities ── */
+
+/* ── Soft-glass design system ──────────────────────────────────
+   .app-ambient  — page background: deep navy + accent-tinted glows
+   .glass        — default translucent card
+   .glass-strong — elevated surfaces (nav, sticky headers)
+   .glass-accent — accent-gradient hero card
+   All glows derive from --color-accent-rgb so personalization still works.
+─────────────────────────────────────────────────────────────── */
+.app-ambient {
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(120% 60% at 0% -10%, rgba(var(--color-accent-rgb), 0.22) 0%, transparent 55%),
+    radial-gradient(90% 50% at 100% 0%, rgba(99, 102, 241, 0.18) 0%, transparent 60%),
+    radial-gradient(80% 40% at 50% 110%, rgba(var(--color-accent-rgb), 0.08) 0%, transparent 70%);
+}
+
+.glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.025) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 10px 30px -12px rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+
+.glass-strong {
+  background: rgba(19, 27, 51, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 40px -12px rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+}
+
+.glass-accent {
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(255, 255, 255, 0.22) 0%, transparent 45%),
+    linear-gradient(150deg, rgba(var(--color-accent-rgb), 0.95) 0%, rgba(var(--color-accent-rgb), 0.55) 55%, rgba(79, 70, 229, 0.55) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 24px 48px -16px rgba(var(--color-accent-rgb), 0.55);
+}
+
+/* Section heading used across pages */
+.section-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
 
 .shadow-premium {
   box-shadow:
