@@ -9,6 +9,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { IconPickerSheet } from '@/components/IconPickerSheet'
 import { CategoryIcon } from '@/components/CategoryIcon'
+import { useKeyboardInset } from '@/hooks/useKeyboardInset'
 import { formatVND } from '@/lib/utils'
 import type { BudgetCategory } from '@/types'
 
@@ -40,6 +41,7 @@ export function CategoryFormSheet({
   )
   const [isSaving, setIsSaving] = useState(false)
   const [iconPickerOpen, setIconPickerOpen] = useState(false)
+  const { inset: keyboardInset, viewportHeight } = useKeyboardInset(open)
 
   // Sync when editCategory changes (sheet opens with different target)
   useEffect(() => {
@@ -77,14 +79,31 @@ export function CategoryFormSheet({
     }
   }
 
+  const openIconPicker = () => {
+    // Close the keyboard first — otherwise it covers the picker on iOS
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+    setIconPickerOpen(true)
+  }
+
   return (
     <>
-      <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      {/* repositionInputs off: vaul's keyboard handling leaves the drawer
+          shrunk on iOS (see useKeyboardInset) */}
+      <Sheet
+        open={open}
+        onOpenChange={(v) => !v && onClose()}
+        repositionInputs={false}
+      >
         <SheetContent
           side="bottom"
           showCloseButton={true}
           className="rounded-t-3xl bg-card p-0"
-          style={{ maxHeight: '90dvh' }}
+          style={
+            keyboardInset > 0
+              ? // Keyboard open: sit right above it, scroll inside the visible area
+                { bottom: keyboardInset, maxHeight: viewportHeight - 12 }
+              : { maxHeight: '90dvh' }
+          }
         >
           <SheetTitle className="sr-only">
             {isEdit ? 'Sửa danh mục' : 'Thêm danh mục'}
@@ -93,12 +112,12 @@ export function CategoryFormSheet({
             Quản lý danh mục và giới hạn ngân sách
           </SheetDescription>
 
-          <div className="overflow-y-auto px-5 py-4 flex flex-col gap-5">
+          <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 flex flex-col gap-5">
             {/* ── Icon selector ── */}
             <div className="flex flex-col items-center gap-2">
               <button
                 type="button"
-                onClick={() => setIconPickerOpen(true)}
+                onClick={openIconPicker}
                 className="relative size-20 rounded-3xl bg-accent-bg flex items-center justify-center transition-transform active:scale-95"
                 aria-label="Thay đổi biểu tượng"
               >
@@ -122,7 +141,6 @@ export function CategoryFormSheet({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="VD: Ăn uống, Di chuyển..."
                 maxLength={40}
-                autoFocus={!isEdit}
                 className="border-border rounded-xl border bg-surface px-4 py-3 text-[14px] outline-none focus:border-accent placeholder:text-text-hint transition-colors"
               />
             </div>
