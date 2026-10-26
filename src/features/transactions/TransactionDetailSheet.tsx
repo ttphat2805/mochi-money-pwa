@@ -11,8 +11,9 @@ import {
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { CategoryGrid } from '@/features/quick-add/CategoryGrid'
 import { DatePickerSheet } from '@/features/quick-add/DatePickerSheet'
+import { useKeyboardInset } from '@/hooks/useKeyboardInset'
 import { db } from '@/lib/db'
-import { formatVND, getDateLabel } from '@/lib/utils'
+import { formatVND, getDateLabel, getDateNDaysAgo, getTodayString } from '@/lib/utils'
 import { PAYMENT_METHODS } from '@/lib/constants'
 import type { Transaction, PaymentMethod } from '@/types'
 
@@ -48,6 +49,7 @@ export function TransactionDetailSheet({
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [initialCategoryId, setInitialCategoryId] = useState<number | null>(null)
+  const { inset: keyboardInset, viewportHeight } = useKeyboardInset(open)
 
   // Capture the starting category when the sheet opens to prevent list jumping during selection
   useEffect(() => {
@@ -79,8 +81,27 @@ export function TransactionDetailSheet({
     setAmountDisplay(num === 0 ? '' : formatVND(num))
   }
 
+  // Only enable Save when something actually changed
+  const isDirty =
+    !!transaction &&
+    (amount !== transaction.amount ||
+      categoryId !== transaction.categoryId ||
+      note.trim() !== (transaction.note ?? '') ||
+      date !== transaction.date ||
+      paymentMethod !== transaction.paymentMethod ||
+      isNote !== (transaction.isNote ?? false))
+  const canSave = isDirty && amount > 0 && !!categoryId && !saving
+
+  const today = getTodayString()
+  const yesterday = getDateNDaysAgo(1)
+  const quickDates = [
+    { value: today, label: 'Hôm nay' },
+    { value: yesterday, label: 'Hôm qua' },
+  ]
+  const isQuickDate = date === today || date === yesterday
+
   const handleSave = async () => {
-    if (!transaction?.id || amount === 0 || !categoryId) return
+    if (!transaction?.id || !canSave) return
     setSaving(true)
     try {
       await db.transactions.update(transaction.id, {
@@ -128,7 +149,13 @@ export function TransactionDetailSheet({
 
   return (
     <>
-      <Sheet open={open} onOpenChange={(v) => !v && handleClose()}>
+      {/* repositionInputs off: vaul's keyboard handling leaves the drawer
+          shrunk on iOS (see useKeyboardInset) */}
+      <Sheet
+        open={open}
+        onOpenChange={(v) => !v && handleClose()}
+        repositionInputs={false}
+      >
         <SheetContent
           onPointerDownOutside={(e) => {
             if (datePickerOpen || deleteConfirmOpen) e.preventDefault()
@@ -142,13 +169,18 @@ export function TransactionDetailSheet({
           side="bottom"
           showCloseButton={true}
           className="rounded-t-3xl bg-card p-0"
-          style={{ maxHeight: '92dvh' }}
+          style={
+            keyboardInset > 0
+              ? // Keyboard open: sit right above it so the Save bar stays reachable
+                { bottom: keyboardInset, maxHeight: viewportHeight - 12 }
+              : { maxHeight: '92dvh' }
+          }
         >
           <SheetTitle className="sr-only">Chi tiết giao dịch</SheetTitle>
           <SheetDescription className="sr-only">Xem và chỉnh sửa giao dịch</SheetDescription>
 
-          <div className="overflow-y-auto" style={{ maxHeight: '90dvh' }}>
-            <div className="px-5 pb-8 flex flex-col gap-4 pt-4">
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <div className="px-5 pb-4 flex flex-col gap-4 pt-4">
               {/* Header */}
               <div className="flex items-center justify-center -mt-2 mb-2 gap-2">
                 <h2 className="text-[15px] font-semibold text-text">Chỉnh sửa giao dịch</h2>
@@ -228,15 +260,40 @@ export function TransactionDetailSheet({
                 <label className="text-[10px] font-medium text-text-hint uppercase tracking-[1.2px] mb-1.5 block">
                   Ngày
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setDatePickerOpen(true)}
-                  className="w-full h-12 px-4 rounded-xl bg-surface border border-transparent text-[14px] text-left flex items-center gap-2 outline-none focus:border-accent transition-colors active:bg-surface2"
-                >
-                  <Calendar size={16} className="text-text-muted shrink-0" />
-                  <span className="text-text flex-1">{getDateLabel(date)}</span>
-                  <span className="text-text-hint text-[12px] font-mono">{date}</span>
-                </button>
+                <div className="flex gap-2">
+                  {quickDates.map((d) => {
+                    const selected = date === d.value
+                    return (
+                      <button
+                        key={d.value}
+                        type="button"
+                        onClick={() => setDate(d.value)}
+                        aria-pressed={selected}
+                        className={`h-12 px-4 shrink-0 rounded-xl border text-[13px] font-medium transition-colors ${
+                          selected
+                            ? 'bg-accent-bg border-accent text-accent-dark'
+                            : 'bg-surface border-transparent text-text-muted active:bg-surface2'
+                        }`}
+                      >
+                        {d.label}
+                      </button>
+                    )
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => setDatePickerOpen(true)}
+                    className={`flex-1 min-w-0 h-12 px-4 rounded-xl border text-[13px] flex items-center gap-2 transition-colors ${
+                      isQuickDate
+                        ? 'bg-surface border-transparent text-text-muted active:bg-surface2'
+                        : 'bg-accent-bg border-accent text-accent-dark font-medium'
+                    }`}
+                  >
+                    <Calendar size={15} className="shrink-0" />
+                    <span className="truncate">
+                      {isQuickDate ? 'Ngày khác' : `${getDateLabel(date)}/${date.slice(0, 4)}`}
+                    </span>
+                  </button>
+                </div>
               </div>
 
               {/* isNote toggle */}
@@ -295,41 +352,42 @@ export function TransactionDetailSheet({
                   })}
                 </div>
               </div>
-
-              {/* Actions */}
-              <div className="grid grid-cols-12 gap-3 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setDeleteConfirmOpen(true)}
-                  className="col-span-4 h-12 rounded-xl bg-danger-bg text-danger transition-all active:scale-[0.92] flex items-center justify-center gap-2 shadow-sm shadow-danger/5 text-[14px] font-medium"
-                >
-                  <Trash2 size={16} />
-                  <span>Xoá</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={saving || amount === 0 || !categoryId}
-                  className="col-span-8 h-12 rounded-xl bg-accent text-white text-[15px] font-semibold disabled:opacity-40 transition-all active:scale-[0.98] shadow-lg shadow-black/20 flex items-center justify-center gap-2"
-                >
-                  {saving ? (
-                    <>
-                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
-                      <span>Đang lưu…</span>
-                    </>
-                  ) : (
-                    <span>Lưu lại</span>
-                  )}
-                </button>
-              </div>
-
-              {/* Safe area spacer for iOS */}
-              <div className="h-[env(safe-area-inset-bottom,20px)]" />
             </div>
+          </div>
+
+          {/* Actions — pinned below the scroll area so Save is always one tap away */}
+          <div
+            className={`shrink-0 grid grid-cols-12 gap-3 px-5 pt-3 border-t border-border bg-card ${
+              keyboardInset > 0 ? 'pb-3' : 'pb-[calc(12px+env(safe-area-inset-bottom))]'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => setDeleteConfirmOpen(true)}
+              className="col-span-4 h-12 rounded-xl bg-danger-bg text-danger transition-all active:scale-[0.92] flex items-center justify-center gap-2 shadow-sm shadow-danger/5 text-[14px] font-medium"
+            >
+              <Trash2 size={16} />
+              <span>Xoá</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!canSave}
+              className="col-span-8 h-12 rounded-xl bg-accent text-white text-[15px] font-semibold disabled:opacity-40 transition-all active:scale-[0.98] shadow-lg shadow-black/20 flex items-center justify-center gap-2"
+            >
+              {saving ? (
+                <>
+                  <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span>Đang lưu…</span>
+                </>
+              ) : (
+                <span>{isDirty ? 'Lưu lại' : 'Chưa có thay đổi'}</span>
+              )}
+            </button>
           </div>
         </SheetContent>
       </Sheet>
