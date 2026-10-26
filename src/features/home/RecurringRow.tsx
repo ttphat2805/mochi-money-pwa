@@ -23,7 +23,7 @@ export function RecurringRow({ item, onToggle, isLast }: RecurringRowProps) {
     <button
       type="button"
       onClick={handleToggle}
-      className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-surface2 transition-colors"
+      className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-white/5 transition-colors"
       style={{
         borderBottom: isLast ? 'none' : '0.5px solid var(--color-border)',
       }}

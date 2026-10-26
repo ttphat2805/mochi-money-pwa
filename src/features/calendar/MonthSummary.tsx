@@ -22,8 +22,8 @@ export function MonthSummary({ stats }: MonthSummaryProps) {
       label: 'Tổng chi',
       value: formatShort(total),
       sub: total > 0 ? `${formatVND(total)}đ` : '—',
-      color: accent,
-      bg: tint(accent, 7),
+      color: 'var(--color-accent-dark)',
+      bg: tint(accent, 18),
     },
     {
       icon: <Flame size={15} />,
@@ -31,7 +31,7 @@ export function MonthSummary({ stats }: MonthSummaryProps) {
       value: maxDayAmount > 0 ? formatShort(maxDayAmount) : '—',
       sub: maxDayAmount > 0 ? `Ngày ${maxDayLabel}` : 'Chưa có',
       color: 'var(--color-danger)',
-      bg: 'rgba(220,38,38,0.12)',
+      bg: 'rgba(220,38,38,0.18)',
     },
     {
       icon: <TrendingUp size={15} />,
@@ -39,46 +39,53 @@ export function MonthSummary({ stats }: MonthSummaryProps) {
       value: avgPerDay > 0 ? formatShort(Math.round(avgPerDay)) : '—',
       sub: avgPerDay > 0 ? 'có chi tiêu' : 'Chưa có',
       color: 'var(--color-success)',
-      bg: 'rgba(16,185,129,0.12)',
+      bg: 'rgba(16,185,129,0.18)',
     },
   ]
 
   return (
-    <div className="px-4 grid grid-cols-3 gap-2.5">
-      {cards.map((c) => (
-        <div
-          key={c.label}
-          className="rounded-[20px] p-3.5 border border-border/50 flex flex-col gap-2 bg-card"
-          style={{ boxShadow: '0 1px 8px rgba(0,0,0,0.2)' }}
-        >
-          {/* Icon */}
+    <div className="px-4">
+      <p className="section-title mb-2.5 px-1">Tổng kết tháng</p>
+      <div className="grid grid-cols-3 gap-2.5">
+        {cards.map((c) => (
           <div
-            className="size-7 rounded-full flex items-center justify-center"
-            style={{ background: c.bg, color: c.color }}
+            key={c.label}
+            className="glass rounded-[20px] p-3.5 flex flex-col gap-2.5 relative overflow-hidden"
           >
-            {c.icon}
-          </div>
+            {/* Soft color glow in the corner */}
+            <div
+              className="absolute -top-6 -right-6 size-16 rounded-full blur-2xl pointer-events-none"
+              style={{ background: c.bg }}
+            />
 
-          {/* Label */}
-          <p className="text-[9px] font-black text-text-hint uppercase tracking-widest leading-none">
-            {c.label}
-          </p>
-
-          {/* Value */}
-          <div>
-            <p
-              className="font-num text-[16px] font-black tracking-tighter leading-none"
-              style={{ color: c.color }}
+            {/* Icon */}
+            <div
+              className="relative size-8 rounded-[10px] flex items-center justify-center"
+              style={{ background: c.bg, color: c.color }}
             >
-              {c.value}
-              {c.value !== '—' && (
-                <span className="text-[10px] font-medium opacity-60 ml-0.5">đ</span>
-              )}
+              {c.icon}
+            </div>
+
+            {/* Label */}
+            <p className="relative text-[10px] font-bold text-text-muted leading-none">
+              {c.label}
             </p>
-            <p className="text-[9px] text-text-hint mt-0.5 font-medium truncate">{c.sub}</p>
+
+            {/* Value */}
+            <div className="relative">
+              <p className="font-num text-[17px] font-black tracking-tighter leading-none text-text">
+                {c.value}
+                {c.value !== '—' && (
+                  <span className="text-[10px] font-medium text-text-hint ml-0.5">đ</span>
+                )}
+              </p>
+              <p className="text-[9.5px] mt-1 font-semibold truncate" style={{ color: c.color }}>
+                {c.sub}
+              </p>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }

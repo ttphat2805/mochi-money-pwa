@@ -50,7 +50,7 @@ export function BudgetTab() {
 
   if (!budget.isConfigured) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 px-8 text-center animate-in fade-in duration-150">
+      <div className="mx-4 mt-2 glass rounded-[24px] flex flex-col items-center justify-center py-16 px-8 text-center animate-in fade-in duration-150">
         <PiggyBank size={44} className="text-text-hint mb-4" />
         <p className="text-[15px] font-semibold text-text mb-2">Chưa đặt thu nhập</p>
         <p className="text-[13px] text-text-muted">
@@ -80,30 +80,14 @@ export function BudgetTab() {
     pctFrac > 1 ? '#EF4444' : pctFrac >= 0.8 ? '#FB923C' : pctFrac >= 0.6 ? '#FBBF24' : 'var(--color-accent)';
 
   return (
-    <div className="flex-1 overflow-y-auto bg-bg px-4 py-4 scrollbar-hide pb-32 pt-2 animate-in fade-in duration-150 mesh-gradient min-h-full">
-      {/* Gauge overview card — 3D Liquid Glass */}
-      <div
-        className="mb-6 rounded-[32px] relative overflow-hidden"
-        style={{
-          background: 'linear-gradient(135deg, rgba(30,42,77,0.85) 0%, rgba(22,33,62,0.65) 100%)',
-          backdropFilter: 'blur(32px)',
-          WebkitBackdropFilter: 'blur(32px)',
-          border: '1.5px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 16px 56px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)',
-        }}
-      >
-        {/* Floating ambient orbs — larger and more vivid */}
-        <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(99,179,237,0.22) 0%, transparent 65%)', filter: 'blur(28px)' }}
+    <div className="flex flex-col gap-4 px-4 pt-1 pb-32 animate-in fade-in duration-150">
+      {/* Gauge overview card — soft glass */}
+      <div className="glass rounded-[24px] relative overflow-hidden">
+        {/* Accent glow behind the gauge */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 -top-10 w-64 h-64 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(var(--color-accent-rgb), 0.22) 0%, transparent 65%)', filter: 'blur(24px)' }}
         />
-        <div className="absolute -left-16 -bottom-16 w-56 h-56 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(52,211,153,0.18) 0%, transparent 65%)', filter: 'blur(24px)' }}
-        />
-        <div className="absolute left-1/2 -translate-x-1/2 top-4 w-48 h-24 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(251,191,36,0.12) 0%, transparent 70%)', filter: 'blur(20px)' }}
-        />
-        {/* Top inner gloss */}
-        <div className="absolute top-0 inset-x-0 h-[40%] bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-[32px]" />
 
         {/* Gauge — status-colored arc with progress knob */}
         <div className="pt-6 flex justify-center relative w-full">
@@ -133,7 +117,7 @@ export function BudgetTab() {
               animate={{ rotate: fillT * G_SWEEP }}
               transition={{ type: 'spring', bounce: 0.2, duration: 0.85, delay: 0.1 }}
             >
-              <circle cx={gaugePolar(0).x} cy={gaugePolar(0).y} r={13} fill="var(--color-card)" />
+              <circle cx={gaugePolar(0).x} cy={gaugePolar(0).y} r={13} fill="var(--color-bg)" />
               <circle cx={gaugePolar(0).x} cy={gaugePolar(0).y} r={10} fill="#F8FAFC" />
               <circle cx={gaugePolar(0).x} cy={gaugePolar(0).y} r={4.5} fill={gaugeColor} />
             </motion.g>
@@ -141,7 +125,7 @@ export function BudgetTab() {
 
           {/* Center text */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pt-5 pointer-events-none">
-            <span className="text-[10px] font-black tracking-[0.2em] uppercase text-text-hint mb-1">Sử dụng</span>
+            <span className="text-[11px] font-bold text-text-muted mb-1">Sử dụng</span>
             <span
               className="font-black font-num leading-none"
               style={{ fontSize: '48px', color: gaugeColor }}
@@ -152,18 +136,18 @@ export function BudgetTab() {
         </div>
 
         {/* Stats — spent (neutral) vs remaining (semantic) */}
-        <div className="flex gap-3 px-5 pb-4 mt-1">
-          <div className="flex-1 rounded-2xl px-4 py-3 bg-white/4 border border-border/60">
-            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-text-muted mb-1">Tổng chi</p>
+        <div className="flex gap-2.5 px-4 pb-3 mt-1 relative">
+          <div className="flex-1 rounded-[18px] px-4 py-3 bg-white/5 border border-white/8">
+            <p className="text-[11px] font-bold text-text-muted mb-1">Tổng chi</p>
             <p className="font-num text-[18px] font-black text-text leading-none">{formatVND(budget.totalSpent)}đ</p>
           </div>
-          <div className="flex-1 rounded-2xl px-4 py-3 text-right"
+          <div className="flex-1 rounded-[18px] px-4 py-3 text-right"
             style={{
-              background: budget.flexAmount - budget.totalSpent >= 0 ? 'rgba(16,185,129,0.07)' : 'rgba(239,68,68,0.07)',
-              border: budget.flexAmount - budget.totalSpent >= 0 ? '1px solid rgba(16,185,129,0.15)' : '1px solid rgba(239,68,68,0.15)',
+              background: budget.flexAmount - budget.totalSpent >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+              border: budget.flexAmount - budget.totalSpent >= 0 ? '1px solid rgba(16,185,129,0.2)' : '1px solid rgba(239,68,68,0.2)',
             }}
           >
-            <p className={cn("text-[9px] font-black uppercase tracking-[0.15em] mb-1",
+            <p className={cn("text-[11px] font-bold mb-1",
               budget.flexAmount - budget.totalSpent >= 0 ? 'text-success' : 'text-danger'
             )}>Còn lại</p>
             <p className={cn("font-num text-[18px] font-black leading-none",
@@ -173,7 +157,7 @@ export function BudgetTab() {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between items-center px-6 pb-6 text-[11px] text-text-muted font-medium">
+        <div className="flex justify-between items-center px-5 pb-4 text-[11px] text-text-muted font-medium relative">
           <span>Ngân sách <span className="font-num text-text font-bold">{formatShort(budget.flexAmount)}</span></span>
           <span>Còn {budget.daysLeft} ngày &middot; <span className="text-text font-bold">~{formatShort(budget.dailyAllowance)}/ngày</span></span>
         </div>
@@ -181,17 +165,18 @@ export function BudgetTab() {
 
       {/* Category budget list */}
       {catsWithLimit.length > 0 && (
-        <div className="space-y-4">
-          <div className="px-1 flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-[1.5px] text-text-hint">
-              Theo danh mục
-            </span>
+        <div className="flex flex-col gap-3">
+          <div className="px-1 pt-1 flex items-center justify-between">
+            <span className="section-title">Theo danh mục</span>
+            <span className="text-[11px] font-num text-text-hint">{catsWithLimit.length}</span>
           </div>
 
           {catsWithLimit.map((cat) => {
             const status = getBudgetStatus(cat.spent, cat.limitPerMonth);
             const statusColor = BUDGET_STATUS_COLORS[status];
             const isOver = status === 'over';
+            // Healthy → category color; warning levels/over → status color
+            const barColor = status === 'ok' ? cat.color : statusColor;
             const diff = cat.spent - cat.lastMonthSpent;
             const isIncrease = diff > 0;
             const diffAbs = Math.abs(diff);
@@ -201,14 +186,14 @@ export function BudgetTab() {
                 key={cat.id}
                 onClick={() => openQuickAdd(undefined, cat.id)}
                 className={cn(
-                  "p-5 bg-card rounded-[32px] shadow-premium border transition-all active-scale cursor-pointer",
-                  isOver ? "border-danger/20" : status === 'danger' ? "border-amber-400/20" : "border-border"
+                  "glass p-4 rounded-[24px] transition-all active-scale cursor-pointer",
+                  isOver ? "!border-danger/30" : status === 'danger' ? "!border-amber-400/25" : ""
                 )}
               >
-                <div className="flex items-center gap-4 mb-5">
+                <div className="flex items-center gap-3 mb-4">
                   <div
-                    className="size-12 rounded-2xl flex items-center justify-center shadow-sm shrink-0 border border-border/40"
-                    style={{ background: tint(cat.color, 8) }}
+                    className="size-11 rounded-[16px] flex items-center justify-center shrink-0"
+                    style={{ background: tint(cat.color, 16), boxShadow: `inset 0 0 0 1px ${tint(cat.color, 25)}` }}
                   >
                     <CategoryIcon icon={cat.icon} size={22} color={cat.color} />
                   </div>
@@ -232,30 +217,33 @@ export function BudgetTab() {
                     </p>
                   </div>
                   <div
-                    className="text-[13px] font-black"
-                    style={{ color: status === 'ok' ? 'var(--color-text-muted)' : statusColor }}
+                    className="text-[13px] font-black font-num px-2.5 py-1 rounded-full"
+                    style={{
+                      color: status === 'ok' ? 'var(--color-text-muted)' : statusColor,
+                      background: status === 'ok' ? 'rgba(255,255,255,0.05)' : tint(statusColor, 14),
+                    }}
                   >
                     {formatBudgetPct(cat.pct)}
                   </div>
                 </div>
 
-                <div className="h-2.5 bg-surface2 rounded-full overflow-hidden mb-5">
+                <div className="h-2 bg-white/8 rounded-full overflow-hidden mb-4">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: Math.min(100, cat.pct) + "%" }}
                     transition={{ duration: 0.7, ease: 'easeOut' }}
                     className="h-full rounded-full"
-                    style={{ background: statusColor }}
+                    style={{ background: `linear-gradient(90deg, ${tint(barColor, 55)}, ${barColor})` }}
                   />
                 </div>
 
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-text-hint uppercase tracking-widest font-bold mb-0.5">Đã chi</span>
+                    <span className="text-[11px] text-text-hint font-semibold mb-0.5">Đã chi</span>
                     <span className="text-[14px] font-bold text-text font-num">{formatShort(cat.spent)}</span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-[10px] text-text-hint uppercase tracking-widest font-bold mb-0.5">
+                    <span className="text-[11px] text-text-hint font-semibold mb-0.5">
                       {cat.remaining >= 0 ? "Còn lại" : "Vượt mức"}
                     </span>
                     <span className={cn("text-[14px] font-bold font-num", cat.remaining >= 0 ? "text-success" : "text-danger")}>
@@ -265,7 +253,7 @@ export function BudgetTab() {
                 </div>
 
                 {isOver && (
-                  <div className="mt-5 p-3 bg-danger/5 rounded-2xl border border-danger/10 flex items-center gap-2.5">
+                  <div className="mt-4 p-3 bg-danger/10 rounded-[16px] border border-danger/20 flex items-center gap-2.5">
                     <AlertCircle size={14} className="text-danger shrink-0" />
                     <span className="text-[12px] font-semibold text-danger leading-tight">
                       Vượt giới hạn {formatShort(Math.abs(cat.remaining))} tháng này
@@ -280,17 +268,20 @@ export function BudgetTab() {
 
       {/* Categories without limit */}
       {catsWithoutLimit.length > 0 && (
-        <div className="mt-8">
-          <p className="text-[10px] font-bold uppercase tracking-[1.5px] text-text-hint mb-3 px-1">
-            Chưa đặt giới hạn
-          </p>
-          <div className="bg-card rounded-[32px] overflow-hidden border border-border shadow-premium">
+        <div className="flex flex-col gap-3">
+          <p className="section-title px-1 pt-1">Chưa đặt giới hạn</p>
+          <div className="glass rounded-[24px] overflow-hidden">
             {catsWithoutLimit.map((cat, i) => {
               const isSettingThis = budget.settingLimitFor === cat.id;
               return (
-                <div key={cat.id} className={cn(i > 0 && "border-t border-border/50")}>
-                  <div className="flex items-center gap-4 px-5 py-4">
-                    <CategoryIcon icon={cat.icon} size={22} color={cat.color} />
+                <div key={cat.id} className={cn(i > 0 && "border-t border-white/6")}>
+                  <div className="flex items-center gap-3 px-4 py-3.5">
+                    <div
+                      className="size-10 rounded-[14px] flex items-center justify-center shrink-0"
+                      style={{ background: tint(cat.color, 16) }}
+                    >
+                      <CategoryIcon icon={cat.icon} size={19} color={cat.color} />
+                    </div>
                     <span className="flex-1 text-[14px] text-text font-bold truncate">
                       {cat.name}
                     </span>
@@ -302,7 +293,12 @@ export function BudgetTab() {
                         <button
                           type="button"
                           onClick={() => budget.openSetLimit(cat)}
-                          className="text-[11px] text-white font-bold px-3 py-2 rounded-xl bg-accent active:scale-95 transition-all"
+                          className="!min-h-8 text-[11px] font-bold px-3 py-1.5 rounded-full active:scale-95 transition-all"
+                          style={{
+                            color: 'var(--color-accent-dark)',
+                            background: 'rgba(var(--color-accent-rgb), 0.16)',
+                            boxShadow: 'inset 0 0 0 1px rgba(var(--color-accent-rgb), 0.3)',
+                          }}
                         >
                           Đặt giới hạn
                         </button>
@@ -311,8 +307,8 @@ export function BudgetTab() {
                   </div>
 
                   {isSettingThis && (
-                    <div className="px-5 pb-5 animate-in slide-in-from-top-2 duration-200">
-                      <div className="flex items-center bg-surface rounded-2xl p-1.5 border border-border">
+                    <div className="px-4 pb-4 animate-in slide-in-from-top-2 duration-200">
+                      <div className="flex items-center bg-white/5 rounded-[18px] p-1.5 border border-white/10">
                         <input
                           type="text"
                           pattern="[0-9]*"
@@ -339,7 +335,7 @@ export function BudgetTab() {
                           <button
                             type="button"
                             onClick={() => budget.saveLimit(cat.id!, budget.limitAmount)}
-                            className="px-4 py-2 bg-accent text-white text-[12px] font-bold rounded-xl shadow-sm whitespace-nowrap active:scale-95 transition-transform"
+                            className="px-4 py-2 bg-accent text-white text-[12px] font-bold rounded-[14px] shadow-accent whitespace-nowrap active:scale-95 transition-transform"
                           >
                             Lưu
                           </button>
@@ -355,7 +351,7 @@ export function BudgetTab() {
       )}
 
       {catsWithLimit.length === 0 && catsWithoutLimit.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="glass rounded-[24px] flex flex-col items-center justify-center py-16 text-center">
           <BarChart3 size={40} className="text-text-hint mb-4" />
           <p className="text-[14px] font-bold text-text-muted">Chưa có dữ liệu chi tiêu</p>
         </div>

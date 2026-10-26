@@ -8,7 +8,6 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import type { TabKey } from "@/components/BottomNav";
 import { useShouldShowSkeleton } from "@/hooks/useShouldShowSkeleton";
 import { HomeSkeleton } from "./HomeSkeleton";
-import { WaveBackground } from "@/components/ui/WaveBackground";
 import { PiggyBank } from "lucide-react";
 import * as React from "react";
 import { useAppStore } from "@/stores/appStore";
@@ -43,8 +42,7 @@ export function HomePage({ onNavigate, onSettings }: HomePageProps) {
   ), [home.settings, home.todaySpent, home.monthSpent, home.remainingBudget, home.dailyAllowance, home.spentPct, home.daysLeft, home.lastMonthTotal]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-surface relative">
-      <WaveBackground />
+    <div className="flex h-full flex-col overflow-hidden app-ambient relative">
       <TopBar onSettingsTap={onSettings} />
 
       <div className="flex-1 min-h-0 relative z-10">
@@ -53,8 +51,8 @@ export function HomePage({ onNavigate, onSettings }: HomePageProps) {
             <HomeSkeleton />
           ) : isEmpty ? (
             <div className="flex flex-col items-center justify-center px-8 pt-20 pb-8 text-center">
-              <div className="mb-4">
-                <PiggyBank size={56} className="text-text-hint" strokeWidth={1.5} />
+              <div className="mb-5 size-20 rounded-[28px] glass flex items-center justify-center">
+                <PiggyBank size={40} className="text-accent-dark" strokeWidth={1.5} />
               </div>
               <h2 className="text-[20px] font-bold mb-2 text-text">Chào mừng đến Mochi!</h2>
               <p className="text-text-muted text-[14px] mb-6">Bắt đầu bằng cách ghi chi tiêu đầu tiên của bạn</p>
@@ -72,7 +70,7 @@ export function HomePage({ onNavigate, onSettings }: HomePageProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="flex flex-col gap-4 pb-8 pt-1"
+              className="flex flex-col gap-6 pb-10 pt-1"
             >
               {/* Hero: remaining budget + today spend + daily allowance */}
               {renderHero}

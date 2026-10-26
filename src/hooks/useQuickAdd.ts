@@ -52,6 +52,7 @@ interface UseQuickAddReturn {
   setNote: (note: string) => void
   toggleIsNote: () => void
   addAmount: (value: number) => void
+  setAmount: (value: number) => void
   save: () => Promise<SaveResult>
   confirmOverBudget: () => Promise<SaveResult>
   dismissBudgetWarning: () => void
@@ -225,6 +226,12 @@ export function useQuickAdd(): UseQuickAddReturn {
     })
   }, [])
 
+  const setAmount = useCallback((value: number) => {
+    const nextStr = String(Math.max(0, Math.floor(value)))
+    if (nextStr.length > MAX_DIGITS) return
+    setAmountDigits(nextStr === '0' ? '' : nextStr)
+  }, [])
+
   /**
    * Core save logic — captures values BEFORE resetting state.
    * Returns result so caller can show toast with the correct data.
@@ -324,6 +331,7 @@ export function useQuickAdd(): UseQuickAddReturn {
     setNote,
     toggleIsNote,
     addAmount,
+    setAmount,
     save,
     confirmOverBudget,
     dismissBudgetWarning,

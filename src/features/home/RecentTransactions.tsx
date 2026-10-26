@@ -98,14 +98,12 @@ export const RecentTransactions = React.memo(({ transactions, onViewAll }: Recen
       <div className="px-4">
         {/* Section header */}
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[10px] font-bold tracking-widest text-text-hint uppercase">
-            Gần đây
-          </p>
+          <p className="section-title">Gần đây</p>
           {transactions.length > 0 && (
             <button
               type="button"
               onClick={onViewAll}
-              className="flex items-center gap-0.5 text-[12px] text-accent-dark font-semibold active:opacity-60 transition-opacity"
+              className="!min-h-0 flex items-center gap-0.5 h-7 pl-3 pr-2 rounded-full bg-white/6 text-[12px] text-accent-dark font-semibold active:opacity-60 transition-opacity"
             >
               Xem tất cả
               <ChevronRight size={13} className="mt-px" />
@@ -120,12 +118,12 @@ export const RecentTransactions = React.memo(({ transactions, onViewAll }: Recen
             categories={activeCategories}
             selectedId={selectedCategoryId}
             onSelect={setSelectedCategoryId}
-            fadeFrom="from-surface"
+            fadeFrom="from-bg"
           />
         )}
 
         {transactions.length === 0 ? (
-          <div className="bg-card rounded-2xl py-10 flex flex-col items-center border border-border/60 shadow-sm gap-2">
+          <div className="glass rounded-[24px] py-10 flex flex-col items-center gap-2">
             <ReceiptText size={32} className="text-text-hint" strokeWidth={1.5} />
             <p className="text-[13px] text-text-muted font-medium">Chưa có giao dịch nào</p>
             <p className="text-[11px] text-text-hint">Nhấn + để ghi chi tiêu đầu tiên</p>
@@ -140,14 +138,15 @@ export const RecentTransactions = React.memo(({ transactions, onViewAll }: Recen
               <div key={group.date}>
                 {/* Day header */}
                 <div className="flex items-center justify-between mb-2 px-1">
-                  <span className="text-[11px] font-bold text-text-muted">{group.label}</span>
+                  <span className="text-[12px] font-bold text-text-muted">{group.label}</span>
                   <span className="font-num text-[11px] text-text-hint font-medium">
                     −{formatVND(group.total)}đ
                   </span>
                 </div>
 
                 {/* Transactions card */}
-                <div className="bg-card rounded-2xl overflow-hidden border border-border/60 shadow-sm">
+                {/* Rows stay opaque (bg-card) so the swipe-delete layer is hidden */}
+                <div className="bg-card rounded-[24px] overflow-hidden border border-white/8 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.55)]">
                   {group.items.map((tx, i) => (
                     <TransactionRow
                       key={tx.id}
@@ -257,14 +256,15 @@ const TransactionRow = React.memo(({
       >
         {/* Category icon */}
         <div
-          className="shrink-0 flex items-center justify-center rounded-[12px] leading-none shadow-sm"
+          className="shrink-0 flex items-center justify-center rounded-[14px] leading-none"
           style={{
-            width: 40,
-            height: 40,
-            background: tint(catColor, 9),
+            width: 42,
+            height: 42,
+            background: tint(catColor, 16),
+            boxShadow: `inset 0 0 0 1px ${tint(catColor, 22)}`,
           }}
         >
-          <CategoryIcon icon={tx.category?.icon} size={18} color={tx.category?.color} className="text-text-muted" />
+          <CategoryIcon icon={tx.category?.icon} size={19} color={tx.category?.color} className="text-text-muted" />
         </div>
 
         {/* Name + note/time */}
@@ -285,7 +285,7 @@ const TransactionRow = React.memo(({
         {/* Amount */}
         <div className="shrink-0 flex items-baseline gap-0.5">
           {!tx.isNote && <span className="text-text-hint text-[12px] font-medium">−</span>}
-          <span className={`font-num text-[14px] font-bold tracking-tight ${
+          <span className={`font-num text-[15px] font-bold tracking-tight ${
             tx.isNote ? 'text-text-muted' : 'text-text'
           }`}>
             {formatVND(tx.amount)}đ
