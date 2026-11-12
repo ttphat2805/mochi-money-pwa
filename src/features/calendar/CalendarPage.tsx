@@ -50,17 +50,32 @@ export function CalendarPage() {
     openQuickAdd(cal.selectedDay)
   }
 
+  // Blocked navigation (button disabled / swipe past the limit) is a no-op —
+  // no haptic, no slide direction change
   const goNext = () => {
+    if (!cal.canGoNext) return
     triggerHaptic('light')
     setSlideDir('left')
     cal.goToNextMonth()
   }
 
   const goPrev = () => {
+    if (!cal.canGoPrev) return
     triggerHaptic('light')
     setSlideDir('right')
     cal.goToPrevMonth()
   }
+
+  // Header copy describes the month the loaded numbers belong to
+  const [dataYear, dataMonth] = cal.dataMonthKey.split('-')
+  const monthPhrase = cal.dataMonthKey === cal.today.slice(0, 7)
+    ? 'tháng này'
+    : `tháng ${Number(dataMonth)}/${dataYear}`
+  const headerCopy = cal.isLoading
+    ? '\u00A0' // keep the line height; never claim "no spending" before data arrives
+    : cal.monthStats.total > 0
+      ? `Đã chi ${formatVND(cal.monthStats.total)}đ ${monthPhrase}`
+      : `Chưa có chi tiêu ${monthPhrase}`
 
   return (
     <div className="flex h-full flex-col app-ambient relative overflow-hidden">
@@ -71,9 +86,7 @@ export function CalendarPage() {
         <div className="flex items-end justify-between mb-4">
           <div>
             <p className="text-[12px] text-text-muted font-semibold mb-0.5">
-              {cal.monthStats.total > 0
-                ? `Đã chi ${formatVND(cal.monthStats.total)}đ tháng này`
-                : 'Chưa có chi tiêu tháng này'}
+              {headerCopy}
             </p>
             <h1 className="text-[26px] font-black text-text tracking-tight leading-tight">
               Lịch
@@ -88,7 +101,7 @@ export function CalendarPage() {
                 triggerHaptic('light')
                 cal.goToToday()
               }}
-              className="!min-h-8 mb-1 h-8 px-3.5 rounded-full text-[11px] font-bold transition-all active:scale-95 border"
+              className="relative !min-h-8 mb-1 h-8 px-3.5 rounded-full text-[11px] font-bold transition-all active:scale-95 border after:absolute after:-inset-x-1 after:-inset-y-1.5 after:content-['']"
               style={{
                 background: tint(accent, 14),
                 borderColor: tint(accent, 30),
@@ -105,7 +118,7 @@ export function CalendarPage() {
           <button
             type="button"
             onClick={goPrev}
-            className="glass size-10 flex items-center justify-center rounded-full active:scale-95 transition-transform"
+            className="glass size-11 flex items-center justify-center rounded-full active:scale-95 transition-transform"
             aria-label="Tháng trước"
           >
             <ChevronLeft className="size-[18px] text-text" />
@@ -127,7 +140,7 @@ export function CalendarPage() {
             type="button"
             onClick={goNext}
             disabled={!cal.canGoNext}
-            className="glass size-10 flex items-center justify-center rounded-full active:scale-95 transition-transform disabled:opacity-30"
+            className="glass size-11 flex items-center justify-center rounded-full active:scale-95 transition-transform disabled:opacity-30"
             aria-label="Tháng sau"
           >
             <ChevronRight className="size-[18px] text-text" />
@@ -138,17 +151,20 @@ export function CalendarPage() {
       {/* ── Scrollable body ── */}
       <div className="flex-1 min-h-0 relative z-10 overflow-y-auto scrollbar-hide pb-24">
         <div className="flex flex-col gap-4 pt-1 pb-4">
-          {showSkeleton ? (
-            <CalendarSkeleton />
+          {cal.isLoading ? (
+            <CalendarSkeleton
+              weeks={Math.ceil(cal.calendarDays.length / 7)}
+              visible={showSkeleton}
+            />
           ) : (
             <>
               {/* Calendar grid */}
               <CalendarGrid
                 days={cal.calendarDays}
                 dailyTotals={cal.dailyTotals}
-                maxDailyAmount={cal.maxDailyAmount}
+                heatScaleMax={cal.heatScaleMax}
                 selectedDay={cal.selectedDay}
-                onSelectDay={(date) => cal.setSelectedDay(cal.selectedDay === date ? null : date)}
+                onSelectDay={cal.toggleSelectedDay}
                 onSwipeLeft={goNext}
                 onSwipeRight={goPrev}
                 monthKey={cal.viewMonthKey}
@@ -177,24 +193,38 @@ export function CalendarPage() {
                 </div>
               )}
 
-              {/* Day detail panel — inline, animated */}
-              <AnimatePresence mode="wait">
+              {/* Day detail panel — the container stays mounted while a day is
+                  selected; switching days only crossfades the inner content
+                  (both stacked in one grid cell, so the height never collapses
+                  and MonthSummary below doesn't jump). */}
+              <AnimatePresence>
                 {cal.selectedDay && (
                   <motion.div
                     ref={panelRef}
-                    key={cal.selectedDay}
+                    key="day-panel"
                     initial={{ opacity: 0, y: -6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -6 }}
                     transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="px-4"
+                    className="px-4 grid"
                   >
-                    <DayDetailPanel
-                      selectedDay={cal.selectedDay}
-                      transactions={cal.selectedDayTxs}
-                      today={cal.today}
-                      onAddTransaction={handleAddForDay}
-                    />
+                    <AnimatePresence initial={false}>
+                      <motion.div
+                        key={cal.selectedDay}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="[grid-area:1/1] min-w-0"
+                      >
+                        <DayDetailPanel
+                          selectedDay={cal.selectedDay}
+                          transactions={cal.selectedDayTxs}
+                          today={cal.today}
+                          onAddTransaction={handleAddForDay}
+                        />
+                      </motion.div>
+                    </AnimatePresence>
                   </motion.div>
                 )}
               </AnimatePresence>

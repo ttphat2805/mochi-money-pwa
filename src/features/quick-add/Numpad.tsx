@@ -1,6 +1,6 @@
 import { Check, Delete, History, Sparkles } from 'lucide-react'
 import { triggerHaptic } from '@/lib/haptic'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { usePersonalization } from '@/hooks/usePersonalization'
 import { tint } from '@/lib/utils'
 import { formatSuggestionLabel, getAmountSuggestions } from './amountSuggestions'
@@ -32,8 +32,11 @@ const SHORTCUTS = [
 ]
 
 const KEY_CLASS =
-  'bg-card border border-border flex h-[50px] items-center justify-center rounded-2xl text-[22px] font-bold text-text active:bg-surface2 transition-colors'
+  'bg-card border border-border flex h-[46px] items-center justify-center rounded-2xl text-[22px] font-bold text-text active:bg-surface2 transition-colors'
 const KEY_TAP = { scale: 0.92, transition: { duration: 0.08 } }
+// `min-h-0` overrides the global 44px button min-height; the 40px row keeps the target large
+const CHIP_BASE =
+  'shrink-0 h-9 min-h-0 rounded-xl flex items-center border active:scale-90 transition-transform duration-75 touch-manipulation select-none'
 
 export function Numpad({
   onDigit,
@@ -57,6 +60,8 @@ export function Numpad({
   const suggestions = typedSuggestions.length > 0 ? typedSuggestions : usualAmounts
   const SuggestionIcon = typedSuggestions.length > 0 ? Sparkles : History
   const showChipRow = Boolean(onSetAmount || onShortcut)
+  const chipMode =
+    typedSuggestions.length > 0 ? 'typed' : usualAmounts.length > 0 ? 'usual' : 'shortcut'
 
   const pressDigit = (digit: number) => {
     triggerHaptic('light')
@@ -76,52 +81,48 @@ export function Numpad({
     <div className="flex flex-col gap-2 w-full">
       {/* Chip row: smart suggestions while typing, quick shortcuts otherwise.
           Fixed height so swapping chips never shifts the keypad. */}
+      {/* Chips are plain buttons keyed by slot, so typing only swaps their text
+          (no unmount/remount). The row is keyed by mode, so the CSS fade runs
+          only when switching between suggestions and shortcuts. */}
       {showChipRow && (
-        <div className="h-10 py-0.5 flex items-center gap-1.5 overflow-x-auto overflow-y-hidden scrollbar-hide">
-          <AnimatePresence mode="popLayout" initial={false}>
-            {suggestions.length > 0
-              ? suggestions.map((value, i) => (
-                  <motion.button
-                    key={`s-${value}`}
-                    type="button"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0, transition: { delay: i * 0.03 } }}
-                    exit={{ opacity: 0, transition: { duration: 0.08 } }}
-                    whileTap={{ scale: 0.9, transition: { duration: 0.08 } }}
-                    onClick={() => {
-                      triggerHaptic('medium')
-                      onSetAmount?.(value)
-                    }}
-                    className="shrink-0 h-9 px-3.5 rounded-xl flex items-center gap-1.5 text-[13px] font-black border"
-                    style={{
-                      color: accent,
-                      backgroundColor: tint(accent, 14),
-                      borderColor: tint(accent, 35),
-                    }}
-                  >
-                    {i === 0 && <SuggestionIcon size={12} strokeWidth={2.5} />}
-                    {formatSuggestionLabel(value)}
-                  </motion.button>
-                ))
-              : onShortcut &&
-                SHORTCUTS.map((s) => (
-                  <motion.button
-                    key={`q-${s.amount}`}
-                    type="button"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0, transition: { duration: 0.08 } }}
-                    whileTap={{ scale: 0.9, transition: { duration: 0.08 } }}
-                    onClick={() => {
-                      triggerHaptic('light')
-                      onShortcut(s.amount)
-                    }}
-                    className="shrink-0 h-9 px-3 rounded-xl bg-card text-[12px] font-bold text-text-muted active:bg-surface2 border border-border"
-                  >
-                    {s.label}
-                  </motion.button>
-                ))}
-          </AnimatePresence>
+        <div
+          key={chipMode}
+          className="animate-chip-in h-10 py-0.5 flex items-center gap-1.5 overflow-x-auto overflow-y-hidden scrollbar-hide"
+        >
+          {chipMode !== 'shortcut'
+            ? suggestions.map((value, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('medium')
+                    onSetAmount?.(value)
+                  }}
+                  className={`${CHIP_BASE} px-3.5 gap-1.5 text-[13px] font-black`}
+                  style={{
+                    color: accent,
+                    backgroundColor: tint(accent, 14),
+                    borderColor: tint(accent, 35),
+                  }}
+                >
+                  {i === 0 && <SuggestionIcon size={12} strokeWidth={2.5} />}
+                  {formatSuggestionLabel(value)}
+                </button>
+              ))
+            : onShortcut &&
+              SHORTCUTS.map((s) => (
+                <button
+                  key={s.amount}
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('light')
+                    onShortcut(s.amount)
+                  }}
+                  className={`${CHIP_BASE} px-3 bg-card text-[12px] font-bold text-text-muted active:bg-surface2 border-border`}
+                >
+                  {s.label}
+                </button>
+              ))}
         </div>
       )}
 
@@ -162,7 +163,7 @@ export function Numpad({
           type="button"
           whileTap={KEY_TAP}
           onClick={() => { triggerHaptic('light'); onDelete(); }}
-          className="flex h-[50px] items-center justify-center rounded-2xl transition-colors active:bg-white/5"
+          className="flex h-[46px] items-center justify-center rounded-2xl transition-colors active:bg-white/5"
           aria-label="Xóa"
         >
           <Delete className="text-text-muted size-5" />
@@ -175,7 +176,7 @@ export function Numpad({
         whileTap={canConfirm && !isSaving ? { scale: 0.97, transition: { duration: 0.08 } } : {}}
         onClick={() => { triggerHaptic('medium'); onConfirm(); }}
         disabled={!canConfirm || isSaving}
-        className="flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-black transition-all duration-200 disabled:text-text-hint"
+        className="flex h-[48px] w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-black transition-all duration-200 disabled:text-text-hint"
         style={{
           backgroundColor: canConfirm ? accent : 'var(--color-surface2)',
           color: canConfirm ? '#FFFFFF' : undefined,

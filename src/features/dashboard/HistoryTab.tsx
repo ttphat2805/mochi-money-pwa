@@ -2,8 +2,10 @@ import { CategoryFilterChips } from '@/components/CategoryFilterChips'
 import { CloseButton } from '@/components/CloseButton'
 import { NoteBadge } from '@/components/NoteBadge'
 import { TransactionDetailSheet } from '@/features/transactions/TransactionDetailSheet'
+import { softDeleteWithUndo } from '@/features/transactions/softDeleteWithUndo'
 import { useHistory, type TransactionWithCategory } from '@/hooks/useHistory'
 import { useShouldShowSkeleton } from '@/hooks/useShouldShowSkeleton'
+import { triggerHaptic } from '@/lib/haptic'
 import { formatVND, getDateLabel, sumSpent, tint } from '@/lib/utils'
 import type { Transaction } from '@/types'
 import { animate, motion, useMotionValue, type PanInfo } from 'framer-motion'
@@ -13,49 +15,71 @@ import * as React from 'react'
 import { useCallback, useState } from 'react'
 import { HistorySkeleton } from './HistorySkeleton'
 
+const SWIPE_OPEN_X = -64
+
 // ── Transaction row ────────────────────────────────────────────
 
 function TxRow({
   tx,
   onSelect,
+  onDelete,
 }: {
   tx: TransactionWithCategory
   onSelect: (tx: Transaction) => void
+  onDelete: (tx: Transaction) => void
 }) {
   const x = useMotionValue(0)
   const [hasDragged, setHasDragged] = React.useState(false)
+  // The delete button is only interactive while the row is swiped open, so a
+  // plain tap on a closed row can never hit it
+  const [isOpen, setIsOpen] = React.useState(false)
+
+  const settle = (open: boolean) => {
+    setIsOpen(open)
+    animate(x, open ? SWIPE_OPEN_X : 0, { type: 'spring', bounce: 0.2, duration: 0.3 })
+  }
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     if (Math.abs(info.offset.x) > 10) {
       setHasDragged(true)
       setTimeout(() => setHasDragged(false), 50)
     }
-
-    if (info.offset.x < -20 || info.point.x < -20) {
-      animate(x, -64, { type: 'spring', bounce: 0.2, duration: 0.3 })
-    } else {
-      animate(x, 0, { type: 'spring', bounce: 0.2, duration: 0.3 })
-    }
+    const open = info.velocity.x < -300 || (info.velocity.x <= 300 && x.get() < SWIPE_OPEN_X / 2)
+    if (open && !isOpen) triggerHaptic('light')
+    settle(open)
   }
 
   return (
     <div className="relative w-full bg-danger overflow-hidden">
-      {/* Background delete layer */}
-      <div className="absolute inset-y-0 right-0 w-[64px] flex items-center justify-center">
+      {/* Delete action behind the row — active only when swiped open */}
+      <button
+        type="button"
+        onClick={() => {
+          if (!isOpen) return
+          triggerHaptic('medium')
+          onDelete(tx)
+        }}
+        tabIndex={isOpen ? 0 : -1}
+        aria-hidden={!isOpen}
+        aria-label={`Xoá giao dịch ${tx.category?.name ?? ''} ${formatVND(tx.amount)}đ`}
+        className={`absolute inset-y-0 right-0 w-[64px] flex items-center justify-center ${
+          isOpen ? '' : 'pointer-events-none'
+        }`}
+      >
         <Trash className="size-4 text-white" />
-      </div>
+      </button>
 
       <motion.button
         type="button"
         drag="x"
-        dragConstraints={{ left: -64, right: 0 }}
+        dragConstraints={{ left: SWIPE_OPEN_X, right: 0 }}
         dragElastic={0.05}
         style={{ x }}
         onDragEnd={handleDragEnd}
         onClick={(e) => {
           if (hasDragged) return
-          if (Math.abs(x.get()) > 5) {
-            animate(x, 0, { type: 'spring', bounce: 0, duration: 0.3 })
+          if (isOpen || Math.abs(x.get()) > 5) {
+            settle(false)
             e.preventDefault()
             return
           }
@@ -130,6 +154,12 @@ export function HistoryTab() {
 
   const handleSelect = useCallback((tx: Transaction) => setSelectedTx(tx), [])
 
+  // Shared soft-delete + "Hoàn tác" flow (same as TransactionDetailSheet)
+  const handleDelete = useCallback((tx: Transaction) => {
+    if (tx.id == null) return
+    void softDeleteWithUndo({ id: tx.id, amount: tx.amount })
+  }, [])
+
   const groups = groupByDate(history.filteredTransactions)
 
   // Month navigation
@@ -149,9 +179,14 @@ export function HistoryTab() {
         <div className="flex items-center justify-between px-4 pt-2 pb-3">
           <button
             type="button"
-            onClick={() => canGoBack && history.setSelectedMonth(history.monthKeys[currentIdx + 1])}
+            onClick={() => {
+              if (!canGoBack) return
+              triggerHaptic('light')
+              history.setSelectedMonth(history.monthKeys[currentIdx + 1])
+            }}
             disabled={!canGoBack}
-            className="flex size-10 items-center justify-center rounded-full bg-surface active:bg-surface2 transition-colors disabled:opacity-30"
+            aria-label="Tháng trước"
+            className="flex size-11 items-center justify-center rounded-full bg-surface active:bg-surface2 transition-colors disabled:opacity-30"
           >
             <ChevronLeft size={16} />
           </button>
@@ -159,15 +194,20 @@ export function HistoryTab() {
           <div className="text-center">
             <p className="text-[15px] font-semibold text-text">{history.monthLabel}</p>
             <p className="font-num text-[12px] text-text-muted mt-0.5">
-              {formatVND(history.monthTotal)}đ tổng chi
+              {history.isLoading ? '—' : `${formatVND(history.monthTotal)}đ tổng chi`}
             </p>
           </div>
 
           <button
             type="button"
-            onClick={() => canGoForward && history.setSelectedMonth(history.monthKeys[currentIdx - 1])}
+            onClick={() => {
+              if (!canGoForward) return
+              triggerHaptic('light')
+              history.setSelectedMonth(history.monthKeys[currentIdx - 1])
+            }}
             disabled={!canGoForward}
-            className="flex size-10 items-center justify-center rounded-full bg-surface active:bg-surface2 transition-colors disabled:opacity-30"
+            aria-label="Tháng sau"
+            className="flex size-11 items-center justify-center rounded-full bg-surface active:bg-surface2 transition-colors disabled:opacity-30"
           >
             <ChevronRight size={16} />
           </button>
@@ -213,7 +253,7 @@ export function HistoryTab() {
         {/* Transaction list — reserved height so switching filters can't
             collapse the page and cause a vertical scroll jump */}
         <div className="min-h-[55dvh]">
-        {history.filteredTransactions.length === 0 ? (
+        {history.isLoading ? null : history.filteredTransactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-8 text-center">
             <FolderOpen size={40} className="text-text-hint mb-3" />
             <p className="text-[14px] font-medium text-text-muted">
@@ -243,7 +283,7 @@ export function HistoryTab() {
                   {/* Transactions for that day */}
                   <div className="px-1">
                     {txs.map((tx) => (
-                      <TxRow key={tx.id} tx={tx} onSelect={handleSelect} />
+                      <TxRow key={tx.id} tx={tx} onSelect={handleSelect} onDelete={handleDelete} />
                     ))}
                   </div>
                 </div>

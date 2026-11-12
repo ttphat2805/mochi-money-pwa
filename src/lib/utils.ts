@@ -128,16 +128,20 @@ export function getVietnameseDay(): string {
   return `${WEEKDAYS[dow]}, ${d} tháng ${m}`
 }
 
+/** One decimal, Vietnamese style (comma), trailing ",0" dropped: 1.5→"1,5", 2→"2" */
+function formatOneDecimal(value: number): string {
+  const rounded = Math.round(value * 10) / 10
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1).replace('.', ',')
+}
+
 /**
- * Compact amount for small spaces: 95000→"95k", 1500000→"1.5tr"
+ * Compact amount for small spaces: 95000→"95k", 1500000→"1,5tr", 2500000000→"2,5tỷ".
+ * Thresholds account for rounding so 999600 shows "1tr" (not "1000k").
  */
 export function formatShort(amount: number): string {
   if (amount <= 0) return '0đ'
-  if (amount >= 1_000_000) {
-    const val = amount / 1_000_000
-    const str = val % 1 === 0 ? String(val) : val.toFixed(1)
-    return `${str}tr`
-  }
+  if (amount >= 999_950_000) return `${formatOneDecimal(amount / 1_000_000_000)}tỷ`
+  if (amount >= 999_500) return `${formatOneDecimal(amount / 1_000_000)}tr`
   if (amount >= 1_000) return `${Math.round(amount / 1_000)}k`
   return `${amount}đ`
 }

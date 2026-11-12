@@ -1,8 +1,24 @@
-import { formatVND, formatShort } from '@/lib/utils'
+import { formatVND, formatShort, tint } from '@/lib/utils'
 import { CalendarDays, Sun, Target, TrendingDown, TrendingUp, type LucideIcon } from 'lucide-react'
 import type { FinancialSettings } from '@/types'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import * as React from 'react'
+
+// ── Over-budget palette (derived from the danger token) ──
+const DANGER = 'var(--color-danger)'
+const DANGER_DEEP = `color-mix(in srgb, ${DANGER} 55%, black)`
+const OVER_BG = `radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.18) 0%, transparent 45%), linear-gradient(150deg, ${tint(DANGER, 90)} 0%, ${tint(DANGER_DEEP, 75)} 100%)`
+const OVER_SHADOW = `0 24px 48px -16px ${tint(DANGER, 55)}, 0 0 0 1px rgba(255,255,255,0.15)`
+const OVER_BAR = `color-mix(in srgb, ${DANGER} 20%, white)`
+
+/** Step the hero font down so huge amounts (e.g. 99.999.999.999) fit. */
+function heroFontSize(text: string): number {
+  if (text.length > 15) return 24
+  if (text.length > 13) return 28
+  if (text.length > 11) return 32
+  if (text.length > 9) return 38
+  return 44
+}
 
 interface HeroSectionProps {
   settings: FinancialSettings | null
@@ -28,6 +44,11 @@ export const HeroSection = React.memo(({
   const hasIncome = !!settings?.income
   const pctInt = spentPct !== null ? Math.round(spentPct * 100) : null
   const isOver = (remainingBudget ?? 0) < 0
+  const reduceMotion = useReducedMotion()
+
+  const heroText = hasIncome
+    ? `${isOver ? '-' : ''}${formatVND(Math.abs(remainingBudget ?? 0))}`
+    : formatVND(monthSpent)
 
   // Trend vs last month
   const hasTrend = lastMonthSpent > 0
@@ -47,19 +68,21 @@ export const HeroSection = React.memo(({
     <div className="px-4 z-10 relative flex flex-col gap-3">
       {/* ── Hero card ── */}
       <div
-        className={`glass-accent rounded-[28px] relative overflow-hidden ${
-          isOver ? 'animate-[pulse-border_2s_ease-in-out_infinite]' : ''
-        }`}
-        style={
-          isOver
-            ? {
-                background:
-                  'radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.18) 0%, transparent 45%), linear-gradient(150deg, rgba(220,38,38,0.9) 0%, rgba(127,29,29,0.75) 100%)',
-                boxShadow: '0 24px 48px -16px rgba(220,38,38,0.55), 0 0 0 1px rgba(255,255,255,0.15)',
-              }
-            : undefined
-        }
+        className="glass-accent rounded-[28px] relative overflow-hidden"
+        style={isOver ? { background: OVER_BG, boxShadow: OVER_SHADOW } : undefined}
       >
+        {/* Over budget: pulsing inner ring (opacity-only, compositor-friendly) */}
+        {isOver && (
+          <motion.div
+            aria-hidden
+            className="absolute inset-0 rounded-[28px] pointer-events-none z-20"
+            style={{ boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.45)' }}
+            initial={{ opacity: 0 }}
+            animate={reduceMotion ? { opacity: 0.5 } : { opacity: [0, 1, 0] }}
+            transition={reduceMotion ? { duration: 0 } : { duration: 2, ease: 'easeInOut', repeat: Infinity }}
+          />
+        )}
+
         {/* Decorative orbs */}
         <div className="absolute -right-12 -top-16 size-48 rounded-full bg-white/20 blur-3xl pointer-events-none" />
         <div className="absolute -left-10 -bottom-14 size-40 rounded-full bg-black/20 blur-3xl pointer-events-none" />
@@ -80,16 +103,14 @@ export const HeroSection = React.memo(({
           </div>
 
           {/* ── Hero number ── */}
-          <div className="flex items-baseline gap-1.5">
+          <div className="flex items-baseline gap-1.5 min-w-0">
             <span
-              className="font-num leading-none tracking-tighter font-black text-white"
-              style={{ fontSize: 44, textShadow: '0 4px 16px rgba(0,0,0,0.18)' }}
+              className="font-num leading-none tracking-tighter font-black text-white min-w-0"
+              style={{ fontSize: heroFontSize(heroText), textShadow: '0 4px 16px rgba(0,0,0,0.18)' }}
             >
-              {hasIncome
-                ? `${isOver ? '-' : ''}${formatVND(Math.abs(remainingBudget ?? 0))}`
-                : formatVND(monthSpent)}
+              {heroText}
             </span>
-            <span className="text-white/70 text-[18px] font-bold">đ</span>
+            <span className="text-white/70 text-[18px] font-bold shrink-0">đ</span>
           </div>
 
           {/* ── Progress (only with budget) ── */}
@@ -102,7 +123,7 @@ export const HeroSection = React.memo(({
                   transition={{ duration: 0.9, type: 'spring', bounce: 0 }}
                   className="h-full rounded-full"
                   style={{
-                    background: isOver ? 'rgba(255,200,200,0.95)' : 'linear-gradient(90deg, rgba(255,255,255,0.75), #FFFFFF)',
+                    background: isOver ? OVER_BAR : 'linear-gradient(90deg, rgba(255,255,255,0.75), #FFFFFF)',
                     boxShadow: '0 0 12px rgba(255,255,255,0.45)',
                   }}
                 />

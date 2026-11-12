@@ -18,6 +18,7 @@ import {
   getCurrentMonthString,
 } from "@/lib/utils";
 import { useFinancialSettings } from "@/hooks/useFinancialSettings";
+import { getMonthlyBudget, getPlannedDailyBudget } from "@/lib/budget";
 
 interface FinancialSettingsPageProps {
   onBack: () => void;
@@ -86,37 +87,52 @@ function VNDInput({
 
 function PreviewCard({
   income,
+  extraIncome,
   saving,
   totalFixed,
   daysInMonth,
 }: {
   income: number;
+  extraIncome: number;
   saving: number;
   totalFixed: number;
   daysInMonth: number;
 }) {
-  const flex = Math.max(0, income - saving - totalFixed);
-  const daily = daysInMonth > 0 ? Math.floor(flex / daysInMonth) : 0;
-  const isOver = income > 0 && income < saving + totalFixed;
+  // Same definition as the Budget tab (lib/budget.ts). Fixed expenses are
+  // NOT subtracted: they're posted as transactions on their pay day and
+  // counted as spending then.
+  const totalIncome = income + extraIncome;
+  const budget = getMonthlyBudget({ income, extraIncome, savingTarget: saving });
+  const daily = getPlannedDailyBudget(budget, daysInMonth);
+  const isOver = income > 0 && totalIncome < saving;
+  const fixedExceedsBudget = !isOver && totalFixed > budget;
 
   if (income === 0) return null;
 
   const pctOf = (v: number) =>
-    income > 0 ? Math.round((v / income) * 100) : 0;
+    totalIncome > 0 ? Math.round((v / totalIncome) * 100) : 0;
 
   return (
     <div className="rounded-[14px] border border-border bg-card p-4">
       <p className="text-text-muted text-[11px] font-medium uppercase tracking-[1px] mb-3">
-        Phân bổ thu nhập
+        Phân bổ thu nhập tháng này
       </p>
 
       {isOver ? (
         <p className="text-danger text-[13px] font-medium flex items-center gap-1.5">
           <TriangleAlert size={14} className="shrink-0" />
-          Thu nhập không đủ bù chi phí cố định và tiết kiệm
+          Thu nhập không đủ cho mục tiêu tiết kiệm
         </p>
       ) : (
         <div className="flex flex-col gap-2">
+          {extraIncome > 0 && (
+            <PreviewRow
+              label="Thu nhập (gồm thu nhập phụ)"
+              amount={totalIncome}
+              pct={100}
+              color="var(--color-text-muted)"
+            />
+          )}
           <PreviewRow
             label="Tiết kiệm"
             amount={saving}
@@ -124,21 +140,35 @@ function PreviewCard({
             color="#3B82F6"
           />
           <PreviewRow
-            label="Chi phí cố định"
-            amount={totalFixed}
-            pct={pctOf(totalFixed)}
-            color="#8B5CF6"
-          />
-          <PreviewRow
-            label="Còn để tiêu"
-            amount={flex}
-            pct={pctOf(flex)}
+            label="Ngân sách chi tiêu"
+            amount={budget}
+            pct={pctOf(budget)}
             color="var(--color-accent-dark)"
             bold
           />
 
+          {totalFixed > 0 && (
+            <div className="flex flex-col gap-0.5 pl-4">
+              <PreviewRow
+                label="Trong đó chi phí cố định"
+                amount={totalFixed}
+                pct={pctOf(totalFixed)}
+                color="#8B5CF6"
+              />
+              <p className="text-text-hint text-[11px] pl-4">
+                Đã bao gồm trong chi tiêu khi đến hạn
+              </p>
+              {fixedExceedsBudget && (
+                <p className="text-danger text-[11px] font-medium flex items-center gap-1 pl-4">
+                  <TriangleAlert size={12} className="shrink-0" />
+                  Chi phí cố định vượt ngân sách chi tiêu
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="mt-3 rounded-xl bg-accent-bg px-4 py-3 border border-accent/20">
-            <p className="text-text-muted text-[11px]">Mỗi ngày được tiêu</p>
+            <p className="text-text-muted text-[11px]">Bình quân mỗi ngày (cả tháng)</p>
             <p className="font-num text-accent-dark text-[18px] font-semibold mt-0.5">
               ~{formatVND(daily)}đ
             </p>
@@ -584,6 +614,7 @@ export function FinancialSettingsPage({ onBack }: FinancialSettingsPageProps) {
             {/* Section 2 — Computed preview */}
             <PreviewCard
               income={income}
+              extraIncome={fin.extraIncomes.reduce((sum, e) => sum + e.amount, 0)}
               saving={saving}
               totalFixed={fin.totalFixed}
               daysInMonth={daysInMonth}

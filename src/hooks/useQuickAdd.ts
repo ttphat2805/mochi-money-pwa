@@ -3,7 +3,7 @@ import { useTransactionStore } from '@/stores/transactionStore'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
 import { useAppStore } from '@/stores/appStore'
-import { getTodayString, getCurrentMonthString, formatVND, getDateNDaysAgo } from '@/lib/utils'
+import { getTodayString, formatVND, getDateNDaysAgo } from '@/lib/utils'
 import type { BudgetCategory, Transaction } from '@/types'
 
 const LAST_USED_CATEGORY_KEY = 'chitieu_last_category_id'
@@ -250,7 +250,9 @@ export function useQuickAdd(): UseQuickAddReturn {
   }, [])
 
   const selectCategory = useCallback((id: number) => {
-    setSelectedCategoryId((prev) => (prev === id ? null : id))
+    // Re-tapping the selected category keeps it selected (deselecting only
+    // disabled the save button and confused users)
+    setSelectedCategoryId(id)
   }, [])
 
   const toggleIsNote = useCallback(() => {
@@ -320,7 +322,8 @@ export function useQuickAdd(): UseQuickAddReturn {
 
     // Skip budget check for note-only transactions (they don't affect spending)
     if (!isNote && selectedCategory.limitPerMonth !== null) {
-      const month = getCurrentMonthString()
+      // Budget of the month the expense is dated in (backdating can cross months)
+      const month = selectedDate.slice(0, 7)
       const currentSpent = await getSpentByCategory(selectedCategoryId, month)
 
       if (currentSpent + amount > selectedCategory.limitPerMonth) {
@@ -340,7 +343,7 @@ export function useQuickAdd(): UseQuickAddReturn {
     }
 
     return performSave()
-  }, [canSave, selectedCategoryId, selectedCategory, isNote, amount, getSpentByCategory, performSave])
+  }, [canSave, selectedCategoryId, selectedCategory, isNote, amount, selectedDate, getSpentByCategory, performSave])
 
   const confirmOverBudget = useCallback(async (): Promise<SaveResult> => {
     setBudgetWarning(null)

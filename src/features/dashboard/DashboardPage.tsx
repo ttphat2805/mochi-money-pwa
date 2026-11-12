@@ -5,7 +5,6 @@ import { MonthlyTab } from './MonthlyTab'
 import { HistoryTab } from './HistoryTab'
 import { getMonthLabel } from '@/lib/utils'
 import { triggerHaptic } from '@/lib/haptic'
-import { PullToRefresh } from '@/components/PullToRefresh'
 import { useShouldShowSkeleton } from '@/hooks/useShouldShowSkeleton'
 import { OverviewSkeleton } from './OverviewSkeleton'
 
@@ -16,10 +15,12 @@ export function DashboardPage() {
   const data = useDashboard()
   const showSkeleton = useShouldShowSkeleton(data.isLoading)
 
+  // History has its own month navigator, so the header only names the
+  // current month on the "Tháng này" tab
   const rightLabel =
     activeTab === 'month'
       ? `${getMonthLabel(data.currentMonthKey)} · ${data.currentMonthKey.slice(0, 4)}`
-      : '12 tháng qua'
+      : 'Lịch sử chi tiêu'
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'month', label: 'Tháng này' },
@@ -75,19 +76,16 @@ export function DashboardPage() {
         })}
       </div>
 
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-hidden relative bg-bg">
-        <PullToRefresh onRefresh={async () => {
-          await new Promise(r => setTimeout(r, 800))
-        }}>
-          {showSkeleton ? (
-            <OverviewSkeleton />
-          ) : activeTab === 'month' ? (
-            <MonthlyTab data={data} />
-          ) : (
-            <HistoryTab />
-          )}
-        </PullToRefresh>
+      {/* Scrollable content — data is live (useLiveQuery), so no pull-to-refresh */}
+      <div className="flex-1 overflow-y-auto relative bg-bg">
+        {activeTab === 'history' ? (
+          <HistoryTab />
+        ) : data.isLoading ? (
+          // Skeleton after a short delay, nothing before — never zeros
+          showSkeleton ? <OverviewSkeleton /> : null
+        ) : (
+          <MonthlyTab data={data} />
+        )}
       </div>
     </div>
   )

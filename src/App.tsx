@@ -1,6 +1,7 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { MotionConfig } from "framer-motion";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { BottomNav, type TabKey } from "@/components/BottomNav";
 import { QuickAddSheet } from "@/features/quick-add/QuickAddSheet";
@@ -261,6 +262,8 @@ function App() {
   };
 
   return (
+    // Honour iOS "Reduce Motion": framer-motion skips transform/layout animations
+    <MotionConfig reducedMotion="user">
     <div className="flex h-full flex-col">
       <OfflineIndicator />
       <div
@@ -278,6 +281,7 @@ function App() {
       <Toaster position="top-center" />
       <SpeedInsights />
     </div>
+    </MotionConfig>
   );
 }
 

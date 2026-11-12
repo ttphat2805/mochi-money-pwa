@@ -9,7 +9,7 @@
   --color-card: #131B33;      /* opaque card surfaces (swipe rows rely on this) */
   --color-text: #F8FAFC;
   --color-text-muted: #94A3B8;
-  --color-text-hint: #64748B;
+  --color-text-hint: #7D8BA1;   /* ≥4.5:1 on card (WCAG AA) */
   --color-accent: #059669;            /* CTA green */
   --color-accent-rgb: 5, 150, 105;    /* runtime-overridden by applyAccentColor */
   --color-accent-bg: rgba(5, 150, 105, 0.15);
@@ -145,6 +145,11 @@ input, textarea {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Numpad chip row — short fade when the chip set changes */
+.animate-chip-in {
+  animation: fadeIn 140ms ease-out both;
 }
 
 /* Home sections stagger-in animation */
@@ -427,4 +432,14 @@ button, label, .nav-item {
 @keyframes tabEnter {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Reduced motion: neutralise CSS keyframe/transition animations ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

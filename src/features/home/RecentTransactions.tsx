@@ -1,19 +1,25 @@
 import * as React from 'react'
 import { useState, useCallback, useMemo } from 'react'
-import { formatVND, getVietnameseDateLabel, sumSpent, tint } from '@/lib/utils'
+import { cn, formatVND, getVietnameseDateLabel, sumSpent, tint } from '@/lib/utils'
 import { CategoryFilterChips } from '@/components/CategoryFilterChips'
 import { NoteBadge } from '@/components/NoteBadge'
 import { TransactionDetailSheet } from '@/features/transactions/TransactionDetailSheet'
 import { TransactionSearchSheet } from '@/features/transactions/TransactionSearchSheet'
+import { softDeleteWithUndo } from '@/features/transactions/softDeleteWithUndo'
 import type { HomeData } from '@/hooks/useHomeData'
 import type { BudgetCategory, Transaction } from '@/types'
 import { motion, useMotionValue, useTransform, animate, type PanInfo, AnimatePresence } from 'framer-motion'
 import { Trash, ChevronRight, ReceiptText, Search } from 'lucide-react'
 import { CategoryIcon } from '@/components/CategoryIcon'
-import { useTransactionStore } from '@/stores/transactionStore'
 import { triggerHaptic } from '@/lib/haptic'
 
 const SWIPE_HINT_KEY = 'mochi_swipe_hint_seen'
+const SWIPE_OPEN_X = -70
+
+// Small header buttons keep their 28px look; an invisible ::after grows the
+// hit area to ≥44px (same pattern as closeButtonClass)
+const hitAreaY = 'relative !min-h-0 after:absolute after:-inset-y-2 after:inset-x-0 after:content-[""]'
+const hitAreaXY = 'relative !min-h-0 after:absolute after:-inset-2 after:content-[""]'
 
 interface RecentTransactionsProps {
   transactions: HomeData['recentTransactions']
@@ -27,19 +33,35 @@ type GroupedDay = {
   items: HomeData['recentTransactions']
 }
 
-function groupByDate(transactions: HomeData['recentTransactions']): GroupedDay[] {
+/**
+ * Group the visible rows by day. Day totals come from `allForTotals` (every
+ * loaded transaction matching the active filter), not just the visible
+ * slice, so a partially shown day still shows its full total.
+ */
+function groupByDate(
+  visible: HomeData['recentTransactions'],
+  allForTotals: HomeData['recentTransactions'],
+): GroupedDay[] {
   const map = new Map<string, HomeData['recentTransactions']>()
-  for (const tx of transactions) {
+  for (const tx of visible) {
     const arr = map.get(tx.date) ?? []
     arr.push(tx)
     map.set(tx.date, arr)
+  }
+  const totals = new Map<string, HomeData['recentTransactions']>()
+  for (const tx of allForTotals) {
+    if (!map.has(tx.date)) continue
+    const arr = totals.get(tx.date) ?? []
+    arr.push(tx)
+    totals.set(tx.date, arr)
   }
   return Array.from(map.entries())
     .sort(([a], [b]) => b.localeCompare(a))
     .map(([date, items]) => ({
       date,
       label: getVietnameseDateLabel(date),
-      total: sumSpent(items),
+      // sumSpent excludes isNote; deleted rows are already filtered upstream
+      total: sumSpent(totals.get(date) ?? items),
       items,
     }))
 }
@@ -75,15 +97,18 @@ export const RecentTransactions = React.memo(({ transactions, onViewAll }: Recen
     setSelectedCategoryId(null)
   }
 
-  const visible = useMemo(() => {
-    const filtered =
+  const filtered = useMemo(
+    () =>
       selectedCategoryId != null
         ? transactions.filter((tx) => tx.categoryId === selectedCategoryId)
-        : transactions
-    return filtered.slice(0, selectedCategoryId != null ? FILTERED_VISIBLE : DEFAULT_VISIBLE)
-  }, [transactions, selectedCategoryId])
+        : transactions,
+    [transactions, selectedCategoryId],
+  )
 
-  const groups = useMemo(() => groupByDate(visible), [visible])
+  const groups = useMemo(() => {
+    const visible = filtered.slice(0, selectedCategoryId != null ? FILTERED_VISIBLE : DEFAULT_VISIBLE)
+    return groupByDate(visible, filtered)
+  }, [filtered, selectedCategoryId])
 
   // Auto-dismiss swipe hint after 2.5s
   React.useEffect(() => {
@@ -106,18 +131,18 @@ export const RecentTransactions = React.memo(({ transactions, onViewAll }: Recen
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
-                className="!min-h-0 size-7 rounded-full glass flex items-center justify-center text-text-muted active:scale-90 transition-transform"
+                className={cn(hitAreaXY, 'size-7 rounded-full glass flex items-center justify-center text-text-muted active:scale-90 transition-transform')}
                 aria-label="Tìm giao dịch"
               >
-                <Search size={13} strokeWidth={2.5} />
+                <Search size={13} strokeWidth={2.5} aria-hidden />
               </button>
               <button
                 type="button"
                 onClick={onViewAll}
-                className="!min-h-0 flex items-center gap-0.5 h-7 pl-3 pr-2 rounded-full bg-white/6 text-[12px] text-accent-dark font-semibold active:opacity-60 transition-opacity"
+                className={cn(hitAreaY, 'flex items-center gap-0.5 h-7 pl-3 pr-2 rounded-full bg-white/6 text-[12px] text-accent-dark font-semibold active:opacity-60 transition-opacity')}
               >
                 Xem tất cả
-                <ChevronRight size={13} className="mt-px" />
+                <ChevronRight size={13} className="mt-px" aria-hidden />
               </button>
             </div>
           )}
@@ -146,7 +171,7 @@ export const RecentTransactions = React.memo(({ transactions, onViewAll }: Recen
           // min-height keeps the section from collapsing when a filter
           // shortens the list (prevents vertical scroll jumps).
           <div className={selectedCategoryId != null ? 'flex flex-col gap-3 min-h-[280px]' : 'flex flex-col gap-3'}>
-            {groups.map((group) => (
+            {groups.map((group, gi) => (
               <div key={group.date}>
                 {/* Day header */}
                 <div className="flex items-center justify-between mb-2 px-1">
@@ -165,7 +190,7 @@ export const RecentTransactions = React.memo(({ transactions, onViewAll }: Recen
                       tx={tx}
                       isLast={i === group.items.length - 1}
                       onSelect={handleSelect}
-                      showSwipeHint={i === 0 && showSwipeHint}
+                      showSwipeHint={showSwipeHint && gi === 0 && i === 0}
                     />
                   ))}
                 </div>
@@ -201,7 +226,6 @@ const TransactionRow = React.memo(({
   showSwipeHint?: boolean
 }) => {
   const catColor = tx.category?.color ?? 'var(--color-accent)'
-  const { softDelete } = useTransactionStore()
 
   // Format createdAt as HH:mm
   const timeLabel = React.useMemo(() => {
@@ -213,16 +237,33 @@ const TransactionRow = React.memo(({
   const x = useMotionValue(0)
   const [hasDragged, setHasDragged] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  // Swiped open → delete button exposed and tappable
+  const [isOpen, setIsOpen] = useState(false)
 
   const bgOpacity = useTransform(x, [-60, 0], [1, 0])
   const iconScale = useTransform(x, [-60, -30], [1, 0.7])
 
+  const close = useCallback(() => {
+    setIsOpen(false)
+    animate(x, 0, { type: 'spring', bounce: 0, duration: 0.3 })
+  }, [x])
+
   const handleDelete = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
+    if (!isOpen || tx.id == null) return
     triggerHaptic('heavy')
     setIsDeleting(true)
-    setTimeout(() => { softDelete(tx.id!) }, 150)
-  }, [tx.id, softDelete])
+    const target = { id: tx.id, amount: tx.amount }
+    setTimeout(async () => {
+      const ok = await softDeleteWithUndo(target)
+      if (!ok) {
+        // Delete failed — bring the row back closed
+        setIsDeleting(false)
+        setIsOpen(false)
+        x.set(0)
+      }
+    }, 150)
+  }, [isOpen, tx.id, tx.amount, x])
 
   const handleDragEnd = useCallback((_: unknown, info: PanInfo) => {
     if (Math.abs(info.offset.x) > 5) {
@@ -230,12 +271,23 @@ const TransactionRow = React.memo(({
       setTimeout(() => setHasDragged(false), 50)
     }
     if (info.offset.x < -60 || info.velocity.x < -400) {
-      animate(x, -70, { type: 'spring', bounce: 0, duration: 0.3 })
+      setIsOpen(true)
+      animate(x, SWIPE_OPEN_X, { type: 'spring', bounce: 0, duration: 0.3 })
       triggerHaptic('medium')
     } else {
-      animate(x, 0, { type: 'spring', bounce: 0, duration: 0.3 })
+      close()
     }
-  }, [x])
+  }, [x, close])
+
+  const handleRowClick = useCallback(() => {
+    if (hasDragged) return
+    // Tapping an open row closes it instead of opening the detail sheet
+    if (isOpen) {
+      close()
+      return
+    }
+    onSelect(tx)
+  }, [hasDragged, isOpen, close, onSelect, tx])
 
   if (isDeleting) return null
 
@@ -253,18 +305,29 @@ const TransactionRow = React.memo(({
         </motion.div>
       </motion.div>
 
-      {/* Delete trigger */}
-      <div className="absolute inset-y-0 right-0 w-[70px] z-20" onClick={handleDelete} />
+      {/* Delete trigger — only interactive while the row is swiped open,
+          otherwise taps on the amount area would delete */}
+      <button
+        type="button"
+        onClick={handleDelete}
+        tabIndex={isOpen ? 0 : -1}
+        aria-hidden={!isOpen}
+        aria-label="Xóa giao dịch"
+        className={cn(
+          'absolute inset-y-0 right-0 w-[70px] z-20 !min-h-0',
+          isOpen ? 'pointer-events-auto' : 'pointer-events-none',
+        )}
+      />
 
       {/* Swipeable row */}
       <motion.button
         type="button"
         drag="x"
-        dragConstraints={{ left: -70, right: 0 }}
+        dragConstraints={{ left: SWIPE_OPEN_X, right: 0 }}
         dragElastic={0.05}
         style={{ x }}
         onDragEnd={handleDragEnd}
-        onClick={() => !hasDragged && onSelect(tx)}
+        onClick={handleRowClick}
         whileTap={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
         className="relative z-10 w-full flex items-center gap-3.5 px-4 py-3.5 text-left bg-card cursor-grab active:cursor-grabbing"
       >
@@ -320,7 +383,7 @@ const TransactionRow = React.memo(({
             <span className="text-[10px] font-bold text-danger/70">Vuốt ← xóa</span>
             <motion.span
               animate={{ x: [-3, -8, -3] }}
-              transition={{ repeat: Infinity, duration: 1 }}
+              transition={{ repeat: 2, duration: 1 }}
               className="text-danger/60"
             >
               ←

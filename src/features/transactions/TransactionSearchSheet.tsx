@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Search, SearchX, X } from 'lucide-react'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
@@ -14,6 +14,9 @@ import { buildMatcher } from './searchTransactions'
 
 const MAX_RESULTS = 100
 const DEBOUNCE_MS = 150
+// Focus after the drawer's open animation — focusing mid-animation makes
+// iOS scroll/jank the sheet while the keyboard comes up
+const AUTOFOCUS_DELAY_MS = 300
 
 type Result = Transaction & { category: BudgetCategory | undefined }
 
@@ -26,6 +29,13 @@ export function TransactionSearchSheet({ open, onClose }: TransactionSearchSheet
   const [query, setQuery] = useState('')
   const [debounced, setDebounced] = useState('')
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const t = setTimeout(() => inputRef.current?.focus(), AUTOFOCUS_DELAY_MS)
+    return () => clearTimeout(t)
+  }, [open])
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(query), DEBOUNCE_MS)
@@ -101,6 +111,7 @@ export function TransactionSearchSheet({ open, onClose }: TransactionSearchSheet
               <div className="glass rounded-2xl flex items-center gap-2 px-3 h-12">
                 <Search size={16} className="text-text-hint shrink-0" />
                 <input
+                  ref={inputRef}
                   type="search"
                   inputMode="search"
                   enterKeyHint="search"
@@ -113,11 +124,15 @@ export function TransactionSearchSheet({ open, onClose }: TransactionSearchSheet
                 {query && (
                   <button
                     type="button"
-                    onClick={() => setQuery('')}
-                    className="!min-h-0 size-6 rounded-full bg-white/10 flex items-center justify-center shrink-0"
+                    onClick={() => {
+                      setQuery('')
+                      inputRef.current?.focus()
+                    }}
+                    // ::after grows the 24px button to a 44px hit area
+                    className="relative !min-h-0 size-6 rounded-full bg-white/10 flex items-center justify-center shrink-0 after:absolute after:-inset-2.5 after:content-['']"
                     aria-label="Xóa tìm kiếm"
                   >
-                    <X size={12} className="text-text-muted" />
+                    <X size={12} className="text-text-muted" aria-hidden />
                   </button>
                 )}
               </div>

@@ -1,5 +1,7 @@
 import React, { useRef } from 'react'
-import { formatShort } from '@/lib/utils'
+import { format } from 'date-fns'
+import { vi } from 'date-fns/locale'
+import { formatShort, formatVND } from '@/lib/utils'
 import type { CalendarDayCell } from '@/hooks/useCalendar'
 import { getHeatLevel } from '@/hooks/useCalendar'
 import { triggerHaptic } from '@/lib/haptic'
@@ -9,6 +11,15 @@ import { Leaf } from 'lucide-react'
 const WEEKDAY_HEADERS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
 
 // Heatmap fills per level — CSS vars set by applyAccentColor (personalization)
+/** Screen-reader label, e.g. "Thứ Ba, 12 tháng 11, đã chi 45.000đ" */
+function getDayAriaLabel(date: string, amount: number, isNoSpend: boolean): string {
+  const [y, m, d] = date.split('-').map(Number)
+  const dayLabel = format(new Date(y, m - 1, d), "EEEE, d 'tháng' M", { locale: vi })
+  if (amount > 0) return `${dayLabel}, đã chi ${formatVND(amount)}đ`
+  if (isNoSpend) return `${dayLabel}, không chi tiêu`
+  return dayLabel
+}
+
 const HEAT_BG = [
   'transparent',
   'var(--color-accent-h1)',
@@ -20,7 +31,8 @@ const HEAT_BG = [
 interface CalendarGridProps {
   days: CalendarDayCell[]
   dailyTotals: Record<string, number>
-  maxDailyAmount: number
+  /** Heatmap ceiling (robust p90 cap) — days at/above it get the strongest tint */
+  heatScaleMax: number
   selectedDay: string | null
   onSelectDay: (date: string) => void
   onSwipeLeft: () => void
@@ -75,15 +87,16 @@ const DayCell = React.memo(function DayCell({
     : 'var(--color-accent-dark)'
 
   return (
-    <motion.button
+    <button
       type="button"
       onClick={() => {
         triggerHaptic('light')
         onSelect(date)
       }}
-      whileTap={{ scale: 0.95 }}
-      transition={{ duration: 0.1 }}
-      className="relative flex flex-col items-center justify-center w-full h-[56px] rounded-[14px] overflow-hidden"
+      aria-label={getDayAriaLabel(date, amount, isNoSpend)}
+      aria-pressed={isSelected}
+      aria-current={isToday ? 'date' : undefined}
+      className="relative flex flex-col items-center justify-center w-full h-[56px] rounded-[14px] overflow-hidden transition-transform duration-100 active:scale-95"
       style={{
         background: bgColor,
         border: isToday && !isSelected
@@ -95,7 +108,7 @@ const DayCell = React.memo(function DayCell({
           : isToday
             ? '0 0 12px -2px rgba(var(--color-accent-rgb), 0.35)'
             : 'none',
-        opacity: isFuture && !isToday ? 0.4 : 1,
+        opacity: isFuture && !isToday && !isSelected ? 0.4 : 1,
       }}
     >
       {/* Day number — always prominent and visible */}
@@ -118,13 +131,14 @@ const DayCell = React.memo(function DayCell({
           strokeWidth={2.5}
           className="mt-1"
           style={{ color: isSelected ? '#FFFFFF' : 'var(--color-success)' }}
-          aria-label="Không chi tiêu"
+          aria-hidden
         />
       ) : (
       <span
-        className="font-num leading-none mt-1"
+        aria-hidden
+        className="font-num leading-none mt-1 max-w-full truncate tracking-tight"
         style={{
-          fontSize: 9,
+          fontSize: 10,
           fontWeight: 700,
           color: amtColor,
           opacity: hasSpend ? 1 : 0,   // invisible but height-preserving
@@ -135,14 +149,14 @@ const DayCell = React.memo(function DayCell({
       </span>
       )}
 
-    </motion.button>
+    </button>
   )
 })
 
 export function CalendarGrid({
   days,
   dailyTotals,
-  maxDailyAmount,
+  heatScaleMax,
   selectedDay,
   onSelectDay,
   onSwipeLeft,
@@ -205,7 +219,7 @@ export function CalendarGrid({
           }
 
           const amount = dailyTotals[cell.date] ?? 0
-          const heat = getHeatLevel(amount, maxDailyAmount)
+          const heat = getHeatLevel(amount, heatScaleMax)
           const isSelected = cell.date === selectedDay
 
           return (
@@ -224,7 +238,7 @@ export function CalendarGrid({
       </motion.div>
 
       {/* Heat legend — explains the tint intensity */}
-      <div className="flex items-center justify-end gap-1.5 mt-3 pr-1">
+      <div className="flex items-center justify-end gap-1.5 mt-3 pr-1" aria-hidden>
         <span className="text-[9px] text-text-hint font-medium">Ít</span>
         {HEAT_BG.slice(1).map((bg) => (
           <span

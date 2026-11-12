@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
-import { getCurrentMonthString, getLast6Months, getMonthLabel, getLast7Days, getShortWeekday, getTodayString } from '@/lib/utils'
+import { getCurrentMonthString, getDaysInMonth, getLast6Months, getMonthLabel, getLast7Days, getShortWeekday, getTodayString } from '@/lib/utils'
+import { getMonthlyBudget } from '@/lib/budget'
 import { useCategoryStore } from '@/stores/categoryStore'
 import type { BudgetCategory, FinancialSettings, Transaction } from '@/types'
 
@@ -54,20 +55,32 @@ export function useDashboard() {
     return m
   }, [categories])
 
-  const settings = useLiveQuery<FinancialSettings | undefined>(
-    () => db.settings.toCollection().first(),
+  // `?? null` inside the query so `undefined` only ever means "still loading"
+  const settingsRaw = useLiveQuery<FinancialSettings | null>(
+    () => db.settings.toCollection().first().then((s) => s ?? null),
     [],
   )
 
+  // This month's extra incomes (part of the budget, see lib/budget.ts)
+  const extraIncomeRaw = useLiveQuery(
+    async () => {
+      const rows = await db.extraIncomes.where('monthKey').equals(currentMonthKey).toArray()
+      return rows.reduce((s, e) => s + e.amount, 0)
+    },
+    [currentMonthKey],
+  )
+  const extraIncome = extraIncomeRaw ?? 0
+
   // This month's transactions
-  const monthTxs = useLiveQuery(
+  const monthTxsRaw = useLiveQuery(
     () =>
       db.transactions
         .where('date').between(currentMonthKey + '-01', currentMonthKey + '-32', true, false)
         .filter((tx) => !tx.deletedAt && !tx.isNote)
         .toArray(),
     [currentMonthKey],
-  ) ?? EMPTY_TXS
+  )
+  const monthTxs = monthTxsRaw ?? EMPTY_TXS
 
   const categoryTotals = useMemo(() => {
     const acc = new Map<number, number>()
@@ -124,7 +137,7 @@ export function useDashboard() {
   // Last 4 months bar data (prev 3 + current)
   const last4MonthKeys = useMemo(() => getLast4Months(currentMonthKey), [currentMonthKey])
 
-  const last4MonthsBar = useLiveQuery<Bar4MonthDatum[]>(
+  const last4MonthsBarRaw = useLiveQuery<Bar4MonthDatum[]>(
     async () => {
       const results = await Promise.all(
         last4MonthKeys.map(async (monthKey) => {
@@ -143,7 +156,8 @@ export function useDashboard() {
       return results
     },
     [last4MonthKeys, currentMonthKey],
-  ) ?? EMPTY_BAR_4_DATA
+  )
+  const last4MonthsBar = last4MonthsBarRaw ?? EMPTY_BAR_4_DATA
 
   // Last 7 days bar data
   const last7DaysKeys = useMemo(() => getLast7Days(), [])
@@ -170,6 +184,32 @@ export function useDashboard() {
     [last7DaysKeys, todayStr],
   ) ?? []
 
+  // Last month, same period (day 1 … min(today, last month's length)), so
+  // month-to-date is compared like for like instead of against a full month
+  const todayDay = Number(todayStr.slice(8, 10))
+  const prevMonthKey = getPrevMonthKey(currentMonthKey)
+  const lastMonthSamePeriodEnd = useMemo(() => {
+    const [py, pm] = prevMonthKey.split('-').map(Number)
+    const endDay = Math.min(todayDay, getDaysInMonth(py, pm))
+    return `${prevMonthKey}-${String(endDay).padStart(2, '0')}`
+  }, [prevMonthKey, todayDay])
+
+  const lastMonthSamePeriodRaw = useLiveQuery(
+    async () => {
+      const txs = await db.transactions
+        .where('date').between(prevMonthKey + '-01', lastMonthSamePeriodEnd, true, true)
+        .filter((tx) => !tx.deletedAt && !tx.isNote).toArray()
+      return txs.reduce((s, t) => s + t.amount, 0)
+    },
+    [prevMonthKey, lastMonthSamePeriodEnd],
+  )
+
+  const settings = settingsRaw ?? null
+  const monthlyBudget = useMemo(
+    () => getMonthlyBudget({ income: settings?.income, extraIncome, savingTarget: settings?.savingTarget }),
+    [settings, extraIncome],
+  )
+
   const lastMonthTotal = useMemo(() => {
     if (!last4MonthsBar.length) return 0
     const prev = last4MonthsBar.find(d => d.monthKey === getPrevMonthKey(currentMonthKey))
@@ -178,10 +218,18 @@ export function useDashboard() {
 
 
   return {
-    currentMonthKey, monthTotal, settings: settings ?? null,
+    currentMonthKey, monthTotal, settings,
+    extraIncome, monthlyBudget,
     categoryTotals, donutData, topCategories,
     barData, last4MonthsBar, lastMonthTotal, weeklyBarData,
+    lastMonthSamePeriodTotal: lastMonthSamePeriodRaw ?? 0,
     selectedTrendCatIds, setSelectedTrendCatIds,
-    isLoading: false,
+    // Everything the Overview renders up-front (raw live-query results)
+    isLoading:
+      settingsRaw === undefined ||
+      extraIncomeRaw === undefined ||
+      monthTxsRaw === undefined ||
+      lastMonthSamePeriodRaw === undefined ||
+      last4MonthsBarRaw === undefined,
   }
 }

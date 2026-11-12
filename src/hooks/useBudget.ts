@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
-import { getCurrentMonthString, getDaysLeftInMonth, getDaysInMonth, getTodayString } from '@/lib/utils'
+import { getCurrentMonthString, getDaysLeftInMonth, getDaysInMonth, getTodayString, sumSpent } from '@/lib/utils'
+import { getDailyAllowance, getMonthlyBudget, getRemainingBudget, getSpentPct } from '@/lib/budget'
+import { useCategoryStore } from '@/stores/categoryStore'
 import type { BudgetCategory } from '@/types'
 import { toast } from 'sonner'
 
@@ -28,28 +30,49 @@ export function useBudget() {
   const daysLeft = getDaysLeftInMonth()
 
   // ── Financial settings ────────────────────────────────────────
-  const settings = useLiveQuery(() => db.settings.toCollection().first(), []) ?? null
+  // `?? null` inside the query so `undefined` only ever means "still loading"
+  const settingsRaw = useLiveQuery(
+    () => db.settings.toCollection().first().then((s) => s ?? null),
+    [],
+  )
+  const settings = settingsRaw ?? null
+
+  // ── This month's extra incomes ────────────────────────────────
+  const extraIncomeRaw = useLiveQuery(
+    async () => {
+      const rows = await db.extraIncomes.where('monthKey').equals(monthKey).toArray()
+      return rows.reduce((s, e) => s + e.amount, 0)
+    },
+    [monthKey],
+  )
+  const extraIncome = extraIncomeRaw ?? 0
 
   // ── This month's total spent ──────────────────────────────────
-  const totalSpent = useLiveQuery(async () => {
+  const totalSpentRaw = useLiveQuery(async () => {
     const txs = await db.transactions
       .where('date')
       .startsWith(monthKey)
-      .filter((tx) => !tx.deletedAt && !tx.isNote)
+      .filter((tx) => !tx.deletedAt)
       .toArray()
-    return txs.reduce((s, t) => s + t.amount, 0)
-  }, [monthKey]) ?? 0
+    return sumSpent(txs)
+  }, [monthKey])
+  const totalSpent = totalSpentRaw ?? 0
 
-  // ── Budget math ───────────────────────────────────────────────
-  const { flexAmount, spentPct, dailyAllowance } = useMemo(() => {
-    const income = settings?.income ?? 0
-    const saving = settings?.savingTarget ?? 0
-    const flex = Math.max(0, income - saving)
-    const pct = flex > 0 ? Math.round((totalSpent / flex) * 100) : 0;
-    const remaining = flex - totalSpent
-    const daily = daysLeft > 0 ? Math.max(0, remaining / daysLeft) : 0
-    return { flexAmount: flex, spentPct: pct, dailyAllowance: daily }
-  }, [settings, totalSpent, daysLeft])
+  // ── Budget math (see lib/budget.ts) ───────────────────────────
+  const { flexAmount, remaining, spentPct, dailyAllowance } = useMemo(() => {
+    const budget = getMonthlyBudget({
+      income: settings?.income,
+      extraIncome,
+      savingTarget: settings?.savingTarget,
+    })
+    const rem = getRemainingBudget(budget, totalSpent)
+    return {
+      flexAmount: budget,
+      remaining: rem,
+      spentPct: getSpentPct(totalSpent, budget),
+      dailyAllowance: getDailyAllowance(rem, daysLeft),
+    }
+  }, [settings, extraIncome, totalSpent, daysLeft])
 
   const isConfigured = Boolean(settings?.income)
 
@@ -111,13 +134,24 @@ export function useBudget() {
     setLimitInput(existing ? new Intl.NumberFormat('vi-VN').format(existing) : '')
   }
 
+  // Writes go through the category store so its cached list (used by
+  // Quick Add warnings, settings) stays in sync with the DB
+  const updateCategory = useCategoryStore((s) => s.updateCategory)
+
   const saveLimit = async (catId: number, amount: number) => {
     if (amount <= 0) {
       toast.error('Hạn mức phải lớn hơn 0')
       return
     }
-    await db.categories.update(catId, { limitPerMonth: amount })
+    await updateCategory(catId, { limitPerMonth: amount })
     toast.success(`Đã đặt giới hạn ${new Intl.NumberFormat('vi-VN').format(amount)}đ`)
+    setSettingLimitFor(null)
+    setLimitInput('')
+  }
+
+  const removeLimit = async (catId: number) => {
+    await updateCategory(catId, { limitPerMonth: null })
+    toast.success('Đã bỏ giới hạn')
     setSettingLimitFor(null)
     setLimitInput('')
   }
@@ -132,6 +166,7 @@ export function useBudget() {
     isConfigured,
     totalSpent,
     flexAmount,
+    remaining,
     spentPct,
     daysLeft,
     daysInMonth,
@@ -143,8 +178,13 @@ export function useBudget() {
     limitAmount,
     openSetLimit,
     saveLimit,
+    removeLimit,
     handleLimitInputChange,
     monthKey,
-    isLoading: categoriesWithBudgetRaw === undefined,
+    isLoading:
+      categoriesWithBudgetRaw === undefined ||
+      settingsRaw === undefined ||
+      extraIncomeRaw === undefined ||
+      totalSpentRaw === undefined,
   }
 }

@@ -1,4 +1,5 @@
 import { formatVND, cn } from "@/lib/utils";
+import { getRemainingBudget } from "@/lib/budget";
 import type { FinancialSettings } from "@/types";
 import { motion, type Variants } from 'framer-motion'
 import { Coins, PiggyBank, Wallet, Sparkles } from "lucide-react";
@@ -6,12 +7,19 @@ import { Coins, PiggyBank, Wallet, Sparkles } from "lucide-react";
 interface StatCardsProps {
   monthTotal: number;
   settings: FinancialSettings | null;
+  /** This month's extra incomes */
+  extraIncome: number;
+  /** Monthly budget from lib/budget.ts (income + extra − saving) */
+  monthlyBudget: number;
 }
 
-export function StatCards({ monthTotal, settings }: StatCardsProps) {
-  const income = settings?.income ?? null;
+// Gradient stops are dark enough for white text (≥4.5:1 on the lighter stop)
+export function StatCards({ monthTotal, settings, extraIncome, monthlyBudget }: StatCardsProps) {
+  const baseIncome = settings?.income || null;
+  const income = baseIncome != null ? baseIncome + extraIncome : null;
   const saving = settings?.savingTarget ?? null;
-  const remaining = income != null ? income - (saving ?? 0) - monthTotal : null;
+  const remaining = baseIncome != null ? getRemainingBudget(monthlyBudget, monthTotal) : null;
+  const isOver = remaining != null && remaining < 0;
 
   const container: Variants = {
     hidden: { opacity: 0 },
@@ -24,10 +32,10 @@ export function StatCards({ monthTotal, settings }: StatCardsProps) {
   const items = [
     {
       label: "Thu nhập",
-      sub: "Hàng tháng",
+      sub: extraIncome > 0 ? "Gồm thu nhập phụ" : "Hàng tháng",
       value: income,
       icon: <Coins size={18} className="text-white drop-shadow-md" />,
-      gradient: "from-[#34D399] to-[#10B981]", // Light Emerald
+      gradient: "from-[#047857] to-[#065F46]", // Emerald 700 → 800
       shadow: "shadow-[0_12px_24px_-8px_rgba(16,185,129,0.4)]",
       show: income != null
     },
@@ -36,7 +44,7 @@ export function StatCards({ monthTotal, settings }: StatCardsProps) {
       sub: "Tháng này",
       value: monthTotal,
       icon: <Sparkles size={18} className="text-white drop-shadow-md" />,
-      gradient: "from-[#FF8BA7] to-[#FB7185]", // Light Rose
+      gradient: "from-[#E11D48] to-[#BE123C]", // Rose 600 → 700
       shadow: "shadow-[0_12px_24px_-8px_rgba(251,113,133,0.4)]",
       show: true
     },
@@ -45,19 +53,19 @@ export function StatCards({ monthTotal, settings }: StatCardsProps) {
       sub: "Mục tiêu",
       value: saving,
       icon: <PiggyBank size={18} className="text-white drop-shadow-md" />,
-      gradient: "from-[#93A5CF] to-[#6E8DD6]", // Light Indigo/Blue
+      gradient: "from-[#4F46E5] to-[#4338CA]", // Indigo 600 → 700
       shadow: "shadow-[0_12px_24px_-8px_rgba(110,141,214,0.4)]",
       show: saving != null
     },
     {
-      label: "Còn lại",
+      label: isOver ? "Vượt ngân sách" : "Còn lại",
       sub: "Ngân sách",
       value: remaining,
       icon: <Wallet size={18} className="text-white drop-shadow-md" />,
-      gradient: remaining != null && remaining < 0
-        ? "from-[#FCA5A5] to-[#EF4444]" // Light Red
-        : "from-[#FFC187] to-[#F59E0B]", // Light Amber
-      shadow: remaining != null && remaining < 0
+      gradient: isOver
+        ? "from-danger to-[#991B1B]" // Red 600 → 800
+        : "from-[#B45309] to-[#92400E]", // Amber 700 → 800
+      shadow: isOver
         ? "shadow-[0_12px_24px_-8px_rgba(239,68,68,0.4)]"
         : "shadow-[0_12px_24px_-8px_rgba(245,158,11,0.4)]",
       show: remaining != null
@@ -71,8 +79,8 @@ export function StatCards({ monthTotal, settings }: StatCardsProps) {
       animate="show"
       className="grid grid-cols-2 gap-3"
     >
-      {items.map((stat) => (
-        <StatCard key={stat.label} stat={stat} />
+      {items.map((stat, i) => (
+        <StatCard key={i} stat={stat} />
       ))}
     </motion.div>
   );
@@ -97,11 +105,10 @@ function StatCard({ stat }: { stat: StatItem }) {
   const { show, value, label, sub, icon, gradient, shadow } = stat;
 
   return (
-    <motion.div 
+    <motion.div
       variants={itemVariant}
-      whileTap={{ scale: 0.96 }}
       className={cn(
-        "relative flex flex-col p-4 rounded-[24px] overflow-hidden active:brightness-95 transition-all",
+        "relative flex flex-col p-4 rounded-[24px] overflow-hidden",
         gradient,
         "bg-gradient-to-br",
         shadow
@@ -116,7 +123,7 @@ function StatCard({ stat }: { stat: StatItem }) {
           <span className="text-[14px] font-bold text-white tracking-tight leading-tight drop-shadow-sm">
               {label}
           </span>
-          <span className="text-[9px] font-bold text-white/70 uppercase tracking-widest mt-0.5">
+          <span className="text-[10px] font-bold text-white/85 uppercase tracking-widest mt-0.5">
               {sub}
           </span>
         </div>
@@ -127,7 +134,7 @@ function StatCard({ stat }: { stat: StatItem }) {
 
       <div className="mt-auto">
         <p className="font-num font-black text-[17px] tracking-tight text-white flex items-baseline gap-0.5 drop-shadow-sm truncate w-full">
-          {show && value != null ? formatVND(Math.abs(value)) : "—"}
+          {show && value != null ? `${value < 0 ? "-" : ""}${formatVND(Math.abs(value))}` : "—"}
           {show && value != null && <span className="text-[12px] font-bold opacity-80 ml-0.5">đ</span>}
         </p>
       </div>

@@ -31,7 +31,7 @@ export function MonthSummary({ stats }: MonthSummaryProps) {
       value: maxDayAmount > 0 ? formatShort(maxDayAmount) : '—',
       sub: maxDayAmount > 0 ? `Ngày ${maxDayLabel}` : 'Chưa có',
       color: 'var(--color-danger)',
-      bg: 'rgba(220,38,38,0.18)',
+      bg: 'var(--color-danger-bg)',
     },
     {
       icon: <TrendingUp size={15} />,
@@ -39,7 +39,7 @@ export function MonthSummary({ stats }: MonthSummaryProps) {
       value: avgPerDay > 0 ? formatShort(Math.round(avgPerDay)) : '—',
       sub: avgPerDay > 0 ? 'có chi tiêu' : 'Chưa có',
       color: 'var(--color-success)',
-      bg: 'rgba(16,185,129,0.18)',
+      bg: 'var(--color-success-bg)',
     },
   ]
 

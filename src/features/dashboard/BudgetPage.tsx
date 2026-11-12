@@ -1,5 +1,5 @@
 import { Settings } from "lucide-react";
-import { getTodayString } from "@/lib/utils";
+import { getCurrentMonthString } from "@/lib/utils";
 import { BudgetTab } from "./BudgetTab";
 
 interface BudgetPageProps {
@@ -7,7 +7,8 @@ interface BudgetPageProps {
 }
 
 export function BudgetPage({ onSettings }: BudgetPageProps) {
-  const [year, month] = getTodayString().split("-");
+  // Budget is always the current month (VN time), matching useBudget's monthKey
+  const [year, month] = getCurrentMonthString().split("-");
 
   return (
     <div className="flex h-full flex-col app-ambient">
@@ -24,8 +25,8 @@ export function BudgetPage({ onSettings }: BudgetPageProps) {
         <button
           type="button"
           onClick={onSettings}
-          className="!min-h-9 flex size-10 items-center justify-center rounded-full glass active:scale-95 transition-transform"
-          aria-label="Cài đặt"
+          className="flex size-11 items-center justify-center rounded-full glass active:scale-95 transition-transform"
+          aria-label="Cài đặt tài chính"
         >
           <Settings className="size-[18px] text-text" />
         </button>

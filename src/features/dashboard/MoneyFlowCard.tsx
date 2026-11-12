@@ -1,7 +1,5 @@
-import { db } from '@/lib/db'
-import { formatShort, getCurrentMonthString } from '@/lib/utils'
+import { formatShort } from '@/lib/utils'
 import type { FinancialSettings } from '@/types'
-import { useLiveQuery } from 'dexie-react-hooks'
 import { motion } from 'framer-motion'
 import { Wallet } from 'lucide-react'
 
@@ -11,9 +9,9 @@ const CY = 112
 const R = 86
 const STROKE = 15
 
-const COLOR_OUT = '#F87171' // money out
-const COLOR_IN = '#60A5FA' // money in
-const COLOR_SAVE = '#FBBF24' // kept / savings
+const COLOR_OUT = 'var(--color-danger)' // money out
+const COLOR_IN = '#60A5FA' // money in — no blue text-weight token in the theme
+const COLOR_SAVE = 'var(--color-accent-dark)' // kept / savings (follows personal accent)
 
 function polar(deg: number) {
   const rad = (deg * Math.PI) / 180
@@ -43,6 +41,8 @@ const TRACK_PATH = `${arcPath(0, 0.5)} ${arcPath(0.5, 1)}`
 interface MoneyFlowCardProps {
   monthTotal: number
   settings: FinancialSettings | null
+  /** This month's extra incomes (same source as the budget, lib/budget.ts) */
+  extraIncome: number
 }
 
 /**
@@ -50,17 +50,10 @@ interface MoneyFlowCardProps {
  * incomes) has gone out, and how much is still kept. The needle points at
  * the spent fraction.
  */
-export function MoneyFlowCard({ monthTotal, settings }: MoneyFlowCardProps) {
-  const monthKey = getCurrentMonthString()
-
-  const extraIncomes = useLiveQuery(
-    () => db.extraIncomes.where('monthKey').equals(monthKey).toArray(),
-    [monthKey],
-  ) ?? []
-
-  const moneyIn = (settings?.income ?? 0) + extraIncomes.reduce((s, e) => s + e.amount, 0)
+export function MoneyFlowCard({ monthTotal, settings, extraIncome }: MoneyFlowCardProps) {
+  const moneyIn = (settings?.income ?? 0) + extraIncome
   const moneyOut = monthTotal
-  const savings = Math.max(0, moneyIn - moneyOut)
+  const kept = moneyIn - moneyOut // negative = spent more than came in
   const spentPct = moneyIn > 0 ? Math.min(1, moneyOut / moneyIn) : 0
 
   return (
@@ -122,7 +115,7 @@ export function MoneyFlowCard({ monthTotal, settings }: MoneyFlowCardProps) {
                 transition={{ type: 'spring', bounce: 0.2, duration: 0.8, delay: 0.15 }}
               >
                 <circle cx={CX - R} cy={CY} r={11} fill="var(--color-card)" />
-                <circle cx={CX - R} cy={CY} r={9} fill="#F8FAFC" />
+                <circle cx={CX - R} cy={CY} r={9} fill="var(--color-text)" />
                 <circle cx={CX - R} cy={CY} r={4} fill={COLOR_OUT} />
               </motion.g>
 
@@ -143,15 +136,17 @@ export function MoneyFlowCard({ monthTotal, settings }: MoneyFlowCardProps) {
             {[
               { label: 'Tiền ra', value: moneyOut, color: COLOR_OUT },
               { label: 'Tiền vào', value: moneyIn, color: COLOR_IN },
-              { label: 'Giữ lại', value: savings, color: COLOR_SAVE },
+              kept >= 0
+                ? { label: 'Giữ lại', value: kept, color: COLOR_SAVE }
+                : { label: 'Chi quá', value: -kept, color: COLOR_OUT, negative: true },
             ].map((item) => (
               <div key={item.label} className="flex flex-col items-center gap-1">
                 <div className="flex items-center gap-1.5">
                   <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
                   <span className="text-[11px] font-medium text-text-muted">{item.label}</span>
                 </div>
-                <span className="font-num text-[15px] font-black text-text tracking-tight">
-                  {formatShort(item.value)}
+                <span className={`font-num text-[15px] font-black tracking-tight ${'negative' in item ? 'text-danger' : 'text-text'}`}>
+                  {'negative' in item ? '-' : ''}{formatShort(item.value)}
                 </span>
               </div>
             ))}

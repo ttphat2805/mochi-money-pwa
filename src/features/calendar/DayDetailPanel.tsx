@@ -96,8 +96,8 @@ export function DayDetailPanel({
               type="button"
               whileTap={{ scale: 0.88 }}
               onClick={onAddTransaction}
-              aria-label="Thêm giao dịch cho ngày này"
-              className="size-10 rounded-[14px] flex items-center justify-center text-white border border-white/20"
+              aria-label="Thêm chi tiêu"
+              className="relative !min-h-10 size-10 rounded-[14px] flex items-center justify-center text-white border border-white/20 after:absolute after:-inset-0.5 after:content-['']"
               style={{
                 background: accent,
                 boxShadow: '0 8px 18px -6px rgba(var(--color-accent-rgb), 0.6)',
@@ -152,7 +152,7 @@ export function DayDetailPanel({
                     onClick={() => setSelectedTx(tx)}
                     className="flex items-center gap-3.5 px-5 py-3.5 w-full text-left transition-colors"
                     style={{
-                      borderBottom: idx < transactions.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                      borderBottom: idx < transactions.length - 1 ? '1px solid var(--color-border)' : 'none',
                     }}
                   >
                     {/* Category icon */}

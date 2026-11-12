@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Trash2, Calendar, BookOpen } from 'lucide-react'
+import { Trash2, Calendar, BookOpen, XIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
@@ -13,9 +13,11 @@ import { CategoryGrid } from '@/features/quick-add/CategoryGrid'
 import { DatePickerSheet } from '@/features/quick-add/DatePickerSheet'
 import { useKeyboardInset } from '@/hooks/useKeyboardInset'
 import { db } from '@/lib/db'
-import { formatVND, getDateLabel, getDateNDaysAgo, getTodayString } from '@/lib/utils'
+import { closeButtonClass, cn, formatVND, getDateLabel, getDateNDaysAgo, getTodayString } from '@/lib/utils'
+import { triggerHaptic } from '@/lib/haptic'
 import { PAYMENT_METHODS } from '@/lib/constants'
 import type { Transaction, PaymentMethod } from '@/types'
+import { softDeleteWithUndo } from './softDeleteWithUndo'
 
 // ── Props ─────────────────────────────────────────────────────
 
@@ -37,6 +39,13 @@ export function TransactionDetailSheet({
   onDeleted,
 }: TransactionDetailSheetProps) {
 
+  // Keep rendering the last transaction while the sheet animates closed —
+  // parents clear `transaction` and `open` together. (State adjusted during
+  // render, per React docs, rather than synced in an effect.)
+  const [lastTx, setLastTx] = useState<Transaction | null>(transaction)
+  if (transaction && transaction !== lastTx) setLastTx(transaction)
+  const tx = transaction ?? lastTx
+
   // Edit state
   const [amount, setAmount] = useState(0)
   const [amountDisplay, setAmountDisplay] = useState('')
@@ -48,6 +57,7 @@ export function TransactionDetailSheet({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [discardConfirmOpen, setDiscardConfirmOpen] = useState(false)
   const [initialCategoryId, setInitialCategoryId] = useState<number | null>(null)
   const { inset: keyboardInset, viewportHeight } = useKeyboardInset(open)
 
@@ -83,13 +93,16 @@ export function TransactionDetailSheet({
 
   // Only enable Save when something actually changed
   const isDirty =
-    !!transaction &&
-    (amount !== transaction.amount ||
-      categoryId !== transaction.categoryId ||
-      note.trim() !== (transaction.note ?? '') ||
-      date !== transaction.date ||
-      paymentMethod !== transaction.paymentMethod ||
-      isNote !== (transaction.isNote ?? false))
+    !!tx &&
+    (amount !== tx.amount ||
+      categoryId !== tx.categoryId ||
+      note.trim() !== (tx.note ?? '') ||
+      date !== tx.date ||
+      paymentMethod !== tx.paymentMethod ||
+      isNote !== (tx.isNote ?? false))
+  // While there are unsaved edits, block drag/outside/Escape dismissal and
+  // ask before discarding instead
+  const guardDismiss = open && isDirty && !saving
   const canSave = isDirty && amount > 0 && !!categoryId && !saving
 
   const today = getTodayString()
@@ -101,10 +114,10 @@ export function TransactionDetailSheet({
   const isQuickDate = date === today || date === yesterday
 
   const handleSave = async () => {
-    if (!transaction?.id || !canSave) return
+    if (!tx?.id || !canSave) return
     setSaving(true)
     try {
-      await db.transactions.update(transaction.id, {
+      await db.transactions.update(tx.id, {
         amount,
         categoryId,
         note: note.trim() || undefined,
@@ -115,37 +128,39 @@ export function TransactionDetailSheet({
       toast.success('Đã cập nhật giao dịch')
       onClose()
       onUpdated?.()
+    } catch (err) {
+      console.error('TransactionDetailSheet: save failed', err)
+      toast.error('Không thể lưu thay đổi. Vui lòng thử lại.')
     } finally {
       setSaving(false)
     }
   }
 
   const handleDelete = async () => {
-    if (!transaction?.id) return
-    const txId = transaction.id
-    const txAmount = transaction.amount
-    await db.transactions.update(txId, { deletedAt: new Date().toISOString() })
+    if (!tx?.id) return
+    const ok = await softDeleteWithUndo({ id: tx.id, amount: tx.amount }, onUpdated)
     setDeleteConfirmOpen(false)
+    if (!ok) return
     onClose()
     onDeleted?.()
-    toast('Đã xoá giao dịch · ' + formatVND(txAmount) + 'đ', {
-      action: {
-        label: 'Hoàn tác',
-        onClick: async () => {
-          await db.transactions.update(txId, { deletedAt: null })
-          toast.success('Đã khôi phục')
-          onUpdated?.()
-        },
-      },
-      duration: 5000,
-    })
   }
 
   const handleClose = () => {
+    if (guardDismiss) {
+      setDiscardConfirmOpen(true)
+      return
+    }
     onClose()
   }
 
-  if (!transaction) return null
+  const handleDiscard = () => {
+    setDiscardConfirmOpen(false)
+    onClose()
+  }
+
+  const nestedOpen = datePickerOpen || deleteConfirmOpen || discardConfirmOpen
+
+  if (!tx) return null
 
   return (
     <>
@@ -155,19 +170,26 @@ export function TransactionDetailSheet({
         open={open}
         onOpenChange={(v) => !v && handleClose()}
         repositionInputs={false}
+        // Not dismissible while dirty: vaul ignores close requests and drag,
+        // so the drawer can't animate away before the user confirms
+        dismissible={!guardDismiss}
       >
         <SheetContent
           onPointerDownOutside={(e) => {
-            if (datePickerOpen || deleteConfirmOpen) e.preventDefault()
+            if (nestedOpen) e.preventDefault()
+            else if (guardDismiss) setDiscardConfirmOpen(true)
           }}
           onInteractOutside={(e) => {
-            if (datePickerOpen || deleteConfirmOpen) e.preventDefault()
+            if (nestedOpen) e.preventDefault()
           }}
           onFocusOutside={(e) => {
-            if (datePickerOpen || deleteConfirmOpen) e.preventDefault()
+            if (nestedOpen) e.preventDefault()
+          }}
+          onEscapeKeyDown={() => {
+            if (guardDismiss && !nestedOpen) setDiscardConfirmOpen(true)
           }}
           side="bottom"
-          showCloseButton={true}
+          showCloseButton={!guardDismiss}
           className="rounded-t-3xl bg-card p-0"
           style={
             keyboardInset > 0
@@ -178,6 +200,22 @@ export function TransactionDetailSheet({
         >
           <SheetTitle className="sr-only">Chi tiết giao dịch</SheetTitle>
           <SheetDescription className="sr-only">Xem và chỉnh sửa giao dịch</SheetDescription>
+
+          {/* Dirty: Drawer.Close would be ignored (not dismissible), so use
+              our own X that asks before discarding */}
+          {guardDismiss && (
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic('light')
+                setDiscardConfirmOpen(true)
+              }}
+              className={cn(closeButtonClass, 'absolute top-4 right-4 size-8 z-50')}
+              aria-label="Đóng"
+            >
+              <XIcon size={14} strokeWidth={2.5} />
+            </button>
+          )}
 
           <div className="flex-1 min-h-0 overflow-y-auto">
             <div className="px-5 pb-4 flex flex-col gap-4 pt-4">
@@ -413,6 +451,18 @@ export function TransactionDetailSheet({
         title="Xoá giao dịch này?"
         description="Thao tác này không thể hoàn tác sau 5 giây."
         confirmLabel="Xoá"
+      />
+
+      {/* Discard unsaved edits confirm */}
+      <ConfirmDialog
+        open={discardConfirmOpen}
+        onClose={() => setDiscardConfirmOpen(false)}
+        onConfirm={handleDiscard}
+        variant="warning"
+        title="Bỏ thay đổi chưa lưu?"
+        description="Các chỉnh sửa của bạn sẽ không được lưu."
+        confirmLabel="Bỏ thay đổi"
+        cancelLabel="Tiếp tục sửa"
       />
     </>
   )

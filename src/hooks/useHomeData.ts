@@ -2,6 +2,7 @@ import { useMemo, useCallback } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { toast } from 'sonner'
 import { db } from '@/lib/db'
+import { getMonthlyBudget, getRemainingBudget, getDailyAllowance, getSpentPct } from '@/lib/budget'
 import { getTodayString, getCurrentMonthString, getDaysLeftInMonth, formatVND } from '@/lib/utils'
 import type { RecurringTemplate, Transaction, FinancialSettings, BudgetCategory } from '@/types'
 
@@ -48,7 +49,6 @@ function matchesSchedule(schedule: RecurringTemplate['schedule']): boolean {
   return false
 }
 
-const EMPTY: RecurringItem[] = []
 const EMPTY_TXS: HomeData['recentTransactions'] = []
 const EMPTY_CATS: BudgetCategory[] = []
 const EMPTY_TEMPLATES: RecurringTemplate[] = []
@@ -60,21 +60,23 @@ export function useHomeData(): HomeData {
   const monthKey = getCurrentMonthString()
 
   // ── Live queries (auto re-render on DB change) ──
+  // Raw results are `undefined` until the first query resolves; keep them
+  // raw so isLoading is accurate, and default only afterwards.
 
-  const categories = useLiveQuery(() => db.categories.toArray(), []) ?? EMPTY_CATS
+  const categoriesRaw = useLiveQuery(() => db.categories.toArray(), [])
 
-  const todayTxs = useLiveQuery(
+  const todayTxsRaw = useLiveQuery(
     () => db.transactions.where('date').equals(today).filter((tx) => !tx.deletedAt).toArray(),
     [today],
-  ) ?? EMPTY_TXS
+  )
 
-  const todaySpent = useLiveQuery(async () => {
+  const todaySpentRaw = useLiveQuery(async () => {
     const txs = await db.transactions
       .where('date').equals(today)
       .filter((tx) => !tx.deletedAt && !tx.isNote)
       .toArray()
     return txs.reduce((sum, tx) => sum + tx.amount, 0)
-  }, [today]) ?? 0
+  }, [today])
 
   const yesterdayString = useMemo(() => {
     const d = new Date()
@@ -85,15 +87,15 @@ export function useHomeData(): HomeData {
     return `${yyyy}-${mm}-${dd}`
   }, [])
 
-  const yesterdaySpent = useLiveQuery(async () => {
+  const yesterdaySpentRaw = useLiveQuery(async () => {
     const txs = await db.transactions
       .where('date').equals(yesterdayString)
       .filter((tx) => !tx.deletedAt && !tx.isNote)
       .toArray()
     return txs.reduce((sum, tx) => sum + tx.amount, 0)
-  }, [yesterdayString]) ?? 0
+  }, [yesterdayString])
 
-  const monthTxs = useLiveQuery(
+  const monthTxsRaw = useLiveQuery(
     () =>
       db.transactions
         .where('date')
@@ -101,17 +103,28 @@ export function useHomeData(): HomeData {
         .filter((tx) => !tx.deletedAt && !tx.isNote)
         .toArray(),
     [monthKey],
-  ) ?? EMPTY_TXS
+  )
 
-  const activeTemplates = useLiveQuery(
+  const activeTemplatesRaw = useLiveQuery(
     () => db.recurringTemplates.filter((t) => t.active).toArray(),
     [],
-  ) ?? EMPTY_TEMPLATES
+  )
 
-  const settings = useLiveQuery(
-    () => db.settings.toCollection().first(),
+  // `?? null` inside the query: "no settings row" resolves to null, so
+  // undefined unambiguously means "still loading"
+  // This month's extra incomes — part of the budget (same formula as Budget tab)
+  const extraIncomeRaw = useLiveQuery(
+    async () => {
+      const rows = await db.extraIncomes.where('monthKey').equals(monthKey).toArray()
+      return rows.reduce((sum, e) => sum + e.amount, 0)
+    },
+    [monthKey],
+  )
+
+  const settingsRaw = useLiveQuery(
+    async () => (await db.settings.toCollection().first()) ?? null,
     [],
-  ) ?? null
+  )
 
   const lastMonthKey = useMemo(() => {
     const [y, m] = monthKey.split('-').map(Number)
@@ -120,7 +133,7 @@ export function useHomeData(): HomeData {
     return `${prevY}-${String(prevM).padStart(2, '0')}`
   }, [monthKey])
 
-  const lastMonthTotal = useLiveQuery(
+  const lastMonthTotalRaw = useLiveQuery(
     async () => {
       const txs = await db.transactions
         .where('date')
@@ -130,11 +143,11 @@ export function useHomeData(): HomeData {
       return txs.reduce((sum, tx) => sum + tx.amount, 0)
     },
     [lastMonthKey],
-  ) ?? 0
+  )
 
   // Wider window than the 8 rows shown by default, so the category filter
   // on the Home recent list has data to work with without extra queries.
-  const recentRaw = useLiveQuery(
+  const recentQuery = useLiveQuery(
     () =>
       db.transactions
         .orderBy('id')
@@ -143,7 +156,30 @@ export function useHomeData(): HomeData {
         .limit(50)
         .toArray(),
     [],
-  ) ?? EMPTY_TXS
+  )
+
+  const isLoading =
+    categoriesRaw === undefined ||
+    todayTxsRaw === undefined ||
+    todaySpentRaw === undefined ||
+    yesterdaySpentRaw === undefined ||
+    monthTxsRaw === undefined ||
+    activeTemplatesRaw === undefined ||
+    settingsRaw === undefined ||
+    extraIncomeRaw === undefined ||
+    lastMonthTotalRaw === undefined ||
+    recentQuery === undefined
+
+  const categories = categoriesRaw ?? EMPTY_CATS
+  const todayTxs = todayTxsRaw ?? EMPTY_TXS
+  const todaySpent = todaySpentRaw ?? 0
+  const yesterdaySpent = yesterdaySpentRaw ?? 0
+  const monthTxs = monthTxsRaw ?? EMPTY_TXS
+  const activeTemplates = activeTemplatesRaw ?? EMPTY_TEMPLATES
+  const settings = settingsRaw ?? null
+  const extraIncome = extraIncomeRaw ?? 0
+  const lastMonthTotal = lastMonthTotalRaw ?? 0
+  const recentRaw = recentQuery ?? EMPTY_TXS
 
   // ── Derived values ──
 
@@ -162,14 +198,18 @@ export function useHomeData(): HomeData {
 
   const { remainingBudget, dailyAllowance, spentPct } = useMemo(() => {
     if (!settings?.income) return { remainingBudget: null, dailyAllowance: null, spentPct: null }
-    const savingTarget = settings.savingTarget ?? 0
-    const flexAmount = settings.income - savingTarget
-    const remaining = flexAmount - monthSpent
-    const daysLeft = getDaysLeftInMonth()
-    const daily = Math.max(0, remaining / daysLeft)
-    const pct = flexAmount > 0 ? Math.min(1, monthSpent / flexAmount) : 0
+    // Shared formula (lib/budget.ts) so Home matches the Budget & Overview tabs
+    const budget = getMonthlyBudget({
+      income: settings.income,
+      extraIncome,
+      savingTarget: settings.savingTarget ?? 0,
+    })
+    const remaining = getRemainingBudget(budget, monthSpent)
+    // Hero shows 0/day plus the over-budget state when nothing is left
+    const daily = getDailyAllowance(remaining, getDaysLeftInMonth()) ?? 0
+    const pct = Math.min(1, getSpentPct(monthSpent, budget) / 100)
     return { remainingBudget: remaining, dailyAllowance: daily, spentPct: pct }
-  }, [settings, monthSpent])
+  }, [settings, extraIncome, monthSpent])
 
   const todayRecurringMap = useMemo(() => {
     const m = new Map<number, number>()
@@ -239,22 +279,20 @@ export function useHomeData(): HomeData {
     toast.success(`Đã ghi −${formatVND(template.amount)}đ · ${item.category?.name ?? ''}`)
   }, [today])
 
-  const isLoading = categories == null || todayTxs == null || monthTxs == null
-
   return {
     isLoading,
     todaySpent,
     yesterdaySpent,
     monthSpent,
-    settings: settings as FinancialSettings | null,
+    settings,
     remainingBudget,
     dailyAllowance,
     spentPct,
     daysLeft: getDaysLeftInMonth(),
     lastMonthTotal,
     categoryWarnings,
-    recurringItems: recurringItems ?? EMPTY,
-    recentTransactions: recentTransactions ?? EMPTY_TXS,
+    recurringItems,
+    recentTransactions,
     toggleRecurring,
     hasAnyRecurring: activeTemplates.length > 0,
   }

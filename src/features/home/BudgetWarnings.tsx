@@ -24,7 +24,7 @@ export function BudgetWarnings({ warnings }: BudgetWarningsProps) {
           return (
             <div
               key={category.id}
-              className="flex items-center gap-2.5 bg-danger/10 border border-danger/30 p-3 rounded-[18px] shadow-sm animate-in zoom-in-95 duration-200 active-scale"
+              className="flex items-center gap-2.5 bg-danger/10 border border-danger/30 p-3 rounded-[18px] shadow-sm"
             >
               <div className="size-7 rounded-full bg-danger/20 flex items-center justify-center shrink-0">
                 <AlertCircle size={14} className="text-danger" />
@@ -43,13 +43,13 @@ export function BudgetWarnings({ warnings }: BudgetWarningsProps) {
         return (
           <div
             key={category.id}
-            className="flex items-center gap-2.5 bg-accent/10 border border-accent/30 p-3 rounded-[18px] shadow-sm animate-in zoom-in-95 duration-200 active-scale"
+            className="flex items-center gap-2.5 bg-accent/10 border border-accent/30 p-3 rounded-[18px] shadow-sm"
           >
             <div className="size-7 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
-              <AlertTriangle size={14} className="text-accent" />
+              <AlertTriangle size={14} className="text-accent-dark" />
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="text-[11px] font-black text-accent uppercase tracking-wider leading-tight">
+              <h4 className="text-[11px] font-black text-accent-dark uppercase tracking-wider leading-tight">
                 {isFull ? "Đã đạt hạn mức" : "Sắp vượt hạn mức"}
               </h4>
               <p className="text-[11px] text-accent-dark font-bold leading-tight truncate">

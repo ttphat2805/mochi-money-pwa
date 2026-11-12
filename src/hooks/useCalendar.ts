@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
 import { getTodayString } from '@/lib/utils'
@@ -44,13 +44,28 @@ const MONTH_NAMES = [
 
 // ── Helpers ───────────────────────────────────────────────────
 
-export function getHeatLevel(amount: number, maxAmount: number): 0 | 1 | 2 | 3 | 4 {
-  if (amount === 0 || maxAmount === 0) return 0
-  const ratio = amount / maxAmount
+/**
+ * Heat level 0–4 for a day's spend. `scaleMax` should come from
+ * `getHeatScaleMax` (a robust cap), so amounts at/above it get level 4.
+ */
+export function getHeatLevel(amount: number, scaleMax: number): 0 | 1 | 2 | 3 | 4 {
+  if (amount <= 0 || scaleMax <= 0) return 0
+  const ratio = amount / scaleMax
   if (ratio < 0.25) return 1
   if (ratio < 0.50) return 2
   if (ratio < 0.75) return 3
   return 4
+}
+
+/**
+ * Robust heatmap ceiling: ~90th percentile (nearest-rank) of non-zero daily
+ * totals. One rent-sized outlier then gets level 4 instead of flattening
+ * every other day into level 1. Month has ≤31 values, so sorting is cheap.
+ */
+export function getHeatScaleMax(totals: readonly number[]): number {
+  const nonZero = totals.filter((v) => v > 0).sort((a, b) => a - b)
+  if (nonZero.length === 0) return 0
+  return nonZero[Math.ceil(nonZero.length * 0.9) - 1]
 }
 
 function generateCalendarDays(year: number, month: number, today: string): CalendarDayCell[] {
@@ -75,12 +90,26 @@ function generateCalendarDays(year: number, month: number, today: string): Calen
 // ── Hook ──────────────────────────────────────────────────────
 
 export function useCalendar() {
-  const today = getTodayString()
+  // ── Today — refreshed when the app returns to foreground (midnight rollover) ──
+  const [today, setToday] = useState(getTodayString)
+
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState === 'visible') setToday(getTodayString())
+    }
+    document.addEventListener('visibilitychange', refresh)
+    window.addEventListener('focus', refresh)
+    return () => {
+      document.removeEventListener('visibilitychange', refresh)
+      window.removeEventListener('focus', refresh)
+    }
+  }, [])
+
   const todayYear = parseInt(today.slice(0, 4), 10)
   const todayMonth = parseInt(today.slice(5, 7), 10) - 1
 
-  const [viewYear, setViewYear] = useState(todayYear)
-  const [viewMonth, setViewMonth] = useState(todayMonth)
+  const [view, setView] = useState({ year: todayYear, month: todayMonth })
+  const { year: viewYear, month: viewMonth } = view
   const [selectedDay, setSelectedDay] = useState<string | null>(today)
 
   const { categories } = useCategoryStore()
@@ -88,36 +117,45 @@ export function useCalendar() {
   const viewMonthKey = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}`
   const monthLabel = `${MONTH_NAMES[viewMonth]} · ${viewYear}`
   const canGoNext = viewYear < todayYear + 10 // Allow scheduling up to 10 years in the future
+  const canGoPrev = true
+  const isCurrentMonth = viewMonthKey === today.slice(0, 7)
 
-  const goToPrevMonth = () => {
-    setViewMonth((prev) => {
-      if (prev === 0) { setViewYear((y) => y - 1); return 11 }
-      return prev - 1
-    })
+  const goToPrevMonth = useCallback(() => {
+    setView(({ year, month }) => (month === 0 ? { year: year - 1, month: 11 } : { year, month: month - 1 }))
     setSelectedDay(null)
-  }
+  }, [])
 
-  const goToNextMonth = () => {
+  const goToNextMonth = useCallback(() => {
     if (!canGoNext) return
-    setViewMonth((prev) => {
-      if (prev === 11) { setViewYear((y) => y + 1); return 0 }
-      return prev + 1
-    })
+    setView(({ year, month }) => (month === 11 ? { year: year + 1, month: 0 } : { year, month: month + 1 }))
     setSelectedDay(null)
-  }
+  }, [canGoNext])
+
+  /** Tap on a day: select it, or deselect when tapped again (stable for memoized cells) */
+  const toggleSelectedDay = useCallback((date: string) => {
+    setSelectedDay((prev) => (prev === date ? null : date))
+  }, [])
 
   // ── Reactive DB query ──
+  // Includes notes (shown in the day panel); totals below exclude them.
+  // Result is tagged with its month so a stale result (dexie keeps the previous
+  // value while the new month's query runs) is never mistaken for "no data".
 
-  const monthTxsRaw = useLiveQuery(
-    () =>
-      db.transactions
+  const monthResult = useLiveQuery(
+    async () => ({
+      key: viewMonthKey,
+      txs: await db.transactions
         .where('date')
         .between(viewMonthKey + '-01', viewMonthKey + '-32', true, false)
-        .filter((tx) => !tx.deletedAt && !tx.isNote)
+        .filter((tx) => !tx.deletedAt)
         .toArray(),
+    }),
     [viewMonthKey],
   )
-  const monthTxs = monthTxsRaw ?? EMPTY_TXS
+  const isLoading = monthResult === undefined
+  /** Month the shown numbers belong to — lags viewMonthKey for a frame on month change */
+  const dataMonthKey = monthResult?.key ?? viewMonthKey
+  const monthTxs = monthResult?.txs ?? EMPTY_TXS
 
   const catMap = useMemo(() => {
     const m = new Map<number, BudgetCategory>()
@@ -127,14 +165,15 @@ export function useCalendar() {
 
   const dailyTotals = useMemo(
     () => monthTxs.reduce<Record<string, number>>((acc, tx) => {
+      if (tx.isNote) return acc
       acc[tx.date] = (acc[tx.date] ?? 0) + tx.amount
       return acc
     }, {}),
     [monthTxs],
   )
 
-  const maxDailyAmount = useMemo(
-    () => Math.max(0, ...Object.values(dailyTotals)),
+  const heatScaleMax = useMemo(
+    () => getHeatScaleMax(Object.values(dailyTotals)),
     [dailyTotals],
   )
 
@@ -146,10 +185,16 @@ export function useCalendar() {
   )
 
   const monthStats = useMemo<MonthStats>(() => {
-    const total = Object.values(dailyTotals).reduce((a, b) => a + b, 0)
-    const daysWithSpending = Object.values(dailyTotals).filter((v) => v > 0)
-    const avgPerDay = daysWithSpending.length > 0 ? Math.round(total / daysWithSpending.length) : 0
-    const maxEntry = Object.entries(dailyTotals).sort(([, a], [, b]) => b - a)[0]
+    const entries = Object.entries(dailyTotals)
+    let total = 0
+    let daysWithSpending = 0
+    let maxEntry: [string, number] | null = null
+    for (const entry of entries) {
+      total += entry[1]
+      if (entry[1] > 0) daysWithSpending++
+      if (!maxEntry || entry[1] > maxEntry[1]) maxEntry = entry
+    }
+    const avgPerDay = daysWithSpending > 0 ? Math.round(total / daysWithSpending) : 0
     return { total, avgPerDay, maxDay: maxEntry?.[0] ?? null, maxDayAmount: maxEntry?.[1] ?? 0 }
   }, [dailyTotals])
 
@@ -158,29 +203,32 @@ export function useCalendar() {
     [viewYear, viewMonth, today],
   )
 
-  const goToToday = () => {
-    setViewYear(todayYear)
-    setViewMonth(todayMonth)
+  const goToToday = useCallback(() => {
+    setView({ year: todayYear, month: todayMonth })
     setSelectedDay(today)
-  }
+  }, [todayYear, todayMonth, today])
 
   return {
     today,
     viewYear,
     viewMonth,
     viewMonthKey,
+    dataMonthKey,
     monthLabel,
+    isCurrentMonth,
     canGoNext,
+    canGoPrev,
     selectedDay,
     setSelectedDay,
+    toggleSelectedDay,
     goToPrevMonth,
     goToNextMonth,
     goToToday,
     dailyTotals,
-    maxDailyAmount,
+    heatScaleMax,
     selectedDayTxs,
     monthStats,
     calendarDays,
-    isLoading: monthTxsRaw === undefined,
+    isLoading,
   }
 }

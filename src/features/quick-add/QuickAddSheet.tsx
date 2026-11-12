@@ -6,7 +6,7 @@ import { cn, formatVND, tint } from "@/lib/utils";
 import { Info, StickyNote } from "lucide-react";
 import { CloseButton } from "@/components/CloseButton";
 import { CategoryIcon } from "@/components/CategoryIcon";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { AmountDisplay } from "./AmountDisplay";
 import { BudgetWarningDialog } from "./BudgetWarningDialog";
@@ -16,6 +16,12 @@ import { DateSelector } from "./DateSelector";
 import { FloatingSuccessAnimation } from "./FloatingSuccessAnimation";
 import { NoteInput } from "./NoteInput";
 import { Numpad } from "./Numpad";
+
+/** Dismiss the on-screen keyboard if a text field is focused */
+function blurActiveInput() {
+  const el = document.activeElement;
+  if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) el.blur();
+}
 
 interface QuickAddSheetProps {
   quickAdd: ReturnType<typeof useQuickAdd>;
@@ -82,7 +88,6 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
         ? "Chọn danh mục"
         : `Lưu ${formatVND(amount)}đ`;
 
-  const [isInputFocused, setIsInputFocused] = useState(false);
   const [showNoteTooltip, setShowNoteTooltip] = useState(false);
   const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -126,11 +131,17 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
   };
 
   // Sort: keep initial selection at top to prevent layout jumps
-  const sortedForDisplay = [...sortedCategories].sort((a, b) => {
-    if (a.id === initialCategoryId) return -1;
-    if (b.id === initialCategoryId) return 1;
-    return 0;
-  });
+  const sortedForDisplay = useMemo(
+    () =>
+      [...sortedCategories].sort((a, b) => {
+        if (a.id === initialCategoryId) return -1;
+        if (b.id === initialCategoryId) return 1;
+        return 0;
+      }),
+    [sortedCategories, initialCategoryId],
+  );
+
+  const keyboardOpen = keyboardInset > 0;
 
   return (
     <>
@@ -156,7 +167,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
         >
           <div className="flex flex-col h-full">
             {/* ── HEADER: close + amount + date ── */}
-            <div className="px-5 pt-3 pb-3 shrink-0 bg-surface">
+            <div className="px-5 pt-3 pb-2 shrink-0 bg-surface">
               {/* Top row: title + isNote switch + date + close */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -170,9 +181,14 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                   {/* Compact toggle switch */}
                   <button
                     type="button"
-                    onClick={toggleIsNote}
-                    aria-label="Bật/tắt chế độ ghi chú"
-                    className="relative flex-shrink-0"
+                    onClick={() => {
+                      triggerHaptic("light");
+                      toggleIsNote();
+                    }}
+                    role="switch"
+                    aria-checked={isNote}
+                    aria-label="Chế độ ghi chú"
+                    className="relative flex-shrink-0 flex items-center px-2 -mx-2"
                   >
                     <div className={`relative w-8 h-[18px] rounded-full transition-colors duration-200 ${
                       isNote ? 'bg-sky-500' : 'bg-white/15'
@@ -189,7 +205,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                       type="button"
                       onClick={() => setShowNoteTooltip((v) => !v)}
                       aria-label="Giải thích ghi chú"
-                      className="flex items-center justify-center size-[18px] rounded-full text-text-hint active:text-text-muted transition-colors"
+                      className="!min-h-0 flex items-center justify-center size-11 -m-[13px] rounded-full text-text-hint active:text-text-muted transition-colors"
                     >
                       <Info size={13} />
                     </button>
@@ -229,10 +245,13 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                 display={amountDisplay}
                 hasValue={amount > 0}
                 onClear={clearAmount}
+                compact
               />
 
-              {/* Selected category pill — stays visible when the keyboard
-                  collapses the category grid */}
+              {/* Selected category pill — only while the keyboard is open and
+                  the grid is squeezed out; otherwise the grid shows the
+                  selection and the 28px goes to the category list */}
+              {keyboardOpen && (
               <div className="flex justify-center h-7 -mt-1">
                 {selectedCategory && (
                   <span
@@ -251,12 +270,13 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                   </span>
                 )}
               </div>
+              )}
             </div>
 
             {/* ── Scrollable: Categories ONLY ── */}
             <div className="flex-1 overflow-y-auto scrollbar-hide px-5 min-h-0">
               {/* Category label */}
-              <span className="text-text-muted text-[10px] font-black uppercase tracking-[1.5px] block mb-2">
+              <span className="text-text-muted text-[10px] font-black uppercase tracking-[1.5px] block mb-1.5">
                 Danh mục
               </span>
 
@@ -264,6 +284,7 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
               <CategoryGrid
                 categories={sortedForDisplay}
                 selectedId={selectedCategoryId}
+                compact
                 onSelect={(id) => {
                   selectCategory(id);
                   triggerHaptic("light");
@@ -273,48 +294,36 @@ export function QuickAddSheet({ quickAdd }: QuickAddSheetProps) {
                 }}
               />
               {/* Extra space for scrolling */}
-              <div className="h-4" />
+              <div className="h-3" />
             </div>
 
             <div
               className="px-5 pb-[calc(10px+env(safe-area-inset-bottom))] shrink-0 bg-surface pt-2 border-t border-border"
             >
-              <div className="mb-3 relative">
-                <NoteInput 
-                  value={note} 
-                  onChange={setNote} 
-                  onFocusChange={setIsInputFocused}
-                />
-                {/* "Done" overlay button — only visible when keyboard is open */}
-                {isInputFocused && (
-                  <button
-                    onPointerDown={(e) => {
-                      // Prevent the input from regaining focus
-                      e.preventDefault()
-                      if (document.activeElement instanceof HTMLElement)
-                        document.activeElement.blur()
-                    }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-7 px-3 rounded-full bg-text text-bg text-[12px] font-semibold active:scale-90 transition-transform"
-                  >
-                    Xong
-                  </button>
-                )}
+              {/* Keyboard closes via its own "Done" key (enterKeyHint) or by
+                  tapping the numpad/categories — no overlay button needed */}
+              <div className="mb-2">
+                <NoteInput value={note} onChange={setNote} />
               </div>
 
-              {/* (isNote big block removed — now compact switch in header) */}
-              <Numpad
-                onDigit={appendDigit}
-                onDelete={deleteDigit}
-                onConfirm={handleSave}
-                onShortcut={handleShortcut}
-                onSetAmount={(value) => setAmount(value)}
-                amount={amount}
-                frequentAmounts={frequentAmounts}
-                confirmLabel={confirmLabel}
-                canConfirm={canSave}
-                isSaving={isSaving}
-                isNote={isNote}
-              />
+              {/* Any numpad tap closes the note keyboard. iOS keeps the input
+                  focused when a button is tapped, so blur explicitly — on click
+                  (not pointerdown) so the sheet doesn't resize mid-tap. */}
+              <div onClickCapture={blurActiveInput}>
+                <Numpad
+                  onDigit={appendDigit}
+                  onDelete={deleteDigit}
+                  onConfirm={handleSave}
+                  onShortcut={handleShortcut}
+                  onSetAmount={(value) => setAmount(value)}
+                  amount={amount}
+                  frequentAmounts={frequentAmounts}
+                  confirmLabel={confirmLabel}
+                  canConfirm={canSave}
+                  isSaving={isSaving}
+                  isNote={isNote}
+                />
+              </div>
             </div>
 
           </div>
